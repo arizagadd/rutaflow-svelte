@@ -1,19 +1,13 @@
-import adapter from '@sveltejs/adapter-static'
+import adapter from '@sveltejs/adapter-node';
 import preprocess from "svelte-preprocess";
-import sveltePreprocess from 'svelte-preprocess';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: sveltePreprocess(),
+  preprocess: preprocess(),
 
-	kit: {
-		adapter: adapter({
-			pages: 'build',
-			assets: 'build',
-			fallback: '404.html',
-			precompress: false
-		})
-	}
+  kit: {
+    adapter: adapter(), // Use adapter() without configuration for defaults
+  }
 };
 
 export default config;
