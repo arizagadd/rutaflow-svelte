@@ -1,0 +1,16 @@
+{
+	"/": [
+		"src/routes/+page.server.js",
+		"src/routes/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/drivers/[driverId]": [
+		"src/routes/drivers/[driverId]/+page.server.js",
+		"src/routes/+layout.js",
+		"src/routes/+layout.js"
+	],
+	"/drivers/[driverId]/routes/[routeId]": [
+		"src/routes/drivers/[driverId]/routes/[routeId]/+page.server.js",
+		"src/routes/+layout.js"
+	]
+}
