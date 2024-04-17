@@ -89,7 +89,7 @@
             ctx.drawImage(img, 0, 0, width, height);
 
             // Get the compressed data as a base64-encoded string
-            const compressedData = canvas.toDataURL('image/jpeg', 0.7); // Adjust the quality as needed
+            const compressedData = canvas.toDataURL('image/jpeg', 0.55); // Adjust the quality as needed
 
             resolve(compressedData);
             };
