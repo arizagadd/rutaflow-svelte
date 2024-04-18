@@ -216,6 +216,27 @@
                 </ion-label>
             </ion-item>
         {/if}
+        {#if delivery.logistic_comments && delivery.logistic_comments.trim().length}
+
+            {#if delivery.logistic_comments!='<br>'}
+
+                <ion-item>
+
+                    <ion-icon icon={informationCircleOutline} slot="start"></ion-icon>
+
+                    <ion-label class="ion-text-wrap">
+
+                        <p>Comentarios logísticos</p>
+
+                        <h2>{delivery.logistic_comments}</h2>
+
+                    </ion-label>
+
+                </ion-item>
+
+            {/if}
+
+        {/if}
         <ion-item>
             <ion-icon icon={createOutline} slot="start"></ion-icon>
             <ion-textarea bind:this={driverComments} label="Notas" placeholder="Escribe aquí..."></ion-textarea>
