@@ -144,7 +144,7 @@
         });
     }
 
-    const showDeliveryInfoModal = (delivery,isFirstDelivery,currentDeliveryHasImage) => {
+    const showDeliveryInfoModal = (delivery,isLast) => {
         refresh_event_info(delivery)
             .then((evidence_data) => {
             delivery.client_name = stats.client_name;
@@ -155,7 +155,7 @@
                 delivery.comments = evidence_data.comments;
             }
             IonicShowModal("modal-delivery-info", DeliveryInfo, {
-                delivery
+                delivery,isLast
             }).then((result) => {
                 //console.log(result);
             });
@@ -164,8 +164,9 @@
     };
 
     const showChecklistModal = (checklist,driverId,routeId) => {
+        var isLast = false;
         IonicShowModal("modal-checklist", ChecklistControl, {
-            checklist,driverId,routeId
+            checklist,driverId,routeId,isLast
         }).then((result) => {
             
         });
@@ -231,6 +232,10 @@
 
         await alert.present();
     };
+
+    function isLastDelivery(index) {
+        return index === deliveries.length - 1;
+    }
 
 
 </script>
@@ -316,7 +321,7 @@
                                             refreshing-text="Refreshing..."></ion-refresher-content>
                     </ion-refresher>
                     <ion-list>
-                        {#each deliveries as delivery (delivery.id_event)}
+                        {#each deliveries as delivery, index (delivery.id_event)}
                             <ion-item>
                                 <ion-avatar slot="start">
                                     <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery)}; color: {getContrast(getDeliveryColor(delivery))}">
@@ -325,7 +330,7 @@
                                         </div>
                                     </div>
                                 </ion-avatar>
-                                <ion-label button on:click={() => showDeliveryInfoModal(delivery)}>
+                                <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}>
                                     <ion-text color="#2e2e2e">
                                         <h3>
                                             {delivery.title}
@@ -354,7 +359,7 @@
                                             refreshing-text="Refreshing..."></ion-refresher-content>
                     </ion-refresher>
                     <ion-list>
-                        {#each deliveries as delivery (delivery.id_event)}
+                        {#each deliveries as delivery, index (delivery.id_event)}
                             <ion-item>
                                 <ion-avatar slot="start">
                                     <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery)}; color: {getContrast(getDeliveryColor(delivery))}">
@@ -363,7 +368,7 @@
                                         </div>
                                     </div>
                                 </ion-avatar>
-                                <ion-label button on:click={() => showDeliveryInfoModal(delivery)}>
+                                <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}>
                                     <ion-text color="#2e2e2e">
                                         <h3>
                                             {delivery.title}
@@ -417,7 +422,7 @@
                                 // Allow showing the modal only if the current delivery has an image
                                 // or if it's the first delivery and the current delivery does not have an image
                                 if (currentDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
-                                    showDeliveryInfoModal(delivery, isFirstDelivery, currentDeliveryHasImage);
+                                    showDeliveryInfoModal(delivery);
                                 } else {
                                     showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
                                 }

@@ -9,15 +9,16 @@
     import {duplicateOutline} from "ionicons/icons"; 
     import {locationOutline} from "ionicons/icons"; 
     import {informationCircleOutline} from "ionicons/icons";
+    import {IonicShowModal} from "../../../../../services/IonicControllers";
+    import ChecklistControl from './_ChecklistControl.svelte';
     let overlayElement = document.querySelector("ion-modal");
     //console.log(overlayElement.componentProps);
     let delivery = overlayElement.componentProps.delivery;
+    let isLast = overlayElement.componentProps.isLast;
     //let checklist = overlayElement.componentProps.checklist;
     let driverComments = delivery.driver_comments?delivery.driver_comments:'';
     let selectedImage = delivery.img?delivery.img:'';
     let img_id = "";
-
-    $: ({routeId,driverId} = $page.params);
 
     const handleFileChange = async (event) => {
         const fileInput = event.target;
@@ -99,7 +100,7 @@
         });
     };
 
-    const closeOverlay = () => {
+    const closeModal = () => {
         overlayElement.dismiss({ data: Date.now() });
     };
 
@@ -120,11 +121,27 @@
                 })
                 .then(response => response.json())
                 .then(data => {
-                    closeOverlay();
+                    closeModal();
+                    var checklist = {};
+                    var routeId = lv.id_route;
+                    //Show final km and gas inputs
+                    if(isLast){
+                        showKmGasModal("","",routeId,isLast);
+                    }
                 })
                 .catch(error => {
                 console.error('Error fetching data:', error);
             });
+    };
+
+    const showKmGasModal = (checklist,driverId,routeId,isLast) => {
+        overlayElement.componentProps.routeId = routeId;
+        overlayElement.componentProps.driverId = delivery.id_driver;
+        IonicShowModal("modal-km-gas", ChecklistControl, {
+            checklist,driverId,routeId,isLast
+        }).then((result) => {
+            
+        });
     };
 
 
@@ -133,7 +150,7 @@
 <ion-header translucent>
     <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-button color="medium" on:click={closeOverlay}>Cancelar</ion-button>
+          <ion-button color="medium" on:click={closeModal}>Cancelar</ion-button>
         </ion-buttons>
         <ion-title title="{delivery.title}">{delivery.title}</ion-title>
         <ion-buttons slot="end">

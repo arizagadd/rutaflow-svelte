@@ -1,27 +1,11 @@
-import { c as create_ssr_component, f as each, a as add_attribute, e as escape, d as subscribe, v as validate_component } from "../../../../../../chunks/ssr.js";
+import { c as create_ssr_component, a as add_attribute, f as each, e as escape, d as subscribe, v as validate_component } from "../../../../../../chunks/ssr.js";
 import { p as page } from "../../../../../../chunks/stores.js";
 import { g as goto } from "../../../../../../chunks/client.js";
 import { arrowBack, locationOutline } from "ionicons/icons/index.mjs";
-import { I as IonPage } from "../../../../../../chunks/IonPage.js";
 import { modalController } from "@ionic/core";
 import { defineCustomElement } from "@ionic/core/components/ion-modal.js";
 import { initialize } from "@ionic/core/components/index.js";
-const css$1 = {
-  code: ".loadEvidence.svelte-4jkdim{--background:#93e9be;--background-hover:#9ce0be;--background-activated:#88f4be;--background-focused:#88f4be;--color:blue;--border-radius:0;--border-color:#000;--border-style:solid;--border-width:1px;--box-shadow:0 2px 6px 0 rgb(0, 0, 0, 0.25);--ripple-color:deeppink;--padding-top:10px;--padding-bottom:10px}",
-  map: null
-};
-const ChecklistControl = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let overlayElement = document.querySelector("ion-modal");
-  const checklist = overlayElement.componentProps.checklist;
-  overlayElement.componentProps.driverId;
-  overlayElement.componentProps.routeId;
-  let checkk = [];
-  let imagesName = {};
-  $$result.css.add(css$1);
-  return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button color="medium" data-svelte-h="svelte-1dnmkxs">Cancelar</ion-button></ion-buttons> <ion-title data-svelte-h="svelte-ucox25">Requerimientos de ruta</ion-title> <ion-buttons slot="end"><ion-button strong data-svelte-h="svelte-1ida0il">Confirmar</ion-button></ion-buttons></ion-toolbar></ion-header> <ion-content fullscreen><ion-list>${each(checklist, (check) => {
-    return `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-${check.id_checklist_event}`, 0)} style="pointer-events: auto;" type="checkbox"${add_attribute("value", check.id_checklist_event, 0)} required${~checkk.indexOf(check.id_checklist_event) ? add_attribute("checked", true, 1) : ""}> <p style="margin-left:10px;">${escape(check.item)}</p></ion-label> <ion-button fill="outline" class="loadEvidence svelte-4jkdim"><label for="${"chklist-" + escape(check.id_checklist_event, true)}" style="padding: 8px 10px">${escape(imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : "Cargar evidencia")}</label> <input style="display:none;" id="${"chklist-" + escape(check.id_checklist_event, true)}" name="fileToUpload" type="file" accept="image/*"> </ion-button> </ion-item>`;
-  })}</ion-list> </ion-content>`;
-});
+import { I as IonPage } from "../../../../../../chunks/IonPage.js";
 const registerCustomElement = (tagName, component) => {
   if (!customElements.get(tagName)) {
     class SvelteElement extends HTMLElement {
@@ -62,6 +46,27 @@ const IonicShowModal = async (selector, component, componentProps) => {
   modal.present();
   return await modal.onWillDismiss();
 };
+const css$1 = {
+  code: ".ini-km.svelte-1kg2bry{--padding-top:10px}.loadEvidence.svelte-1kg2bry{--background:#93e9be;--background-hover:#9ce0be;--background-activated:#88f4be;--background-focused:#88f4be;--color:blue;--border-radius:0;--border-color:#000;--border-style:solid;--border-width:1px;--box-shadow:0 2px 6px 0 rgb(0, 0, 0, 0.25);--ripple-color:deeppink;--padding-top:10px;--padding-bottom:10px}",
+  map: null
+};
+const ChecklistControl = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+  let overlayElement = document.querySelector("ion-modal");
+  const checklist = overlayElement.componentProps.checklist;
+  overlayElement.componentProps.driverId;
+  overlayElement.componentProps.routeId;
+  const isLast = overlayElement.componentProps.isLast;
+  let initial_km = null;
+  let initial_gas = null;
+  let final_km = null;
+  let final_gas = null;
+  let checkk = [];
+  let imagesName = {};
+  $$result.css.add(css$1);
+  return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button color="medium" data-svelte-h="svelte-1dnmkxs">Cancelar</ion-button></ion-buttons> <ion-title data-svelte-h="svelte-ucox25">Requerimientos de ruta</ion-title> <ion-buttons slot="end"><ion-button strong data-svelte-h="svelte-1ida0il">Confirmar</ion-button></ion-buttons></ion-toolbar></ion-header> <ion-content fullscreen><ion-list>${isLast ? `<ion-item><ion-input class="fin-km" type="number" label="Kilometraje final" labelplacement="stacked" placeholder="Ingresa kilometraje actual" required${add_attribute("this", final_km, 0)}></ion-input></ion-item> <ion-item><ion-input class="fin-km" type="number" label="Gasolina final (litros)" labelplacement="stacked" placeholder="Ingresa la gas actual" required${add_attribute("this", final_gas, 0)}></ion-input></ion-item>` : `<ion-item><ion-input class="ini-km svelte-1kg2bry" type="number" label="Kilometraje inicial" labelplacement="stacked" placeholder="Ingresa kilometraje actual" required${add_attribute("this", initial_km, 0)}></ion-input></ion-item> <ion-item><ion-input class="gas-km" type="number" label="Gasolina inicial (litros)" labelplacement="stacked" placeholder="Ingresa la gas actual" required${add_attribute("this", initial_gas, 0)}></ion-input></ion-item>`} ${checklist ? `${each(checklist, (check) => {
+    return `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-${check.id_checklist_event}`, 0)} style="pointer-events: auto;" type="checkbox"${add_attribute("value", check.id_checklist_event, 0)} required${~checkk.indexOf(check.id_checklist_event) ? add_attribute("checked", true, 1) : ""}> <p style="margin-left:10px;">${escape(check.item)}</p></ion-label> <ion-button fill="outline" class="loadEvidence svelte-1kg2bry"><label for="${"chklist-" + escape(check.id_checklist_event, true)}" style="padding: 8px 10px">${escape(imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : "Cargar evidencia")}</label> <input style="display:none;" id="${"chklist-" + escape(check.id_checklist_event, true)}" name="fileToUpload" type="file" accept="image/*"> </ion-button> </ion-item>`;
+  })}` : ``}</ion-list> </ion-content>`;
+});
 const css = {
   code: ".sub.svelte-ziybgw{font-size:12px;margin-top:5px}.order-wrapper.svelte-ziybgw{width:100%;height:100%;border-radius:50%;border:1px solid #CBCFDE;text-align:center;display:flex;justify-content:center}.order.svelte-ziybgw{align-self:center}.notes.svelte-ziybgw{background-color:#e0b500;display:inline-block;width:8px;height:8px;border-radius:50%}",
   map: null
@@ -158,7 +163,8 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     });
   }
   const showChecklistModal = (checklist2, driverId2, routeId2) => {
-    IonicShowModal("modal-checklist", ChecklistControl, { checklist: checklist2, driverId: driverId2, routeId: routeId2 }).then((result) => {
+    var isLast = false;
+    IonicShowModal("modal-checklist", ChecklistControl, { checklist: checklist2, driverId: driverId2, routeId: routeId2, isLast }).then((result) => {
     });
     changeRouteStatus(routeId2, "checklist");
     return "";
@@ -203,9 +209,9 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   $$unsubscribe_page();
   return `${$$result.head += `<!-- HEAD_svelte-kn0kph_START -->${$$result.title = `<title>Rutaflow - Detalles de ruta</title>`, ""}<!-- HEAD_svelte-kn0kph_END -->`, ""} ${dataSession ? `${validate_component(IonPage, "IonPage").$$render($$result, {}, {}, {
     default: () => {
-      return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button title="Atrás" alt="Atrás" data-svelte-h="svelte-7ppz3r"><ion-icon${add_attribute("icon", arrowBack, 0)}></ion-icon></ion-button></ion-buttons> <ion-buttons slot="secondary"><ion-button>${escape(dataSession.name)}</ion-button></ion-buttons> <ion-title>${escape(stats.name)}</ion-title></ion-toolbar></ion-header> ${checklist.length > 0 ? `${checklist.every((item) => item.img) ? `<ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1poui8g"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Pull to refresh" refreshing-spinner="circles" refreshing-text="Refreshing..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery) => {
+      return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button title="Atrás" alt="Atrás" data-svelte-h="svelte-7ppz3r"><ion-icon${add_attribute("icon", arrowBack, 0)}></ion-icon></ion-button></ion-buttons> <ion-buttons slot="secondary"><ion-button>${escape(dataSession.name)}</ion-button></ion-buttons> <ion-title>${escape(stats.name)}</ion-title></ion-toolbar></ion-header> ${checklist.length > 0 ? `${checklist.every((item) => item.img) ? `<ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1poui8g"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Pull to refresh" refreshing-spinner="circles" refreshing-text="Refreshing..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery, index) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-ziybgw"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery)), true)}"><div class="order svelte-ziybgw">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-ziybgw"></span>` : ``} </h3></ion-text> <div class="sub svelte-ziybgw" data-svelte-h="svelte-130ohbs"> </div></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end"></ion-icon> </ion-item>`;
-      })}</ion-list></ion-content>` : `${escape(showChecklistModal(checklist, driverId, routeId))} <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1poui8g"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Pull to refresh" refreshing-spinner="circles" refreshing-text="Refreshing..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery) => {
+      })}</ion-list></ion-content>` : `${escape(showChecklistModal(checklist, driverId, routeId))} <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1poui8g"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Pull to refresh" refreshing-spinner="circles" refreshing-text="Refreshing..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery, index) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-ziybgw"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery)), true)}"><div class="order svelte-ziybgw">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-ziybgw"></span>` : ``} </h3></ion-text> <div class="sub svelte-ziybgw" data-svelte-h="svelte-130ohbs"> </div></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end"></ion-icon> </ion-item>`;
       })}</ion-list></ion-content>`}` : `${escape(changeRouteStatus(routeId, "enroute"))} <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1jkndk3"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Jala para actualizar" refreshing-spinner="circles" refreshing-text="Actualizando..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-ziybgw"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery)), true)}"><div class="order svelte-ziybgw">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-ziybgw"></span>` : ``}</h3> </ion-text></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end" style="${"color: " + escape(getDeliveryColor(delivery), true)}"></ion-icon> </ion-item>`;
