@@ -124,16 +124,6 @@
             if(fin_km && fin_gas){
                 //cerrar modal
                 closeOverlay();
-                const formData = new FormData();
-
-                // Iterate over the selectedImages object
-                for (const key in selectedImages) {
-                    if (selectedImages.hasOwnProperty(key)) {
-                        const { img, img_id } = selectedImages[key]; // Destructure img and img_id from the selectedImages[key] object
-                        formData.append(`selectedImages[${key}][img]`, img); // Append the image URL
-                        formData.append(`selectedImages[${key}][img_id]`, img_id); // Append the image ID
-                    }
-                }
                 
                 fetch('https://rutaflow-app-development.up.railway.app/api/admin/checklist/add_evidence.php', {
                     method: 'POST',
