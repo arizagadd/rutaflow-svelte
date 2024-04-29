@@ -23,10 +23,11 @@
     const handleFileChange = async (event) => {
         const fileInput = event.target;
         const file = fileInput.files[0];
+        const compressed_file = await compressImage(file);
 
-        if (file) {
+        if (compressed_file) {
             const formData = new FormData();
-            formData.append('fileToUpload', file);
+            formData.append('fileToUpload', compressed_file);
             try {
                 const response = await fetch('https://rutaflow-app-development.up.railway.app/api/admin/manager/upload_img_driver.php', {
                     method: 'POST',
@@ -38,7 +39,7 @@
                     const result = await response.json();
                     selectedImage = result.img;
                     img_id = result.img_id;
-                    console.log(result);
+                    
                     //console.log(selectedImage);
                 } else {
                     // Handle error response
@@ -49,10 +50,6 @@
             }
         }
 
-        /*if (file) {
-            const compressedImage = await compressImage(file);
-            selectedImage = compressedImage;
-        }*/
     };
 
     const compressImage = async (file) => {
@@ -64,35 +61,35 @@
             img.src = event.target.result;
 
             img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
 
-            // Set the canvas size to a reasonable value
-            const maxWidth = 800;
-            const maxHeight = 600;
+                // Set the canvas size to a reasonable value
+                const maxWidth = 800;
+                const maxHeight = 600;
 
-            let width = img.width;
-            let height = img.height;
+                let width = img.width;
+                let height = img.height;
 
-            if (width > maxWidth) {
-                height *= maxWidth / width;
-                width = maxWidth;
-            }
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
 
-            if (height > maxHeight) {
-                width *= maxHeight / height;
-                height = maxHeight;
-            }
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
 
-            canvas.width = width;
-            canvas.height = height;
+                canvas.width = width;
+                canvas.height = height;
 
-            ctx.drawImage(img, 0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
 
-            // Get the compressed data as a base64-encoded string
-            const compressedData = canvas.toDataURL('image/jpeg', 0.7); // Adjust the quality as needed
-
-            resolve(compressedData);
+                // Get the compressed data as a Blob
+                canvas.toBlob((blob) => {
+                            resolve(blob);
+                }, 'image/jpeg', 0.7); // Adjust the quality as needed
             };
         };
 
