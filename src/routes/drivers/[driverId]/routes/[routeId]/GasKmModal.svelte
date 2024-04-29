@@ -74,7 +74,7 @@
   </ion-header>
   <ion-content fullscreen>
     <ion-item>
-      <ion-input class="fin-km" type="number" placeholder="Ingresa {type_txt} actual"  on:input={e => inputValue = e.target.value} value={inputValue}  required>
+      <ion-input class="fin-km" inputmode="numeric" pattern="[0-9]*" type="number" placeholder="Ingresa {type_txt} actual"  on:input={e => inputValue = e.target.value} value={inputValue}  required>
     </ion-item>
   </ion-content>
 
