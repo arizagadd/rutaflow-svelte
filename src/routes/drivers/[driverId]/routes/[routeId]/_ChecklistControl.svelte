@@ -1,11 +1,13 @@
 <script>
-    import BoxesCount from './_BoxesCount.svelte';
+    import GasKmModal from './GasKmModal.svelte';
+    import {IonicShowModal} from "../../../../../services/IonicControllers";
+    import { modalController } from '@ionic/core';
     import { checklistStore } from '../../../../../stores/checklistStore';
     import { alertController } from '@ionic/core';
-    import IonPage from 'ionic-svelte/components/IonPage.svelte';
-    import * as allIonicIcons from 'ionicons/icons';
     import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+    import { gasKmStore } from '../../../../../stores/gasKmStore';
+    import { flagStore } from '../../../../../stores/flagStore';
 
     let overlayElement = document.querySelector("ion-modal");
     //console.log(overlayElement.componentProps);
@@ -13,20 +15,20 @@
     const driverId = overlayElement.componentProps.driverId;
     const routeId = overlayElement.componentProps.routeId;
     const isLast = overlayElement.componentProps.isLast;
-
-    let initial_km = null;
-    let initial_gas = null;
-    let final_km = null;
-    let final_gas = null;
+    let km_inicial;
+    let gas_inicial;
+    let km_final;
+    let gas_final;
     let checkk = [];
     let evidenceChecklist=null;
+
     // checklist trae las img en caso de que existan, declarar selectedImage como objeto
     let selectedImages = {};
     let imagesName = {};
 
     onMount(() => {
         if(isLast){
-            console.log(routeId);
+            console.log("Último checklist");
         }else{
             // guardar en store.items del checklistStore el valor de checklist (el total de checklist por ruta)
             checklistStore.update(store => {
@@ -105,7 +107,7 @@
     }
 
     const closeOverlay = () => {
-        overlayElement.dismiss({ data: Date.now() });
+        modalController.dismiss();
         if(driverId){
             goto(`/drivers/${driverId}`);
         }else{
@@ -114,8 +116,8 @@
     };
     const sendEvidence = () => {
         if(isLast){
-            var fin_km = transformFormatValue(final_km.focusedValue,"km");
-            var fin_gas = transformFormatValue(final_gas.focusedValue,"gas");
+            var fin_km = transformFormatValue(km_final,"km");
+            var fin_gas = transformFormatValue(gas_final,"gas");
             const formData = new FormData();
             formData.append(`km_final`,fin_km);
             formData.append(`gas_final`,fin_gas);
@@ -140,8 +142,10 @@
                 alertIncompleteChecklist();
             }
         }else{
-            var ini_km = transformFormatValue(initial_km.focusedValue,"km");
-            var ini_gas = transformFormatValue(initial_gas.focusedValue,"gas");
+            //var ini_km = transformFormatValue(initial_km.focusedValue,"km");
+            //var ini_gas = transformFormatValue(initial_gas.focusedValue,"gas");
+            var ini_km = transformFormatValue(km_inicial,"km");
+            var ini_gas = transformFormatValue(gas_inicial,"gas");
             checklistStore.update(store => {
                 const itemIds = store.items;
 
@@ -183,6 +187,7 @@
                 return store;
             });
         }
+        emptyGasKmStore();
     };
 
     const handleFileChange = async (event, checklistItemId) => {
@@ -214,7 +219,7 @@
                         ...imagesName,
                         [checklistItemId]: result.filename,
                     };
-                    console.log(selectedImages);
+                    
                 } else {
                     // Handle error response
                     console.error('File upload failed:', response.statusText);
@@ -322,6 +327,42 @@
         }
     }
 
+    function handleKmGasData(e,r){
+        updateFlagStore(r);
+        overlayElement.componentProps.data_type = r;
+        IonicShowModal("modal-gas-km", GasKmModal, {
+            r
+        }).then(() => {
+            gasKmStore.subscribe((result) => {
+                setButtonTxt(result);
+            });
+            
+         });
+    }
+
+    function updateFlagStore(type){
+        flagStore.update(store => ({
+          ...store,
+          flag: [type]
+      }));
+    }
+
+    function setButtonTxt(obj){
+        km_inicial = obj.km_inicial? obj.km_inicial: null;
+        gas_inicial = obj.gas_inicial? obj.gas_inicial : null;
+        km_final = obj.km_final? obj.km_final: null;
+        gas_final = obj.gas_final? obj.gas_final : null;
+    }
+
+    function emptyGasKmStore(){
+        gasKmStore.set({
+            km_inicial: [],
+            gas_inicial: [],
+            km_final: [],
+            gas_final: []
+        });
+    }
+
 </script>
 
 <ion-header translucent>
@@ -339,42 +380,104 @@
     <ion-list>
         {#if isLast}
             <ion-item>
-                <ion-input class="fin-km" type="number" label="Kilometraje final" labelPlacement="stacked" placeholder="Ingresa kilometraje actual" bind:this={final_km}  required></ion-input>
+                <ion-label style="display:flex;">
+                    <input
+                    id={`chkbox-km-fin`}
+                    style="pointer-events: auto;"
+                    type="checkbox"
+                    bind:group={checkk}
+                    required
+                    />
+                    <p style="margin-left:10px;">Kilometraje final</p>
+                </ion-label>
+                <ion-button fill="outline" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_final")} aria-selected>
+                    <label for="chkbox-km-fin" style="padding: 8px 10px">
+                        {km_final?km_final+" km.":"Cargar km"}
+                    </label>
+                </ion-button>
             </ion-item>
             <ion-item>
-                <ion-input class="fin-km" type="number" label="Gasolina final (litros)" labelPlacement="stacked" placeholder="Ingresa la gas actual"  bind:this={final_gas} required></ion-input>
+                <ion-label style="display:flex;">
+                    <input
+                    id={`chkbox-gas-fin`}
+                    style="pointer-events: auto;"
+                    type="checkbox"
+                    bind:group={checkk}
+                    required
+                    />
+                    <p style="margin-left:10px;">Gasolina final (litros)</p>
+                </ion-label>
+                <ion-button fill="outline" class="loadGasInicial" on:click={(e) => handleKmGasData(e,"gas_final")}>
+                    <label for="chklist-gas-fin" style="padding: 8px 10px">
+                        {gas_final?gas_final+" litros":"Cargar gas"}
+                    </label>
+                </ion-button>
             </ion-item>
         {:else}
             <ion-item>
+                <ion-label style="display:flex;">
+                    <input
+                    id={`chkbox-km-ini`}
+                    style="pointer-events: auto;"
+                    type="checkbox"
+                    bind:group={checkk}
+                    required
+                    />
+                    <p style="margin-left:10px;">Kilometraje inicial</p>
+                </ion-label>
+                <ion-button fill="outline" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_inicial")} aria-selected>
+                    <label for="chklist-km-ini" style="padding: 8px 10px">
+                        {km_inicial?km_inicial+" km.":"Cargar km"}
+                    </label>
+                </ion-button>
+            </ion-item>
+            <ion-item>
+                <ion-label style="display:flex;">
+                    <input
+                    id={`chkbox-gas-ini`}
+                    style="pointer-events: auto;"
+                    type="checkbox"
+                    bind:group={checkk}
+                    required
+                    />
+                    <p style="margin-left:10px;">Gasolina inicial (litros)</p>
+                </ion-label>
+                <ion-button fill="outline" class="loadGasInicial" on:click={(e) => handleKmGasData(e,"gas_inicial")}>
+                    <label for="chklist-gas-ini" style="padding: 8px 10px">
+                        {gas_inicial?gas_inicial+" litros":"Cargar gas"}
+                    </label>
+                </ion-button>
+            </ion-item>
+            <!-- <ion-item>
                 <ion-input class="ini-km" type="number" label="Kilometraje inicial" labelPlacement="stacked" placeholder="Ingresa kilometraje actual" bind:this={initial_km}  required></ion-input>
             </ion-item>
             <ion-item>
                 <ion-input class="gas-km" type="number" label="Gasolina inicial (litros)" labelPlacement="stacked" placeholder="Ingresa la gas actual"  bind:this={initial_gas} required></ion-input>
-            </ion-item>
+            </ion-item> -->
         {/if}
         {#if checklist}
             {#each checklist as check (check.id_checklist_event)}
                 <ion-item>
-                <ion-label style="display:flex;">
-                    <input
-                    id={`chkbox-${check.id_checklist_event}`}
-                    style="pointer-events: auto;"
-                    type="checkbox"
-                    value={check.id_checklist_event}
-                    bind:group={checkk}
-                    on:change={() => markCheckbox(check.id_checklist_event)}
-                    required
-                    />
-                    <p style="margin-left:10px;">{check.item}</p>
-                </ion-label>
+                    <ion-label style="display:flex;">
+                        <input
+                        id={`chkbox-${check.id_checklist_event}`}
+                        style="pointer-events: auto;"
+                        type="checkbox"
+                        value={check.id_checklist_event}
+                        bind:group={checkk}
+                        on:change={() => markCheckbox(check.id_checklist_event)}
+                        required
+                        />
+                        <p style="margin-left:10px;">{check.item}</p>
+                    </ion-label>
 
-                <ion-button fill="outline" class="loadEvidence">
-                    <label for="chklist-{check.id_checklist_event}" style="padding: 8px 10px">
-                        {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
-                    </label>
-                    <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
-                    <!-- <input type="submit" value="Upload Image" name="submit" style="display:none;"/> -->
-                </ion-button>
+                    <ion-button fill="outline" class="loadEvidence">
+                        <label for="chklist-{check.id_checklist_event}" style="padding: 8px 10px">
+                            {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
+                        </label>
+                        <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
+                        <!-- <input type="submit" value="Upload Image" name="submit" style="display:none;"/> -->
+                    </ion-button>
                 </ion-item>
             {/each}
         {/if}
