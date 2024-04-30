@@ -185,7 +185,7 @@
 
     function loadRoute(routeId) {
 
-        fetch(`https://rutaflow-app-production.up.railway.app/admin/delivery/driver_route_deliveries.php?id_route=${routeId}`)
+        fetch(`https://app.rutaflow.com/admin/delivery/driver_route_deliveries.php?id_route=${routeId}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log(data.data);
@@ -193,7 +193,7 @@
 
                     deliveries.forEach((delivery, index) => {
 
-                        fetch(`https://rutaflow-app-production.up.railway.app/admin/subscriber/driver_subscriber_info.php?id_subscriber=${delivery.id_subscriber}`)
+                        fetch(`https://app.rutaflow.com/admin/subscriber/driver_subscriber_info.php?id_subscriber=${delivery.id_subscriber}`)
                                 .then(response => response.json())
                                 .then(data => {
                                     deliveries[index].subscriber_info = data.data.subscriber_info;

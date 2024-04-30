@@ -77,7 +77,7 @@
         var actualDate = getActualFormattedDate();
         const requestData = new FormData();
         requestData.append('actual_date', actualDate);
-        fetch(`https://rutaflow-app-production.up.railway.app/api/admin/report/seguimiento_list.php`, {
+        fetch(`https://app.rutaflow.com/api/admin/report/seguimiento_list.php`, {
                 method: 'POST',
                 body: requestData,
             })

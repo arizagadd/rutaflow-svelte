@@ -2,22 +2,18 @@
     import BoxesCount from './_BoxesCount.svelte';
     import {page} from '$app/stores';
     import { goto } from '$app/navigation';
-    import {documentTextOutline, personOutline} from "ionicons/icons"; 
-    import {calendarClearOutline} from "ionicons/icons"; 
-    import {createOutline} from "ionicons/icons"; 
-    import {storefrontOutline} from "ionicons/icons";
-    import {duplicateOutline} from "ionicons/icons"; 
-    import {locationOutline} from "ionicons/icons"; 
-    import {informationCircleOutline} from "ionicons/icons";
+    import {documentTextOutline,personOutline,calendarClearOutline,createOutline,
+            storefrontOutline,duplicateOutline,locationOutline,informationCircleOutline} from "ionicons/icons"; 
+    import {IonicShowModal} from "../../../../../services/IonicControllers";
+    import ChecklistControl from './_ChecklistControl.svelte';
     let overlayElement = document.querySelector("ion-modal");
     //console.log(overlayElement.componentProps);
     let delivery = overlayElement.componentProps.delivery;
+    let isLast = overlayElement.componentProps.isLast;
     //let checklist = overlayElement.componentProps.checklist;
     let driverComments = delivery.driver_comments?delivery.driver_comments:'';
     let selectedImage = delivery.img?delivery.img:'';
     let img_id = "";
-
-    $: ({routeId,driverId} = $page.params);
 
     const handleFileChange = async (event) => {
         const fileInput = event.target;
@@ -28,7 +24,7 @@
             const formData = new FormData();
             formData.append('fileToUpload', compressed_image);
             try {
-                const response = await fetch('https://rutaflow-app-production.up.railway.app/api/admin/manager/upload_img_driver.php', {
+                const response = await fetch('https://app.rutaflow.com/api/admin/manager/upload_img_driver.php', {
                     method: 'POST',
                     body: formData,
                 });
@@ -49,10 +45,6 @@
             }
         }
 
-        /*if (file) {
-            const compressedImage = await compressImage(file);
-            selectedImage = compressedImage;
-        }*/
     };
 
     const compressImage = async (file) => {
@@ -100,7 +92,7 @@
         });
     };
 
-    const closeOverlay = () => {
+    const closeModal = () => {
         overlayElement.dismiss({ data: Date.now() });
     };
 
@@ -115,17 +107,33 @@
         for (const key in lv) {
             requestData.append(key, lv[key]);
         }
-        fetch('https://rutaflow-app-production.up.railway.app/api/admin/evidence/send_evidence.php', {
+        fetch('https://app.rutaflow.com/api/admin/evidence/send_evidence.php', {
                     method: 'POST',
                     body: requestData,
                 })
                 .then(response => response.json())
                 .then(data => {
-                    closeOverlay();
+                    closeModal();
+                    var checklist = {};
+                    var routeId = lv.id_route;
+                    //Show final km and gas inputs
+                    if(isLast){
+                        showKmGasModal("","",routeId,isLast);
+                    }
                 })
                 .catch(error => {
                 console.error('Error fetching data:', error);
             });
+    };
+
+    const showKmGasModal = (checklist,driverId,routeId,isLast) => {
+        overlayElement.componentProps.routeId = routeId;
+        overlayElement.componentProps.driverId = delivery.id_driver;
+        IonicShowModal("modal-km-gas", ChecklistControl, {
+            checklist,driverId,routeId,isLast
+        }).then((result) => {
+            
+        });
     };
 
 
@@ -134,7 +142,7 @@
 <ion-header translucent>
     <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-button color="medium" on:click={closeOverlay}>Cancelar</ion-button>
+          <ion-button color="medium" on:click={closeModal}>Cancelar</ion-button>
         </ion-buttons>
         <ion-title title="{delivery.title}">{delivery.title}</ion-title>
         <ion-buttons slot="end">
@@ -217,25 +225,15 @@
             </ion-item>
         {/if}
         {#if delivery.logistic_comments && delivery.logistic_comments.trim().length}
-
             {#if delivery.logistic_comments!='<br>'}
-
                 <ion-item>
-
                     <ion-icon icon={informationCircleOutline} slot="start"></ion-icon>
-
                     <ion-label class="ion-text-wrap">
-
                         <p>Comentarios logísticos</p>
-
                         <h2>{delivery.logistic_comments}</h2>
-
                     </ion-label>
-
                 </ion-item>
-
             {/if}
-
         {/if}
         <ion-item>
             <ion-icon icon={createOutline} slot="start"></ion-icon>
