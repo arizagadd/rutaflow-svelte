@@ -421,7 +421,7 @@
                                 
                                 // Allow showing the modal only if the current delivery has an image
                                 // or if it's the first delivery and the current delivery does not have an image
-                                if (currentDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
                                     showDeliveryInfoModal(delivery);
                                 } else {
                                     showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
