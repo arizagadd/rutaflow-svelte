@@ -335,6 +335,7 @@
         }).then(() => {
             gasKmStore.subscribe((result) => {
                 setButtonTxt(result);
+                
             });
             
          });
@@ -352,6 +353,7 @@
         gas_inicial = obj.gas_inicial? obj.gas_inicial : null;
         km_final = obj.km_final? obj.km_final: null;
         gas_final = obj.gas_final? obj.gas_final : null;
+        let checkbox;
     }
 
     function emptyGasKmStore(){
@@ -371,9 +373,6 @@
         <ion-button color="medium" on:click={closeOverlay}>Cancelar</ion-button>
       </ion-buttons>
       <ion-title>Requerimientos de ruta</ion-title>
-      <ion-buttons slot="end">
-        <ion-button on:click={sendEvidence} strong>Confirmar</ion-button>
-      </ion-buttons>
     </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>
@@ -390,10 +389,10 @@
                     />
                     <p style="margin-left:10px;">Kilometraje final</p>
                 </ion-label>
-                <ion-button fill="outline" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_final")} aria-selected>
-                    <label for="chkbox-km-fin" style="padding: 8px 10px">
+                <ion-button fill="outline" size="small" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_final")} aria-selected>
+                    <!-- <label for="chkbox-km-fin" style="padding: 8px 10px"> -->
                         {km_final?km_final+" km.":"Cargar km"}
-                    </label>
+                    <!-- </label> -->
                 </ion-button>
             </ion-item>
             <ion-item>
@@ -407,10 +406,10 @@
                     />
                     <p style="margin-left:10px;">Gasolina final (litros)</p>
                 </ion-label>
-                <ion-button fill="outline" class="loadGasInicial" on:click={(e) => handleKmGasData(e,"gas_final")}>
-                    <label for="chklist-gas-fin" style="padding: 8px 10px">
+                <ion-button fill="outline" size="small" class="loadGasInicial" on:click={(e) => handleKmGasData(e,"gas_final")}>
+                    <!-- <label for="chklist-gas-fin" style="padding: 8px 10px"> -->
                         {gas_final?gas_final+" litros":"Cargar gas"}
-                    </label>
+                    <!-- </label> -->
                 </ion-button>
             </ion-item>
         {:else}
@@ -425,10 +424,10 @@
                     />
                     <p style="margin-left:10px;">Kilometraje inicial</p>
                 </ion-label>
-                <ion-button fill="outline" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_inicial")} aria-selected>
-                    <label for="chklist-km-ini" style="padding: 8px 10px">
+                <ion-button fill="outline" size="small" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_inicial")} aria-selected>
+                    <!-- <label for="chklist-km-ini" style="padding: 8px 10px"> -->
                         {km_inicial?km_inicial+" km.":"Cargar km"}
-                    </label>
+                    <!-- </label> -->
                 </ion-button>
             </ion-item>
             <ion-item>
@@ -442,10 +441,10 @@
                     />
                     <p style="margin-left:10px;">Gasolina inicial (litros)</p>
                 </ion-label>
-                <ion-button fill="outline" class="loadGasInicial" on:click={(e) => handleKmGasData(e,"gas_inicial")}>
-                    <label for="chklist-gas-ini" style="padding: 8px 10px">
+                <ion-button fill="outline" class="loadGasInicial" size="small" on:click={(e) => handleKmGasData(e,"gas_inicial")} style="height: 16px ">
+                    <!-- <label for="chklist-gas-ini" style="padding: 8px 10px"> -->
                         {gas_inicial?gas_inicial+" litros":"Cargar gas"}
-                    </label>
+                    <!-- </label> -->
                 </ion-button>
             </ion-item>
             <!-- <ion-item>
@@ -471,10 +470,10 @@
                         <p style="margin-left:10px;">{check.item}</p>
                     </ion-label>
 
-                    <ion-button fill="outline" class="loadEvidence">
-                        <label for="chklist-{check.id_checklist_event}" style="padding: 8px 10px">
+                    <ion-button fill="outline" class="loadEvidence" size="small">
+                        <!-- <label for="chklist-{check.id_checklist_event}" style="padding: 8px 10px"> -->
                             {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
-                        </label>
+                        <!-- </label> -->
                         <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
                         <!-- <input type="submit" value="Upload Image" name="submit" style="display:none;"/> -->
                     </ion-button>
@@ -483,6 +482,13 @@
         {/if}
     </ion-list>
 </ion-content>
+<ion-footer>
+    <!-- <ion-buttons style="width: 100%; height: 100%;"> -->
+        <ion-button fill="outline" color="tertiary" on:click={sendEvidence} strong style="width: 99%; height: auto;">
+            Confirmar
+        </ion-button>
+    <!-- </ion-buttons> -->
+</ion-footer>
 
 <style>
     .myFakeUploadButton {
@@ -515,5 +521,4 @@
         --padding-top: 10px;
         --padding-bottom: 10px;
     }
-
 </style>
