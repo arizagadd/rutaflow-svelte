@@ -15,26 +15,29 @@
     const driverId = overlayElement.componentProps.driverId;
     const routeId = overlayElement.componentProps.routeId;
     const isLast = overlayElement.componentProps.isLast;
-    let km_inicial;
-    let gas_inicial;
-    let km_final;
-    let gas_final;
+    let km_inicial,gas_inicial,km_final,gas_final;
     let checkk = [];
     let evidenceChecklist=null;
+    let checkbox_item={};
+    let KmInicial,GasInicial,KmFinal,GasFinal;
 
     // checklist trae las img en caso de que existan, declarar selectedImage como objeto
     let selectedImages = {};
     let imagesName = {};
 
     onMount(() => {
+        var mandatory;
         if(isLast){
             console.log("Último checklist");
         }else{
             // guardar en store.items del checklistStore el valor de checklist (el total de checklist por ruta)
             checklistStore.update(store => {
-                store.items = getChecklistArray(checklist);
+                store.mandatory = getChecklistArray(checklist,"mandatory");
+                store.items = getChecklistArray(checklist,"id_checklist_event");
+                //store.mandatory = lv.mandatoryValues;
                 return store;
             });
+            console.log($checklistStore);
         }
         
     });
@@ -81,22 +84,30 @@
 		await alert.present();
 	};
 
-    function getChecklistArray(obj) {
+    function getChecklistArray(obj,type) {
 
         // Ensure obj is an object or an array and not null
         if ((typeof obj === 'object' && obj !== null) || Array.isArray(obj)) {
             // If obj is an array, collect IDs from each object in the array
             if (Array.isArray(obj)) {
-                return obj.map(item => getChecklistArray(item)).flat();
+                return obj.map(item => getChecklistArray(item,type)).flat();
             } else {
                 // Get the keys (property names) of the object
                 const keys = Object.keys(obj);
+                let idValues;
 
                 // Filter keys that are likely to be IDs (customize this based on your object structure)
-                const idKeys = keys.filter(key => key.toLowerCase().includes('id_checklist_event'));
-
-                // Extract the values corresponding to the identified ID keys
-                const idValues = idKeys.map(key => obj[key]);
+                if(type=="id_checklist_event"){
+                    const idKeys = keys.filter(key => key.toLowerCase().includes('id_checklist_event'));
+                    idValues = idKeys.map(key => obj[key]);
+                }else if(type=="mandatory"){
+                    const mandatoryKeys = keys.filter(key => key.toLowerCase().includes('mandatory'));
+                    // Extract the values corresponding to the identified ID keys
+                    idValues = mandatoryKeys.map(key => obj[key]);
+                }else{
+                    console.error("Tipo de dato no reconocido.");
+                    idValues = false;
+                }
 
                 return idValues;
             }
@@ -148,7 +159,8 @@
             var ini_gas = transformFormatValue(gas_inicial,"gas");
             checklistStore.update(store => {
                 const itemIds = store.items;
-
+                const mandatoryVal = store.mandatory;
+                
                 // Check if all expected indices are present in the checkedIndices array
                 const allChecked = itemIds.every(id => store.checkedIndices.includes(id));
 
@@ -173,7 +185,16 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            changeRouteStatus(routeId, 'enroute');
+                            if(mandatoryVal){
+                                if(mandatoryVal[0]=='1'){
+                                    changeRouteStatus(routeId, 'checklist-pending');
+                                }else{
+                                    changeRouteStatus(routeId, 'enroute');
+                                }
+                            }else{
+                                changeRouteStatus(routeId, 'enroute');
+                            }
+                            
                         })
                         .catch(error => {
                         console.error('Error fetching data:', error);
@@ -193,11 +214,11 @@
     const handleFileChange = async (event, checklistItemId) => {
         const fileInput = event.target;
         const file = fileInput.files[0];
-        const compressed_image = await compressImage(file);
+        const compressed_file = await compressImage(file);
 
-        if (compressed_image) {
+        if (compressed_file) {
             const formData = new FormData();
-            formData.append('fileToUpload', compressed_image);
+            formData.append('fileToUpload', compressed_file);
             try {
                 const response = await fetch('https://app.rutaflow.com/api/admin/manager/upload_img_driver.php', {
                     method: 'POST',
@@ -219,6 +240,9 @@
                         ...imagesName,
                         [checklistItemId]: result.filename,
                     };
+
+                    markCheckbox(checklistItemId);
+                    checkbox_item[checklistItemId].checked =true; 
                     
                 } else {
                     // Handle error response
@@ -334,7 +358,8 @@
             r
         }).then(() => {
             gasKmStore.subscribe((result) => {
-                setButtonTxt(result);
+                setButtonTxt(result,r);
+                
             });
             
          });
@@ -347,11 +372,16 @@
       }));
     }
 
-    function setButtonTxt(obj){
+    function setButtonTxt(obj,r){
         km_inicial = obj.km_inicial? obj.km_inicial: null;
         gas_inicial = obj.gas_inicial? obj.gas_inicial : null;
         km_final = obj.km_final? obj.km_final: null;
         gas_final = obj.gas_final? obj.gas_final : null;
+        r=='km_inicial'?KmInicial.checked=true:"";
+        r=='gas_inicial'?GasInicial.checked=true:"";
+        r=='km_final'?KmFinal.checked=true:"";
+        r=='gas_final'?GasFinal.checked=true:"";
+        let checkbox;
     }
 
     function emptyGasKmStore(){
@@ -371,9 +401,6 @@
         <ion-button color="medium" on:click={closeOverlay}>Cancelar</ion-button>
       </ion-buttons>
       <ion-title>Requerimientos de ruta</ion-title>
-      <ion-buttons slot="end">
-        <ion-button on:click={sendEvidence} strong>Confirmar</ion-button>
-      </ion-buttons>
     </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>
@@ -386,14 +413,15 @@
                     style="pointer-events: auto;"
                     type="checkbox"
                     bind:group={checkk}
+                    bind:this = {KmFinal}
                     required
                     />
                     <p style="margin-left:10px;">Kilometraje final</p>
                 </ion-label>
-                <ion-button fill="outline" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_final")} aria-selected>
-                    <label for="chkbox-km-fin" style="padding: 8px 10px">
+                <ion-button fill="outline" size="small" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_final")} aria-selected>
+                    <!-- <label for="chkbox-km-fin" style="padding: 8px 10px"> -->
                         {km_final?km_final+" km.":"Cargar km"}
-                    </label>
+                    <!-- </label> -->
                 </ion-button>
             </ion-item>
             <ion-item>
@@ -403,14 +431,15 @@
                     style="pointer-events: auto;"
                     type="checkbox"
                     bind:group={checkk}
+                    bind:this = {GasFinal}
                     required
                     />
                     <p style="margin-left:10px;">Gasolina final (litros)</p>
                 </ion-label>
-                <ion-button fill="outline" class="loadGasInicial" on:click={(e) => handleKmGasData(e,"gas_final")}>
-                    <label for="chklist-gas-fin" style="padding: 8px 10px">
+                <ion-button fill="outline" size="small" class="loadGasInicial" on:click={(e) => handleKmGasData(e,"gas_final")}>
+                    <!-- <label for="chklist-gas-fin" style="padding: 8px 10px"> -->
                         {gas_final?gas_final+" litros":"Cargar gas"}
-                    </label>
+                    <!-- </label> -->
                 </ion-button>
             </ion-item>
         {:else}
@@ -421,14 +450,15 @@
                     style="pointer-events: auto;"
                     type="checkbox"
                     bind:group={checkk}
+                    bind:this = {KmInicial}
                     required
                     />
                     <p style="margin-left:10px;">Kilometraje inicial</p>
                 </ion-label>
-                <ion-button fill="outline" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_inicial")} aria-selected>
-                    <label for="chklist-km-ini" style="padding: 8px 10px">
+                <ion-button fill="outline" size="small" class="loadKmInicial" on:click={(e) => handleKmGasData(e,"km_inicial")} aria-selected>
+                    <!-- <label for="chklist-km-ini" style="padding: 8px 10px"> -->
                         {km_inicial?km_inicial+" km.":"Cargar km"}
-                    </label>
+                    <!-- </label> -->
                 </ion-button>
             </ion-item>
             <ion-item>
@@ -437,15 +467,16 @@
                     id={`chkbox-gas-ini`}
                     style="pointer-events: auto;"
                     type="checkbox"
+                    bind:this = {GasInicial}
                     bind:group={checkk}
                     required
                     />
                     <p style="margin-left:10px;">Gasolina inicial (litros)</p>
                 </ion-label>
-                <ion-button fill="outline" class="loadGasInicial" on:click={(e) => handleKmGasData(e,"gas_inicial")}>
-                    <label for="chklist-gas-ini" style="padding: 8px 10px">
+                <ion-button fill="outline" class="loadGasInicial" size="small" on:click={(e) => handleKmGasData(e,"gas_inicial")} style="height: 16px ">
+                    <!-- <label for="chklist-gas-ini" style="padding: 8px 10px"> -->
                         {gas_inicial?gas_inicial+" litros":"Cargar gas"}
-                    </label>
+                    <!-- </label> -->
                 </ion-button>
             </ion-item>
             <!-- <ion-item>
@@ -465,14 +496,15 @@
                         type="checkbox"
                         value={check.id_checklist_event}
                         bind:group={checkk}
+                        bind:this = {checkbox_item[check.id_checklist_event]}
                         on:change={() => markCheckbox(check.id_checklist_event)}
                         required
                         />
                         <p style="margin-left:10px;">{check.item}</p>
                     </ion-label>
 
-                    <ion-button fill="outline" class="loadEvidence">
-                        <label for="chklist-{check.id_checklist_event}" style="padding: 8px 10px">
+                    <ion-button fill="outline" class="loadEvidence" size="small">
+                        <label for="chklist-{check.id_checklist_event}">
                             {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
                         </label>
                         <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
@@ -483,6 +515,13 @@
         {/if}
     </ion-list>
 </ion-content>
+<ion-footer>
+    <!-- <ion-buttons style="width: 100%; height: 100%;"> -->
+        <ion-button fill="outline" color="tertiary" on:click={sendEvidence} strong style="width: 99%; height: auto;">
+            Confirmar
+        </ion-button>
+    <!-- </ion-buttons> -->
+</ion-footer>
 
 <style>
     .myFakeUploadButton {
@@ -515,5 +554,4 @@
         --padding-top: 10px;
         --padding-bottom: 10px;
     }
-
 </style>

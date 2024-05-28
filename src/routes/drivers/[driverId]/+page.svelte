@@ -92,8 +92,12 @@
             });
     }
 
-    function openRoute(routeId) {
-        goto(`/drivers/${driverId}/routes/${routeId}`);
+    function openRoute(routeId,status) {
+        if(status=="checklist-pending"){
+            showAlert('Checklist Pendiente de Autorizar','La lista de requerimientos de ruta está en revisión, podrás inciar la ruta una vez autorizado el checklist.');
+        }else{
+            goto(`/drivers/${driverId}/routes/${routeId}`);
+        }
     }
 
     function compareDates(start_date) {
@@ -130,6 +134,8 @@
             color = '#ea0909b2';
         }else if (status == 'checklist'){
             color = "#11cab9b2"
+        }else if (status == 'checklist-pending'){
+            color = "#a8a8a8"
         }
 
         return color;
@@ -150,6 +156,8 @@
             title_status = 'Cancelado';
         }else if (status == 'checklist'){
             title_status = "En checklist"
+        }else if (status == 'checklist-pending'){
+            title_status = "Pendiente de aprobar checklist"
         }
 
         return title_status;
@@ -311,8 +319,8 @@
                     {#each routes as route (route.id_route)}
                         {#if compareDates(route.date_start)}
                             {changePendingState("true")}
-                            {#if route.status!='completed'}
-                                <ion-item button on:click={openRoute(route.id_route)}>
+                            {#if route.status!='completed' || route.status != 'cancelled'}
+                                <ion-item button on:click={openRoute(route.id_route,route.status)}>
                                     <ion-avatar slot="start">
                                         <div class="route-color" style="background-color:{getDeliveryColor(route.status)};color: {getContrast(getDeliveryColor(route.status))}" title="{setTitleStatus(route.status)}">
                                             <div class="route-symbol" style="">
@@ -336,8 +344,8 @@
                     {#each routes.filter(route => route.id_driver === driverId) as route (route.id_route)}
                         {#if compareDates(route.date_start)}
                             {changePendingState("true")}
-                            {#if route.status!='completed'}
-                                <ion-item button on:click={openRoute(route.id_route)}>
+                            {#if route.status!='completed' || route.status != 'cancelled'}
+                                <ion-item button on:click={openRoute(route.id_route,route.status)}>
                                     <ion-avatar slot="start">
                                         <div class="route-color" style="background-color:{getDeliveryColor(route.status)};color: {getContrast(getDeliveryColor(route.status))}" title="{setTitleStatus(route.status)}">
                                             <div class="route-symbol" style="">

@@ -1,10 +1,11 @@
-import { c as create_ssr_component, a as add_attribute, e as escape, f as each, d as subscribe, v as validate_component } from "../../../../../../chunks/ssr.js";
+import { c as create_ssr_component, b as subscribe, a as add_attribute, e as escape, d as each, v as validate_component } from "../../../../../../chunks/ssr.js";
 import { p as page } from "../../../../../../chunks/stores.js";
 import { g as goto } from "../../../../../../chunks/client.js";
 import { arrowBack, locationOutline } from "ionicons/icons/index.mjs";
 import { modalController } from "@ionic/core";
 import { defineCustomElement } from "@ionic/core/components/ion-modal.js";
 import { initialize } from "@ionic/core/components/index.js";
+import { w as writable } from "../../../../../../chunks/index.js";
 import { I as IonPage } from "../../../../../../chunks/IonPage.js";
 const registerCustomElement = (tagName, component) => {
   if (!customElements.get(tagName)) {
@@ -46,22 +47,34 @@ const IonicShowModal = async (selector, component, componentProps) => {
   modal.present();
   return await modal.onWillDismiss();
 };
+const checklistStore = writable({
+  items: [],
+  // Your checklist items
+  checkedIndices: [],
+  // Array to store checked indices
+  mandatory: []
+});
 const css$1 = {
-  code: ".loadEvidence.svelte-1kg2bry{--background:#93e9be;--background-hover:#9ce0be;--background-activated:#88f4be;--background-focused:#88f4be;--color:blue;--border-radius:0;--border-color:#000;--border-style:solid;--border-width:1px;--box-shadow:0 2px 6px 0 rgb(0, 0, 0, 0.25);--ripple-color:deeppink;--padding-top:10px;--padding-bottom:10px}",
+  code: ".loadEvidence.svelte-1lh6nay{--background:#93e9be;--background-hover:#9ce0be;--background-activated:#88f4be;--background-focused:#88f4be;--color:blue;--border-radius:0;--border-color:#000;--border-style:solid;--border-width:1px;--box-shadow:0 2px 6px 0 rgb(0, 0, 0, 0.25);--ripple-color:deeppink;--padding-top:10px;--padding-bottom:10px}",
   map: null
 };
 const ChecklistControl = create_ssr_component(($$result, $$props, $$bindings, slots) => {
+  let $$unsubscribe_checklistStore;
+  $$unsubscribe_checklistStore = subscribe(checklistStore, (value) => value);
   let overlayElement = document.querySelector("ion-modal");
   const checklist = overlayElement.componentProps.checklist;
   overlayElement.componentProps.driverId;
   overlayElement.componentProps.routeId;
   const isLast = overlayElement.componentProps.isLast;
   let checkk = [];
+  let checkbox_item = {};
+  let KmInicial, GasInicial, KmFinal, GasFinal;
   let imagesName = {};
   $$result.css.add(css$1);
-  return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button color="medium" data-svelte-h="svelte-1dnmkxs">Cancelar</ion-button></ion-buttons> <ion-title data-svelte-h="svelte-ucox25">Requerimientos de ruta</ion-title> <ion-buttons slot="end"><ion-button strong data-svelte-h="svelte-1ida0il">Confirmar</ion-button></ion-buttons></ion-toolbar></ion-header> <ion-content fullscreen><ion-list>${isLast ? `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-km-fin`, 0)} style="pointer-events: auto;" type="checkbox" required> <p style="margin-left:10px;" data-svelte-h="svelte-ccmu71">Kilometraje final</p></ion-label> <ion-button fill="outline" class="loadKmInicial" aria-selected><label for="chkbox-km-fin" style="padding: 8px 10px">${escape("Cargar km")}</label></ion-button></ion-item> <ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-gas-fin`, 0)} style="pointer-events: auto;" type="checkbox" required> <p style="margin-left:10px;" data-svelte-h="svelte-wsoyd2">Gasolina final (litros)</p></ion-label> <ion-button fill="outline" class="loadGasInicial"><label for="chklist-gas-fin" style="padding: 8px 10px">${escape("Cargar gas")}</label></ion-button></ion-item>` : `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-km-ini`, 0)} style="pointer-events: auto;" type="checkbox" required> <p style="margin-left:10px;" data-svelte-h="svelte-88twxi">Kilometraje inicial</p></ion-label> <ion-button fill="outline" class="loadKmInicial" aria-selected><label for="chklist-km-ini" style="padding: 8px 10px">${escape("Cargar km")}</label></ion-button></ion-item> <ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-gas-ini`, 0)} style="pointer-events: auto;" type="checkbox" required> <p style="margin-left:10px;" data-svelte-h="svelte-1ux30eb">Gasolina inicial (litros)</p></ion-label> <ion-button fill="outline" class="loadGasInicial"><label for="chklist-gas-ini" style="padding: 8px 10px">${escape("Cargar gas")}</label></ion-button></ion-item> `} ${checklist ? `${each(checklist, (check) => {
-    return `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-${check.id_checklist_event}`, 0)} style="pointer-events: auto;" type="checkbox"${add_attribute("value", check.id_checklist_event, 0)} required${~checkk.indexOf(check.id_checklist_event) ? add_attribute("checked", true, 1) : ""}> <p style="margin-left:10px;">${escape(check.item)}</p></ion-label> <ion-button fill="outline" class="loadEvidence svelte-1kg2bry"><label for="${"chklist-" + escape(check.id_checklist_event, true)}" style="padding: 8px 10px">${escape(imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : "Cargar evidencia")}</label> <input style="display:none;" id="${"chklist-" + escape(check.id_checklist_event, true)}" name="fileToUpload" type="file" accept="image/*"> </ion-button> </ion-item>`;
-  })}` : ``}</ion-list> </ion-content>`;
+  $$unsubscribe_checklistStore();
+  return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button color="medium" data-svelte-h="svelte-1dnmkxs">Cancelar</ion-button></ion-buttons> <ion-title data-svelte-h="svelte-ucox25">Requerimientos de ruta</ion-title></ion-toolbar></ion-header> <ion-content fullscreen><ion-list>${isLast ? `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-km-fin`, 0)} style="pointer-events: auto;" type="checkbox" required${add_attribute("this", KmFinal, 0)}> <p style="margin-left:10px;" data-svelte-h="svelte-ccmu71">Kilometraje final</p></ion-label> <ion-button fill="outline" size="small" class="loadKmInicial" aria-selected> ${escape("Cargar km")} </ion-button></ion-item> <ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-gas-fin`, 0)} style="pointer-events: auto;" type="checkbox" required${add_attribute("this", GasFinal, 0)}> <p style="margin-left:10px;" data-svelte-h="svelte-wsoyd2">Gasolina final (litros)</p></ion-label> <ion-button fill="outline" size="small" class="loadGasInicial"> ${escape("Cargar gas")} </ion-button></ion-item>` : `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-km-ini`, 0)} style="pointer-events: auto;" type="checkbox" required${add_attribute("this", KmInicial, 0)}> <p style="margin-left:10px;" data-svelte-h="svelte-88twxi">Kilometraje inicial</p></ion-label> <ion-button fill="outline" size="small" class="loadKmInicial" aria-selected> ${escape("Cargar km")} </ion-button></ion-item> <ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-gas-ini`, 0)} style="pointer-events: auto;" type="checkbox" required${add_attribute("this", GasInicial, 0)}> <p style="margin-left:10px;" data-svelte-h="svelte-1ux30eb">Gasolina inicial (litros)</p></ion-label> <ion-button fill="outline" class="loadGasInicial" size="small" style="height: 16px "> ${escape("Cargar gas")} </ion-button></ion-item> `} ${checklist ? `${each(checklist, (check) => {
+    return `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-${check.id_checklist_event}`, 0)} style="pointer-events: auto;" type="checkbox"${add_attribute("value", check.id_checklist_event, 0)} required${~checkk.indexOf(check.id_checklist_event) ? add_attribute("checked", true, 1) : ""}${add_attribute("this", checkbox_item[check.id_checklist_event], 0)}> <p style="margin-left:10px;">${escape(check.item)}</p></ion-label> <ion-button fill="outline" class="loadEvidence svelte-1lh6nay" size="small"><label for="${"chklist-" + escape(check.id_checklist_event, true)}">${escape(imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : "Cargar evidencia")}</label> <input style="display:none;" id="${"chklist-" + escape(check.id_checklist_event, true)}" name="fileToUpload" type="file" accept="image/*"> </ion-button> </ion-item>`;
+  })}` : ``}</ion-list></ion-content> <ion-footer> <ion-button fill="outline" color="tertiary" strong style="width: 99%; height: auto;" data-svelte-h="svelte-g82qqw">Confirmar</ion-button>  </ion-footer>`;
 });
 const css = {
   code: ".sub.svelte-ziybgw{font-size:12px;margin-top:5px}.order-wrapper.svelte-ziybgw{width:100%;height:100%;border-radius:50%;border:1px solid #CBCFDE;text-align:center;display:flex;justify-content:center}.order.svelte-ziybgw{align-self:center}.notes.svelte-ziybgw{background-color:#e0b500;display:inline-block;width:8px;height:8px;border-radius:50%}",
