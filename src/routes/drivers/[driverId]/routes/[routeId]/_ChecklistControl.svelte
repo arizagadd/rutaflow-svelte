@@ -15,26 +15,29 @@
     const driverId = overlayElement.componentProps.driverId;
     const routeId = overlayElement.componentProps.routeId;
     const isLast = overlayElement.componentProps.isLast;
-    let km_inicial;
-    let gas_inicial;
-    let km_final;
-    let gas_final;
+    let km_inicial,gas_inicial,km_final,gas_final;
     let checkk = [];
     let evidenceChecklist=null;
+    let checkbox_item={};
+    let KmInicial,GasInicial,KmFinal,GasFinal;
 
     // checklist trae las img en caso de que existan, declarar selectedImage como objeto
     let selectedImages = {};
     let imagesName = {};
 
     onMount(() => {
+        var mandatory;
         if(isLast){
             console.log("Último checklist");
         }else{
             // guardar en store.items del checklistStore el valor de checklist (el total de checklist por ruta)
             checklistStore.update(store => {
-                store.items = getChecklistArray(checklist);
+                store.mandatory = getChecklistArray(checklist,"mandatory");
+                store.items = getChecklistArray(checklist,"id_checklist_event");
+                //store.mandatory = lv.mandatoryValues;
                 return store;
             });
+            console.log($checklistStore);
         }
         
     });
@@ -81,22 +84,30 @@
 		await alert.present();
 	};
 
-    function getChecklistArray(obj) {
+    function getChecklistArray(obj,type) {
 
         // Ensure obj is an object or an array and not null
         if ((typeof obj === 'object' && obj !== null) || Array.isArray(obj)) {
             // If obj is an array, collect IDs from each object in the array
             if (Array.isArray(obj)) {
-                return obj.map(item => getChecklistArray(item)).flat();
+                return obj.map(item => getChecklistArray(item,type)).flat();
             } else {
                 // Get the keys (property names) of the object
                 const keys = Object.keys(obj);
+                let idValues;
 
                 // Filter keys that are likely to be IDs (customize this based on your object structure)
-                const idKeys = keys.filter(key => key.toLowerCase().includes('id_checklist_event'));
-
-                // Extract the values corresponding to the identified ID keys
-                const idValues = idKeys.map(key => obj[key]);
+                if(type=="id_checklist_event"){
+                    const idKeys = keys.filter(key => key.toLowerCase().includes('id_checklist_event'));
+                    idValues = idKeys.map(key => obj[key]);
+                }else if(type=="mandatory"){
+                    const mandatoryKeys = keys.filter(key => key.toLowerCase().includes('mandatory'));
+                    // Extract the values corresponding to the identified ID keys
+                    idValues = mandatoryKeys.map(key => obj[key]);
+                }else{
+                    console.error("Tipo de dato no reconocido.");
+                    idValues = false;
+                }
 
                 return idValues;
             }
@@ -148,7 +159,8 @@
             var ini_gas = transformFormatValue(gas_inicial,"gas");
             checklistStore.update(store => {
                 const itemIds = store.items;
-
+                const mandatoryVal = store.mandatory;
+                
                 // Check if all expected indices are present in the checkedIndices array
                 const allChecked = itemIds.every(id => store.checkedIndices.includes(id));
 
@@ -173,7 +185,16 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            changeRouteStatus(routeId, 'enroute');
+                            if(mandatoryVal){
+                                if(mandatoryVal[0]=='1'){
+                                    changeRouteStatus(routeId, 'checklist-pending');
+                                }else{
+                                    changeRouteStatus(routeId, 'enroute');
+                                }
+                            }else{
+                                changeRouteStatus(routeId, 'enroute');
+                            }
+                            
                         })
                         .catch(error => {
                         console.error('Error fetching data:', error);
@@ -219,6 +240,9 @@
                         ...imagesName,
                         [checklistItemId]: result.filename,
                     };
+
+                    markCheckbox(checklistItemId);
+                    checkbox_item[checklistItemId].checked =true; 
                     
                 } else {
                     // Handle error response
@@ -334,7 +358,7 @@
             r
         }).then(() => {
             gasKmStore.subscribe((result) => {
-                setButtonTxt(result);
+                setButtonTxt(result,r);
                 
             });
             
@@ -348,11 +372,15 @@
       }));
     }
 
-    function setButtonTxt(obj){
+    function setButtonTxt(obj,r){
         km_inicial = obj.km_inicial? obj.km_inicial: null;
         gas_inicial = obj.gas_inicial? obj.gas_inicial : null;
         km_final = obj.km_final? obj.km_final: null;
         gas_final = obj.gas_final? obj.gas_final : null;
+        r=='km_inicial'?KmInicial.checked=true:"";
+        r=='gas_inicial'?GasInicial.checked=true:"";
+        r=='km_final'?KmFinal.checked=true:"";
+        r=='gas_final'?GasFinal.checked=true:"";
         let checkbox;
     }
 
@@ -385,6 +413,7 @@
                     style="pointer-events: auto;"
                     type="checkbox"
                     bind:group={checkk}
+                    bind:this = {KmFinal}
                     required
                     />
                     <p style="margin-left:10px;">Kilometraje final</p>
@@ -402,6 +431,7 @@
                     style="pointer-events: auto;"
                     type="checkbox"
                     bind:group={checkk}
+                    bind:this = {GasFinal}
                     required
                     />
                     <p style="margin-left:10px;">Gasolina final (litros)</p>
@@ -420,6 +450,7 @@
                     style="pointer-events: auto;"
                     type="checkbox"
                     bind:group={checkk}
+                    bind:this = {KmInicial}
                     required
                     />
                     <p style="margin-left:10px;">Kilometraje inicial</p>
@@ -436,6 +467,7 @@
                     id={`chkbox-gas-ini`}
                     style="pointer-events: auto;"
                     type="checkbox"
+                    bind:this = {GasInicial}
                     bind:group={checkk}
                     required
                     />
@@ -464,6 +496,7 @@
                         type="checkbox"
                         value={check.id_checklist_event}
                         bind:group={checkk}
+                        bind:this = {checkbox_item[check.id_checklist_event]}
                         on:change={() => markCheckbox(check.id_checklist_event)}
                         required
                         />
@@ -471,9 +504,9 @@
                     </ion-label>
 
                     <ion-button fill="outline" class="loadEvidence" size="small">
-                        <!-- <label for="chklist-{check.id_checklist_event}" style="padding: 8px 10px"> -->
+                        <label for="chklist-{check.id_checklist_event}">
                             {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
-                        <!-- </label> -->
+                        </label>
                         <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
                         <!-- <input type="submit" value="Upload Image" name="submit" style="display:none;"/> -->
                     </ion-button>
