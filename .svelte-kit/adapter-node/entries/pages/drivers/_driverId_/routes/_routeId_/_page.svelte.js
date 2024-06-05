@@ -1,12 +1,12 @@
-import { c as create_ssr_component, b as subscribe, a as add_attribute, e as escape, d as each, v as validate_component } from "../../../../../../chunks/ssr.js";
+import { c as create_ssr_component, a as add_attribute, e as escape, d as each, b as subscribe, v as validate_component } from "../../../../../../chunks/ssr.js";
 import { p as page } from "../../../../../../chunks/stores.js";
 import { g as goto } from "../../../../../../chunks/client.js";
-import { arrowBack, locationOutline } from "ionicons/icons/index.mjs";
+import { arrowBack, cashOutline, locationOutline } from "ionicons/icons/index.mjs";
 import { modalController } from "@ionic/core";
 import { defineCustomElement } from "@ionic/core/components/ion-modal.js";
 import { initialize } from "@ionic/core/components/index.js";
-import { w as writable } from "../../../../../../chunks/index.js";
 import { I as IonPage } from "../../../../../../chunks/IonPage.js";
+import { w as writable } from "../../../../../../chunks/index.js";
 const registerCustomElement = (tagName, component) => {
   if (!customElements.get(tagName)) {
     class SvelteElement extends HTMLElement {
@@ -59,8 +59,6 @@ const css$1 = {
   map: null
 };
 const ChecklistControl = create_ssr_component(($$result, $$props, $$bindings, slots) => {
-  let $$unsubscribe_checklistStore;
-  $$unsubscribe_checklistStore = subscribe(checklistStore, (value) => value);
   let overlayElement = document.querySelector("ion-modal");
   const checklist = overlayElement.componentProps.checklist;
   overlayElement.componentProps.driverId;
@@ -71,7 +69,6 @@ const ChecklistControl = create_ssr_component(($$result, $$props, $$bindings, sl
   let KmInicial, GasInicial, KmFinal, GasFinal;
   let imagesName = {};
   $$result.css.add(css$1);
-  $$unsubscribe_checklistStore();
   return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button color="medium" data-svelte-h="svelte-1dnmkxs">Cancelar</ion-button></ion-buttons> <ion-title data-svelte-h="svelte-ucox25">Requerimientos de ruta</ion-title></ion-toolbar></ion-header> <ion-content fullscreen><ion-list>${isLast ? `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-km-fin`, 0)} style="pointer-events: auto;" type="checkbox" required${add_attribute("this", KmFinal, 0)}> <p style="margin-left:10px;" data-svelte-h="svelte-ccmu71">Kilometraje final</p></ion-label> <ion-button fill="outline" size="small" class="loadKmInicial" aria-selected> ${escape("Cargar km")} </ion-button></ion-item> <ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-gas-fin`, 0)} style="pointer-events: auto;" type="checkbox" required${add_attribute("this", GasFinal, 0)}> <p style="margin-left:10px;" data-svelte-h="svelte-wsoyd2">Gasolina final (litros)</p></ion-label> <ion-button fill="outline" size="small" class="loadGasInicial"> ${escape("Cargar gas")} </ion-button></ion-item>` : `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-km-ini`, 0)} style="pointer-events: auto;" type="checkbox" required${add_attribute("this", KmInicial, 0)}> <p style="margin-left:10px;" data-svelte-h="svelte-88twxi">Kilometraje inicial</p></ion-label> <ion-button fill="outline" size="small" class="loadKmInicial" aria-selected> ${escape("Cargar km")} </ion-button></ion-item> <ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-gas-ini`, 0)} style="pointer-events: auto;" type="checkbox" required${add_attribute("this", GasInicial, 0)}> <p style="margin-left:10px;" data-svelte-h="svelte-1ux30eb">Gasolina inicial (litros)</p></ion-label> <ion-button fill="outline" class="loadGasInicial" size="small" style="height: 16px "> ${escape("Cargar gas")} </ion-button></ion-item> `} ${checklist ? `${each(checklist, (check) => {
     return `<ion-item><ion-label style="display:flex;"><input${add_attribute("id", `chkbox-${check.id_checklist_event}`, 0)} style="pointer-events: auto;" type="checkbox"${add_attribute("value", check.id_checklist_event, 0)} required${~checkk.indexOf(check.id_checklist_event) ? add_attribute("checked", true, 1) : ""}${add_attribute("this", checkbox_item[check.id_checklist_event], 0)}> <p style="margin-left:10px;">${escape(check.item)}</p></ion-label> <ion-button fill="outline" class="loadEvidence svelte-1lh6nay" size="small"><label for="${"chklist-" + escape(check.id_checklist_event, true)}">${escape(imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : "Cargar evidencia")}</label> <input style="display:none;" id="${"chklist-" + escape(check.id_checklist_event, true)}" name="fileToUpload" type="file" accept="image/*"> </ion-button> </ion-item>`;
   })}` : ``}</ion-list></ion-content> <ion-footer> <ion-button fill="outline" color="tertiary" strong style="width: 99%; height: auto;" data-svelte-h="svelte-g82qqw">Confirmar</ion-button>  </ion-footer>`;
@@ -125,7 +122,9 @@ function changeRouteStatus(id_route, status) {
 }
 const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $page, $$unsubscribe_page;
+  let $checklistStore, $$unsubscribe_checklistStore;
   $$unsubscribe_page = subscribe(page, (value) => $page = value);
+  $$unsubscribe_checklistStore = subscribe(checklistStore, (value) => $checklistStore = value);
   (function(thisArg, _arguments, P, generator) {
     function adopt(value) {
       return value instanceof P ? value : new P(function(resolve) {
@@ -216,13 +215,14 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     }
   }
   $$unsubscribe_page();
+  $$unsubscribe_checklistStore();
   return `${$$result.head += `<!-- HEAD_svelte-kn0kph_START -->${$$result.title = `<title>Rutaflow - Detalles de ruta</title>`, ""}<!-- HEAD_svelte-kn0kph_END -->`, ""} ${dataSession ? `${validate_component(IonPage, "IonPage").$$render($$result, {}, {}, {
     default: () => {
-      return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button title="Atrás" alt="Atrás" data-svelte-h="svelte-7ppz3r"><ion-icon${add_attribute("icon", arrowBack, 0)}></ion-icon></ion-button></ion-buttons> <ion-buttons slot="secondary"><ion-button>${escape(dataSession.name)}</ion-button></ion-buttons> <ion-title>${escape(stats.name)}</ion-title></ion-toolbar></ion-header> ${checklist.length > 0 ? `${checklist.every((item) => item.img) ? `<ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1poui8g"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Pull to refresh" refreshing-spinner="circles" refreshing-text="Refreshing..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery, index) => {
+      return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button title="Atrás" alt="Atrás" data-svelte-h="svelte-7ppz3r"><ion-icon${add_attribute("icon", arrowBack, 0)}></ion-icon></ion-button></ion-buttons> <ion-buttons slot="end"><ion-button data-svelte-h="svelte-1mwna5t"><ion-icon${add_attribute("icon", cashOutline, 0)}></ion-icon></ion-button> <ion-button>${escape(dataSession.name)}</ion-button></ion-buttons> <ion-title>${escape(stats.name)}</ion-title></ion-toolbar></ion-header> ${checklist.length > 0 ? `${checklist.every((item) => item.img) ? `<ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1poui8g"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Pull to refresh" refreshing-spinner="circles" refreshing-text="Refreshing..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery, index) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-ziybgw"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery)), true)}"><div class="order svelte-ziybgw">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-ziybgw"></span>` : ``} </h3></ion-text> <div class="sub svelte-ziybgw" data-svelte-h="svelte-130ohbs"> </div></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end"></ion-icon> </ion-item>`;
       })}</ion-list></ion-content>` : `${escape(showChecklistModal(checklist, driverId, routeId))} <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1poui8g"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Pull to refresh" refreshing-spinner="circles" refreshing-text="Refreshing..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery, index) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-ziybgw"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery)), true)}"><div class="order svelte-ziybgw">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-ziybgw"></span>` : ``} </h3></ion-text> <div class="sub svelte-ziybgw" data-svelte-h="svelte-130ohbs"> </div></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end"></ion-icon> </ion-item>`;
-      })}</ion-list></ion-content>`}` : `${escape(changeRouteStatus(routeId, "enroute"))} <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1jkndk3"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Jala para actualizar" refreshing-spinner="circles" refreshing-text="Actualizando..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery) => {
+      })}</ion-list></ion-content>`}` : `${$checklistStore.mandatory && Array.isArray($checklistStore.mandatory) && $checklistStore.mandatory[0] === "0" ? `${escape(changeRouteStatus(routeId, "enroute"))}` : ``} <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1jkndk3"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Jala para actualizar" refreshing-spinner="circles" refreshing-text="Actualizando..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-ziybgw"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery)), true)}"><div class="order svelte-ziybgw">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-ziybgw"></span>` : ``}</h3> </ion-text></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end" style="${"color: " + escape(getDeliveryColor(delivery), true)}"></ion-icon> </ion-item>`;
       })}</ion-list></ion-content>`}`;
     }

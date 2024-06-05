@@ -37,7 +37,6 @@
                 //store.mandatory = lv.mandatoryValues;
                 return store;
             });
-            console.log($checklistStore);
         }
         
     });

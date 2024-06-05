@@ -2,8 +2,13 @@
     import BoxesCount from './_BoxesCount.svelte';
     import {page} from '$app/stores';
     import { goto } from '$app/navigation';
-    import {documentTextOutline,personOutline,calendarClearOutline,createOutline,
-            storefrontOutline,duplicateOutline,locationOutline,informationCircleOutline} from "ionicons/icons"; 
+    import {documentTextOutline, personOutline} from "ionicons/icons"; 
+    import {calendarClearOutline} from "ionicons/icons"; 
+    import {createOutline} from "ionicons/icons"; 
+    import {storefrontOutline} from "ionicons/icons";
+    import {duplicateOutline} from "ionicons/icons"; 
+    import {locationOutline} from "ionicons/icons"; 
+    import {informationCircleOutline} from "ionicons/icons";
     import {IonicShowModal} from "../../../../../services/IonicControllers";
     import ChecklistControl from './_ChecklistControl.svelte';
     let overlayElement = document.querySelector("ion-modal");
@@ -18,11 +23,11 @@
     const handleFileChange = async (event) => {
         const fileInput = event.target;
         const file = fileInput.files[0];
-        const compressed_image = await compressImage(file);
+        const compressed_file = await compressImage(file);
 
-        if (compressed_image) {
+        if (compressed_file) {
             const formData = new FormData();
-            formData.append('fileToUpload', compressed_image);
+            formData.append('fileToUpload', compressed_file);
             try {
                 const response = await fetch('https://app.rutaflow.com/api/admin/manager/upload_img_driver.php', {
                     method: 'POST',
@@ -49,46 +54,46 @@
 
     const compressImage = async (file) => {
         return new Promise((resolve) => {
-            const reader = new FileReader();
+        const reader = new FileReader();
 
-            reader.onload = (event) => {
-                const img = new Image();
-                img.src = event.target.result;
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
 
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
 
-                    // Set the canvas size to a reasonable value
-                    const maxWidth = 800;
-                    const maxHeight = 600;
+                // Set the canvas size to a reasonable value
+                const maxWidth = 800;
+                const maxHeight = 600;
 
-                    let width = img.width;
-                    let height = img.height;
+                let width = img.width;
+                let height = img.height;
 
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
 
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
+                if (height > maxHeight) {
+                    width *= maxHeight / height;
+                    height = maxHeight;
+                }
 
-                    canvas.width = width;
-                    canvas.height = height;
+                canvas.width = width;
+                canvas.height = height;
 
-                    ctx.drawImage(img, 0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
 
-                    // Get the compressed data as a Blob
-                    canvas.toBlob((blob) => {
-                        resolve(blob);
-                    }, 'image/jpeg', 0.7); // Adjust the quality as needed
-                };
+                // Get the compressed data as a Blob
+                canvas.toBlob((blob) => {
+                            resolve(blob);
+                }, 'image/jpeg', 0.7); // Adjust the quality as needed
             };
+        };
 
-            reader.readAsDataURL(file);
+        reader.readAsDataURL(file);
         });
     };
 

@@ -5,6 +5,7 @@
     import DeliveryInfo from './_DeliveryInfo.svelte';
     import IonPage from 'ionic-svelte/components/IonPage.svelte';
     import ChecklistControl from './_ChecklistControl.svelte';
+    import AddExpense from './_AddExpense.svelte';
     import {logOut} from "ionicons/icons"; 
     import { checklistStore } from '../../../../../stores/checklistStore';
     import { onMount } from 'svelte';
@@ -13,7 +14,7 @@
     import {alertController } from '@ionic/core';
     import {page} from '$app/stores';
     import { goto } from '$app/navigation';
-    import {locationOutline} from "ionicons/icons"; 
+    import {locationOutline,cashOutline} from "ionicons/icons"; 
     import {arrowBack} from "ionicons/icons"; 
 
     let dataSession = new Object();
@@ -112,17 +113,6 @@
 
     }
 
-    async function changeDeliveryStatus(deliveryId, status, comments) {
-
-        return await fetch(`https://app.rutaflow.com/admin/delivery/driver_status_change.php?id_delivery=${deliveryId}&status=${status}&comments=${comments}`)
-                .then(response => response.json())
-                .then(data => {
-                    const deliveryIndex = deliveries.findIndex(delivery => delivery.id_delivery === deliveryId);
-                    deliveries[deliveryIndex] = {...deliveries[deliveryIndex], status};
-                });
-
-    }
-
     const refresh_event_info = (delivery) => {
         return new Promise((resolve, reject) => {
             const requestData = new FormData();
@@ -174,6 +164,17 @@
         return "";
     };
 
+    const showExpenseModal = (routeName,routeId) => {
+        //var isLast = false;
+        IonicShowModal("modal-expense", AddExpense, {
+            routeName,routeId
+        }).then((result) => {
+            
+        });
+        //changeRouteStatus(routeId,'checklist');
+        return "";
+    };
+
     const mustCharge = (delivery) => {
         if(delivery.tracking_type=='subscription'){
             if (delivery.subscriber_info && delivery.payment_type === 'cash') {
@@ -217,6 +218,10 @@
         }else{
             goto(`/drivers/me`);
         }
+    }
+
+    const addExpense = () => {
+
     }
 
     const showAlert = async (customHeader, customMessage) => {
@@ -302,8 +307,9 @@
                 <ion-buttons slot="start">
                     <ion-button title="Atrás" alt="Atrás" on:click={goBack}><ion-icon icon={arrowBack}></ion-icon></ion-button>
                 </ion-buttons>
-                <ion-buttons slot="secondary">
-                <ion-button>{dataSession.name}</ion-button>
+                <ion-buttons slot="end">
+                    <ion-button on:click={()=>showExpenseModal(stats.name,routeId)}><ion-icon icon={cashOutline}></ion-icon></ion-button>
+                    <ion-button>{dataSession.name}</ion-button>
                 </ion-buttons>
         
                 <ion-title>{stats.name}</ion-title>
@@ -389,7 +395,9 @@
                 </ion-content>
             {/if}
         {:else}
-            {changeRouteStatus(routeId,'enroute')}
+            {#if $checklistStore.mandatory && Array.isArray($checklistStore.mandatory) && $checklistStore.mandatory[0] === '0'}
+                {changeRouteStatus(routeId, 'enroute')}
+            {/if}
             <ion-content>
                 <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
                     <ion-refresher-content pulling-icon="arrow-dropdown"
