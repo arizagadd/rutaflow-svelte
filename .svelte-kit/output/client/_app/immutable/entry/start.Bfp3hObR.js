@@ -1,0 +1,1 @@
+import{a as t}from"../chunks/entry.fHGp4CLu.js";export{t as start};

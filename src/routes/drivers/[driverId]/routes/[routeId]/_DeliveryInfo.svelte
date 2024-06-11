@@ -3,7 +3,7 @@
     import {page} from '$app/stores';
     import { goto } from '$app/navigation';
     import {documentTextOutline, personOutline} from "ionicons/icons"; 
-    import {calendarClearOutline} from "ionicons/icons"; 
+    import {calendarClearOutline,phonePortraitOutline} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
     import {duplicateOutline} from "ionicons/icons"; 
@@ -19,6 +19,7 @@
     let driverComments = delivery.driver_comments?delivery.driver_comments:'';
     let selectedImage = delivery.img?delivery.img:'';
     let img_id = "";
+    let locationData = { latitude: null, longitude: null };
 
     const handleFileChange = async (event) => {
         const fileInput = event.target;
@@ -101,34 +102,55 @@
         overlayElement.dismiss({ data: Date.now() });
     };
 
-    const sendEvidence = () => {
-        var lv = new Object(); 
-        lv.id_route = delivery.id_route;
-        lv.id_event = delivery.id_event;
-        lv.comments = driverComments.value;
-        lv.img = selectedImage;
-        lv.img_id = img_id;
-        const requestData = new FormData();
-        for (const key in lv) {
-            requestData.append(key, lv[key]);
-        }
-        fetch('https://app.rutaflow.com/api/admin/evidence/send_evidence.php', {
+    const sendEvidence = async () => {
+        try {
+            // Get location
+            const flag = await getLocation();
+            console.log(flag);
+            
+            if (flag) {
+                // Create an object to store evidence details
+                const lv = {
+                    id_route: delivery.id_route,
+                    id_event: delivery.id_event,
+                    comments: driverComments.value,
+                    img: selectedImage,
+                    img_id: img_id,
+                    lat: locationData.latitude,
+                    lon: locationData.longitude
+                };
+
+                // Create FormData from the object
+                const requestData = new FormData();
+                for (const key in lv) {
+                    requestData.append(key, lv[key]);
+                }
+
+                console.log(requestData);
+
+                // Send the evidence data
+                const response = await fetch('https://app.rutaflow.com/api/admin/evidence/send_evidence.php', {
                     method: 'POST',
-                    body: requestData,
-                })
-                .then(response => response.json())
-                .then(data => {
-                    closeModal();
-                    var checklist = {};
-                    var routeId = lv.id_route;
-                    //Show final km and gas inputs
-                    if(isLast){
-                        showKmGasModal("","",routeId,isLast);
-                    }
-                })
-                .catch(error => {
-                console.error('Error fetching data:', error);
-            });
+                    body: requestData
+                });
+
+                const data = await response.json();
+
+                // Handle the response data
+                closeModal();
+                const checklist = {};
+                const routeId = lv.id_route;
+
+                // Show final km and gas inputs if it is the last
+                if (isLast) {
+                    showKmGasModal("", "", routeId, isLast);
+                }
+            } else {
+                console.log("No entré");
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
     };
 
     const showKmGasModal = (checklist,driverId,routeId,isLast) => {
@@ -141,6 +163,27 @@
         });
     };
 
+    // Function to get the location
+    const getLocation = async () => {
+        if (!navigator.geolocation) {
+            console.error("Geolocation is not supported by your browser");
+            return false;
+        }
+
+        return new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    locationData.latitude = position.coords.latitude;
+                    locationData.longitude = position.coords.longitude;
+                    resolve(true);
+                },
+                (error) => {
+                    console.error("Error getting location:", error);
+                    resolve(false); // Resolve with false if there's an error
+                }
+            );
+        });
+    };
 
 </script>
 
@@ -171,6 +214,15 @@
                 <h2>{delivery.client_name}</h2>
             </ion-label>
         </ion-item>
+        {#if delivery.client_phone && delivery.client_phone.trim().length}
+            <ion-item href="tel:{delivery.client_phone}">
+                <ion-icon icon={phonePortraitOutline} slot="start"></ion-icon>
+                <ion-label class="ion-text-wrap">
+                    <p>Teléfono</p>
+                    <h2>{delivery.client_phone}</h2>
+                </ion-label>
+            </ion-item>
+        {/if}
         {#if delivery.line1 && delivery.line1.trim().length}
             <ion-item href="https://www.google.com/maps/search/?api=1&query={delivery.line1}">
                 <ion-icon icon={storefrontOutline} slot="start"></ion-icon>
