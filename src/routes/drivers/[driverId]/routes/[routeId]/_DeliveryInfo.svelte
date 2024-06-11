@@ -3,7 +3,7 @@
     import {page} from '$app/stores';
     import { goto } from '$app/navigation';
     import {documentTextOutline, personOutline} from "ionicons/icons"; 
-    import {calendarClearOutline} from "ionicons/icons"; 
+    import {calendarClearOutline,phonePortraitOutline} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
     import {duplicateOutline} from "ionicons/icons"; 
@@ -214,6 +214,15 @@
                 <h2>{delivery.client_name}</h2>
             </ion-label>
         </ion-item>
+        {#if delivery.client_phone && delivery.client_phone.trim().length}
+            <ion-item href="tel:{delivery.client_phone}">
+                <ion-icon icon={phonePortraitOutline} slot="start"></ion-icon>
+                <ion-label class="ion-text-wrap">
+                    <p>Teléfono</p>
+                    <h2>{delivery.client_phone}</h2>
+                </ion-label>
+            </ion-item>
+        {/if}
         {#if delivery.line1 && delivery.line1.trim().length}
             <ion-item href="https://www.google.com/maps/search/?api=1&query={delivery.line1}">
                 <ion-icon icon={storefrontOutline} slot="start"></ion-icon>
