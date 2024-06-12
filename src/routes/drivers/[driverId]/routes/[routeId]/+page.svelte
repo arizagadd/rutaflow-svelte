@@ -137,7 +137,7 @@
     const showDeliveryInfoModal = (delivery,isLast) => {
         refresh_event_info(delivery)
             .then((evidence_data) => {
-            delivery.client_name = stats.client_name;
+            //delivery.client_name = stats.client_name;
             if (evidence_data) {
                 //update these two fields that could change when user charge info
                 delivery.img = evidence_data.img;
