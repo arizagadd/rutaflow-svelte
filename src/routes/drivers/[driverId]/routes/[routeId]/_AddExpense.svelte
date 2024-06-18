@@ -1,23 +1,20 @@
 <script>
-    import BoxesCount from './_BoxesCount.svelte';
     import {page} from '$app/stores';
     import { goto } from '$app/navigation';
     import {documentTextOutline, personOutline, personRemoveOutline} from "ionicons/icons"; 
-    import {calendarClearOutline} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
-    import {storefrontOutline} from "ionicons/icons";
     import {duplicateOutline} from "ionicons/icons"; 
-    import {locationOutline,cardOutline,mapOutline} from "ionicons/icons"; 
+    import {cardOutline} from "ionicons/icons"; 
+    import {alertController } from '@ionic/core';
     import {informationCircleOutline} from "ionicons/icons";
-    import {IonicShowModal} from "../../../../../services/IonicControllers";
+    import { onMount } from 'svelte';
+    import { modalController } from '@ionic/core';
     let overlayElement = document.querySelector("ion-modal");
-    //console.log(overlayElement.componentProps);
-    let routeName = overlayElement.componentProps.routeName;
     let routeId = overlayElement.componentProps.routeId;
-    /*let isLast = overlayElement.componentProps.isLast;
-    //let checklist = overlayElement.componentProps.checklist;
-    let driverComments = delivery.driver_comments?delivery.driver_comments:'';
-    let selectedImage = delivery.img?delivery.img:'';*/
+    let det_concept = overlayElement.componentProps.ex_concept;
+    let det_amount = overlayElement.componentProps.ex_amount;
+    let det_type = overlayElement.componentProps.ex_type;
+    let id_expense = overlayElement.componentProps.id_expense;
     let selectedImage = "";
     let img_id = "";
     let paymentType="";
@@ -25,6 +22,23 @@
     let comments="";
     let concept="";
 
+    onMount(() => {
+       
+    });
+
+    const showAlert = async (customHeader, customMessage) => {
+        const alert = await alertController.create({
+            header: customHeader || 'Error', // Use customHeader or default value
+            message: customMessage || 'Vuelva a intentar', // Use customMessage or default value
+            buttons: [
+                {
+                    text: 'Cerrar'
+                }
+            ]
+        });
+
+        await alert.present();
+    };
 
     const handleFileChange = async (event) => {
         const fileInput = event.target;
@@ -104,7 +118,7 @@
     };
 
     const closeModal = () => {
-        overlayElement.dismiss({ data: Date.now() });
+        modalController.dismiss();
     };
 
     const sendExpense = () => {
@@ -116,13 +130,16 @@
         lv.img_id = img_id;
         lv.amount = expenseAmount.value;
         lv.concept = concept.value; 
+        lv.status = "done";
+        lv.id_expense = id_expense?id_expense:'null';
         const requestData = new FormData();
         for (const key in lv) {
             requestData.append(key, lv[key]);
         }
-
-        console.log(requestData);
-        fetch('https://rutaflow-app-development.up.railway.app/api/admin/expenses/add_expense.php', {
+        if(!img_id || !selectedImage || !comments.value || !expenseAmount.value || !concept.value){
+            showAlert("Datos incompletos","Llena los datos requeridos para completar el registro");
+        }else{
+            fetch('https://rutaflow-app-development.up.railway.app/api/admin/expenses/add_expense.php', {
                 method: 'POST',
                 body: requestData,
             })
@@ -131,18 +148,9 @@
                 closeModal();
             })
             .catch(error => {
-            console.error('Error fetching data:', error);
-        });
-    };
-
-    const showKmGasModal = (checklist,driverId,routeId,isLast) => {
-        overlayElement.componentProps.routeId = routeId;
-        overlayElement.componentProps.driverId = delivery.id_driver;
-        IonicShowModal("modal-km-gas", ChecklistControl, {
-            checklist,driverId,routeId,isLast
-        }).then((result) => {
-            
-        });
+                console.error('Error fetching data:', error);
+            });
+        }
     };
 
 
@@ -154,27 +162,27 @@
           <ion-button color="medium" on:click={closeModal}>Cancelar</ion-button>
         </ion-buttons>
         <ion-title title="">Agregar Gasto</ion-title>
-        <ion-buttons slot="end">
+        <!-- <ion-buttons slot="end">
           <ion-button on:click={sendExpense} strong>Confirmar</ion-button>
-        </ion-buttons>
+        </ion-buttons> -->
     </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>
     <ion-list>
         <ion-item>
             <ion-icon icon={documentTextOutline} slot="start"></ion-icon>
-            <ion-input label="Concepto" bind:this={concept} type="text" placeholder="Escribe aquí..."></ion-input>
+            <ion-input label="Concepto" bind:this={concept} type="text" placeholder="Escribe aquí..." value="{det_concept?det_concept:''}"></ion-input>
         </ion-item>
         <ion-item>
             <ion-icon icon={createOutline} slot="start"></ion-icon>
-            <ion-input label="Cantidad" bind:this={expenseAmount} type="number"></ion-input>
+            <ion-input label="Cantidad" bind:this={expenseAmount} type="number" value="{det_amount?det_amount:''}"></ion-input>
         </ion-item>
         <ion-item>
             <ion-icon icon={cardOutline} slot="start"></ion-icon>
-            <ion-select placeholder="Tipo de pago" bind:this={paymentType}>
+            <ion-select placeholder="Tipo de pago" bind:this={paymentType} value="{det_type?det_type:''}">
               <div slot="label">Tipo de pago <ion-text color="danger">(Obligatorio)</ion-text></div>
               <ion-select-option value="cash">Efectivo</ion-select-option>
-              <ion-select-option value="cash">Tarjeta</ion-select-option>
+              <ion-select-option value="card">Tarjeta</ion-select-option>
               <ion-select-option value="transfer">Transferencia</ion-select-option>
             </ion-select>
         </ion-item>
@@ -204,12 +212,10 @@
         {/if}
     </ion-list>
 </ion-content>
-<!-- <ion-footer>
+<ion-footer>
     <ion-toolbar>
-        <ion-item target="_blank" href="https://www.google.com/maps/search/?api=1&query={delivery.lat}%2C{delivery.lon}">
-            <ion-label class="ion-text-wrap">
-                <h2>Mostrar ubicación</h2>
-            </ion-label>
-        </ion-item>
+        <ion-button fill="outline" color="tertiary" on:click={sendExpense} strong style="width: 99%; height: auto;">
+            Confirmar
+        </ion-button>
     </ion-toolbar>
-</ion-footer> -->
+</ion-footer>

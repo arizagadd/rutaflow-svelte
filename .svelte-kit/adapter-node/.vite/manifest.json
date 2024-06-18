@@ -181,8 +181,7 @@
       "_ssr.js",
       "_stores.js",
       "_client.js",
-      "_IonPage.js",
-      "_index.js"
+      "_IonPage.js"
     ],
     "css": [
       "_app/immutable/assets/_page.7AdlfOUr.css"

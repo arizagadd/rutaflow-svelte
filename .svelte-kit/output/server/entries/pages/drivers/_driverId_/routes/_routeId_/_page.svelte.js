@@ -1,4 +1,4 @@
-import { c as create_ssr_component, a as add_attribute, e as escape, d as each, b as subscribe, v as validate_component } from "../../../../../../chunks/ssr.js";
+import { c as create_ssr_component, a as add_attribute, e as escape, f as each, d as subscribe, v as validate_component } from "../../../../../../chunks/ssr.js";
 import { p as page } from "../../../../../../chunks/stores.js";
 import { g as goto } from "../../../../../../chunks/client.js";
 import { arrowBack, cashOutline, locationOutline } from "ionicons/icons/index.mjs";
@@ -6,7 +6,6 @@ import { modalController } from "@ionic/core";
 import { defineCustomElement } from "@ionic/core/components/ion-modal.js";
 import { initialize } from "@ionic/core/components/index.js";
 import { I as IonPage } from "../../../../../../chunks/IonPage.js";
-import { w as writable } from "../../../../../../chunks/index.js";
 const registerCustomElement = (tagName, component) => {
   if (!customElements.get(tagName)) {
     class SvelteElement extends HTMLElement {
@@ -47,13 +46,6 @@ const IonicShowModal = async (selector, component, componentProps) => {
   modal.present();
   return await modal.onWillDismiss();
 };
-const checklistStore = writable({
-  items: [],
-  // Your checklist items
-  checkedIndices: [],
-  // Array to store checked indices
-  mandatory: []
-});
 const css$1 = {
   code: ".loadEvidence.svelte-1lh6nay{--background:#93e9be;--background-hover:#9ce0be;--background-activated:#88f4be;--background-focused:#88f4be;--color:blue;--border-radius:0;--border-color:#000;--border-style:solid;--border-width:1px;--box-shadow:0 2px 6px 0 rgb(0, 0, 0, 0.25);--ripple-color:deeppink;--padding-top:10px;--padding-bottom:10px}",
   map: null
@@ -122,10 +114,8 @@ function changeRouteStatus(id_route, status) {
 }
 const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $page, $$unsubscribe_page;
-  let $checklistStore, $$unsubscribe_checklistStore;
   $$unsubscribe_page = subscribe(page, (value) => $page = value);
-  $$unsubscribe_checklistStore = subscribe(checklistStore, (value) => $checklistStore = value);
-  (function(thisArg, _arguments, P, generator) {
+  var __awaiter = function(thisArg, _arguments, P, generator) {
     function adopt(value) {
       return value instanceof P ? value : new P(function(resolve) {
         resolve(value);
@@ -151,23 +141,36 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
       }
       step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
-  });
+  };
   let { routeId } = $$props;
   let { driverId } = $$props;
   let dataSession = new Object();
+  let loading = true;
+  let showChecklist = false;
   let deliveries = [];
   let stats = {};
-  let checklist = {};
+  let checklist = [];
+  let expenses = [];
   let refresher;
   function loadRoute(routeId2) {
-    const requestData = new FormData();
-    requestData.append("id_route", routeId2);
-    fetch("https://rutaflow-app-development.up.railway.app/api/admin/report/seguimiento_list.php", { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
-      stats = data.data.seguimiento_list[0];
-      deliveries = data.data.event_list;
-      checklist = data.data.checklist;
-    }).catch((error) => {
-      console.error("Error fetching data:", error);
+    return __awaiter(this, void 0, void 0, function* () {
+      const requestData = new FormData();
+      requestData.append("id_route", routeId2);
+      try {
+        const response = yield fetch("https://rutaflow-app-development.up.railway.app/api/admin/report/seguimiento_list.php", { method: "POST", body: requestData });
+        const data = yield response.json();
+        stats = data.data.seguimiento_list[0];
+        deliveries = data.data.event_list;
+        checklist = data.data.checklist;
+        expenses = data.data.expenses;
+        if (stats) {
+          showChecklist = stats.km_inicial == "0" && stats.gas_inicial == "0";
+        }
+        loading = false;
+      } catch (error) {
+        loading = false;
+        console.error("Error fetching data:", error);
+      }
     });
   }
   const showChecklistModal = (checklist2, driverId2, routeId2) => {
@@ -203,8 +206,8 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
       dataSession = JSON.parse(localStorage.getItem("userSession"));
       if (dataSession) {
         if (dataSession.id_user && (dataSession.type == "admin" || dataSession.type == "superadmin")) {
-          goto();
           loadRoute(routeId);
+          goto();
         } else if (dataSession.id_user && dataSession.id_driver) {
           loadRoute(routeId);
           goto(`/drivers/${dataSession.id_driver}/routes/${routeId}`);
@@ -215,16 +218,15 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     }
   }
   $$unsubscribe_page();
-  $$unsubscribe_checklistStore();
   return `${$$result.head += `<!-- HEAD_svelte-kn0kph_START -->${$$result.title = `<title>Rutaflow - Detalles de ruta</title>`, ""}<!-- HEAD_svelte-kn0kph_END -->`, ""} ${dataSession ? `${validate_component(IonPage, "IonPage").$$render($$result, {}, {}, {
     default: () => {
-      return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button title="Atrás" alt="Atrás" data-svelte-h="svelte-7ppz3r"><ion-icon${add_attribute("icon", arrowBack, 0)}></ion-icon></ion-button></ion-buttons> <ion-buttons slot="end"><ion-button data-svelte-h="svelte-1mwna5t"><ion-icon${add_attribute("icon", cashOutline, 0)}></ion-icon></ion-button> <ion-button>${escape(dataSession.name)}</ion-button></ion-buttons> <ion-title>${escape(stats.name)}</ion-title></ion-toolbar></ion-header> ${checklist.length > 0 ? `${checklist.every((item) => item.img) ? `<ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1poui8g"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Pull to refresh" refreshing-spinner="circles" refreshing-text="Refreshing..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery, index) => {
+      return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button title="Atrás" alt="Atrás" data-svelte-h="svelte-7ppz3r"><ion-icon${add_attribute("icon", arrowBack, 0)}></ion-icon></ion-button></ion-buttons> <ion-buttons slot="end"><ion-button data-svelte-h="svelte-nf50hj"><ion-icon${add_attribute("icon", cashOutline, 0)}></ion-icon></ion-button> </ion-buttons> <ion-title>${escape(stats.name)}</ion-title></ion-toolbar></ion-header> ${checklist.length > 0 ? `${checklist.every((item) => item.img) ? `<ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1t1tzpj"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Jale para actualizar" refreshing-spinner="circles" refreshing-text="Actualizando..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery, index) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-ziybgw"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery)), true)}"><div class="order svelte-ziybgw">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-ziybgw"></span>` : ``} </h3></ion-text> <div class="sub svelte-ziybgw" data-svelte-h="svelte-130ohbs"> </div></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end"></ion-icon> </ion-item>`;
       })}</ion-list></ion-content>` : `${escape(showChecklistModal(checklist, driverId, routeId))} <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1poui8g"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Pull to refresh" refreshing-spinner="circles" refreshing-text="Refreshing..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery, index) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-ziybgw"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery)), true)}"><div class="order svelte-ziybgw">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-ziybgw"></span>` : ``} </h3></ion-text> <div class="sub svelte-ziybgw" data-svelte-h="svelte-130ohbs"> </div></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end"></ion-icon> </ion-item>`;
-      })}</ion-list></ion-content>`}` : `${$checklistStore.mandatory && Array.isArray($checklistStore.mandatory) && $checklistStore.mandatory[0] === "0" ? `${escape(changeRouteStatus(routeId, "enroute"))}` : ``} <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1jkndk3"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Jala para actualizar" refreshing-spinner="circles" refreshing-text="Actualizando..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery) => {
+      })}</ion-list></ion-content>`}` : `${!loading ? `${showChecklist ? `${escape(showChecklistModal("", driverId, routeId))}` : ``} <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-19e7x43"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Jala para actualizar" refreshing-spinner="circles" refreshing-text="Actualizando..."></ion-refresher-content></ion-refresher> <ion-list>${each(deliveries, (delivery) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-ziybgw"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery)), true)}"><div class="order svelte-ziybgw">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-ziybgw"></span>` : ``}</h3> </ion-text></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end" style="${"color: " + escape(getDeliveryColor(delivery), true)}"></ion-icon> </ion-item>`;
-      })}</ion-list></ion-content>`}`;
+      })}</ion-list></ion-content>` : ``}`}`;
     }
   })}` : ``}`;
 });
