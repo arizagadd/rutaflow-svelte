@@ -15,6 +15,16 @@
     let formattedDate = new Date();
     let flag = false;
     let dataSession = new Object();
+    let refresher;
+
+    const refresh = async () => {
+       await loadRoutes(driverId);
+       refresher.complete();
+    }
+
+    onMount( async () => {
+		await refresh();
+	});
 
     $: {({driverId} = $page.params);
         const storedSession = localStorage.getItem('userSession');
@@ -47,31 +57,6 @@
         // return unescape(text);
       }
     }
-
-    let refresher;
-
-    const refresh = async () => {
-      await loadRoutes(driverId);
-        refresher.complete();
-    }
-
-    /*$: {
-      driverId = params.driverId;
-      if(driverId === 'me') {
-        driverId = $authStore.id;
-      }
-      loadRoutes(driverId);
-    }*/
-    /*export async function load({ params }) {
-        console.log(params);
-        driverId = params.driverId;
-        if(driverId === 'me') {
-            driverId = $authStore.id;
-        }
-        console.log(driverId);
-        loadRoutes("driverId");
-        //return { props: { userData:  } };
-    }*/
 
     function loadRoutes(driverId) {
         var actualDate = getActualFormattedDate();
@@ -319,22 +304,20 @@
                     {#each routes as route (route.id_route)}
                         {#if compareDates(route.date_start)}
                             {changePendingState("true")}
-                            {#if route.status!='completed' || route.status != 'cancelled'}
-                                <ion-item button on:click={openRoute(route.id_route,route.status)}>
-                                    <ion-avatar slot="start">
-                                        <div class="route-color" style="background-color:{getDeliveryColor(route.status)};color: {getContrast(getDeliveryColor(route.status))}" title="{setTitleStatus(route.status)}">
-                                            <div class="route-symbol" style="">
-                                                {capitalizeFirstLetter(route.name.charAt(0))}
-                                            </div>
+                            <ion-item button on:click={openRoute(route.id_route,route.status)}>
+                                <ion-avatar slot="start">
+                                    <div class="route-color" style="background-color:{getDeliveryColor(route.status)};color: {getContrast(getDeliveryColor(route.status))}" title="{setTitleStatus(route.status)}">
+                                        <div class="route-symbol" style="">
+                                            {capitalizeFirstLetter(route.name.charAt(0))}
                                         </div>
-                                    </ion-avatar>
-                                    <ion-label>
-                                        <h2>{route.name}</h2>
-                                        <h3 class="text-muted">Inicio: {route.date_start}</h3>
-                                    </ion-label>
-                                    <div slot="end"></div>
-                                </ion-item>
-                            {/if}
+                                    </div>
+                                </ion-avatar>
+                                <ion-label>
+                                    <h2>{route.name}</h2>
+                                    <h3 class="text-muted">Inicio: {route.date_start}</h3>
+                                </ion-label>
+                                <div slot="end"></div>
+                            </ion-item>
                         {:else}
                             {changePendingState("false")}
                         {/if}
@@ -344,7 +327,7 @@
                     {#each routes.filter(route => route.id_driver === driverId) as route (route.id_route)}
                         {#if compareDates(route.date_start)}
                             {changePendingState("true")}
-                            {#if route.status!='completed' || route.status != 'cancelled'}
+                            {#if route.status!='completed' && route.status != 'cancelled'}
                                 <ion-item button on:click={openRoute(route.id_route,route.status)}>
                                     <ion-avatar slot="start">
                                         <div class="route-color" style="background-color:{getDeliveryColor(route.status)};color: {getContrast(getDeliveryColor(route.status))}" title="{setTitleStatus(route.status)}">
@@ -359,6 +342,8 @@
                                     </ion-label>
                                     <div slot="end"></div>
                                 </ion-item>
+                            {:else}
+                                {changePendingState("false")}
                             {/if}
                         {:else}
                             {changePendingState("false")}

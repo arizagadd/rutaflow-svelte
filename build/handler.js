@@ -1040,6 +1040,8 @@ function get_raw_body(req, body_size_limit) {
  * }} options
  * @returns {Promise<Request>}
  */
+// TODO 3.0 make the signature synchronous?
+// eslint-disable-next-line @typescript-eslint/require-await
 async function getRequest({ request, base, bodySizeLimit }) {
 	return new Request(base + request.url, {
 		// @ts-expect-error
@@ -1058,6 +1060,8 @@ async function getRequest({ request, base, bodySizeLimit }) {
  * @param {Response} response
  * @returns {Promise<void>}
  */
+// TODO 3.0 make the signature synchronous?
+// eslint-disable-next-line @typescript-eslint/require-await
 async function setResponse(res, response) {
 	for (const [key, value] of response.headers) {
 		try {

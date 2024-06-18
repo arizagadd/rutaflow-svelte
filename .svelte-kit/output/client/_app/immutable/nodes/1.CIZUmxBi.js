@@ -1,0 +1,3 @@
+import{s as o,e as r,b as l,d as c,f as m,i as d,n as s,h as v}from"../chunks/index.BzUyNcuj.js";import{S as h,i as u}from"../chunks/index.D9GPdhpm.js";import{u as f}from"../chunks/_layout.BvDJAlGO.js";function p(i){let e,a=`<div class="huge svelte-viq1pm">404</div> <div class="big">Page not found. 
+    
+    <a href="${f("../")}">Go back</a></div>`;return{c(){e=r("div"),e.innerHTML=a,this.h()},l(t){e=l(t,"DIV",{class:!0,"data-svelte-h":!0}),c(e)!=="svelte-1to51ow"&&(e.innerHTML=a),this.h()},h(){m(e,"class","e404 svelte-viq1pm")},m(t,n){d(t,e,n)},p:s,i:s,o:s,d(t){t&&v(e)}}}class b extends h{constructor(e){super(),u(this,e,null,p,o,{})}}export{b as component};

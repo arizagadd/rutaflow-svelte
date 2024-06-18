@@ -27,10 +27,8 @@ const readableEventFactory = (args) => {
   const { defaultvalue, event, eventAttr, listenerComponent } = args;
   return readable(defaultvalue, (set) => {
     const eventFunction = (event2) => {
-      if (eventAttr)
-        set(event2[eventAttr]);
-      else
-        set(event2);
+      if (eventAttr) set(event2[eventAttr]);
+      else set(event2);
     };
     listenerComponent.addEventListener(event, eventFunction);
     return () => {

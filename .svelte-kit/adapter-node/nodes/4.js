@@ -5,6 +5,6 @@ let component_cache;
 export const component = async () => component_cache ??= (await import('../entries/pages/drivers/_driverId_/_page.svelte.js')).default;
 export { server };
 export const server_id = "src/routes/drivers/[driverId]/+page.server.js";
-export const imports = ["_app/immutable/nodes/4.9QiO3sjR.js","_app/immutable/chunks/index.BYLndrM5.js","_app/immutable/chunks/index.BNHbygFo.js","_app/immutable/chunks/index.CeQQYKs5.js","_app/immutable/chunks/entry.BL0zc3kS.js","_app/immutable/chunks/index-48209844.IIRtDZyg.js","_app/immutable/chunks/IonPage.KvUD72q2.js","_app/immutable/chunks/authStore.Dl96eK1q.js"];
+export const imports = ["_app/immutable/nodes/4.Cr8tj7g4.js","_app/immutable/chunks/index.BzUyNcuj.js","_app/immutable/chunks/index.D9GPdhpm.js","_app/immutable/chunks/index.DvCJZSfx.js","_app/immutable/chunks/entry.DHhq2ZG4.js","_app/immutable/chunks/index-6e05b96e.C_9q9BoX.js","_app/immutable/chunks/IonPage.xQ4lM5iK.js","_app/immutable/chunks/authStore.BrPPkCsK.js"];
 export const stylesheets = ["_app/immutable/assets/4.Dy1nLV9J.css"];
 export const fonts = [];

@@ -26,7 +26,6 @@
     let imagesName = {};
 
     onMount(() => {
-        var mandatory;
         if(isLast){
             console.log("Último checklist");
         }else{
@@ -152,8 +151,6 @@
                 alertIncompleteChecklist();
             }
         }else{
-            //var ini_km = transformFormatValue(initial_km.focusedValue,"km");
-            //var ini_gas = transformFormatValue(initial_gas.focusedValue,"gas");
             var ini_km = transformFormatValue(km_inicial,"km");
             var ini_gas = transformFormatValue(gas_inicial,"gas");
             checklistStore.update(store => {
@@ -200,7 +197,23 @@
                     });
                     //goto(`/drivers/${driverId}/routes/${routeId}`);
                     //window.location.reload();
-                } else {
+                }else if(!mandatoryVal && ini_km && ini_gas){
+                    var formData = new FormData();
+                    formData.append(`km_inicial`,ini_km);
+                    formData.append(`gas_inicial`,ini_gas);
+                    fetch('https://app.rutaflow.com/api/admin/checklist/add_evidence.php', {
+                        method: 'POST',
+                        body: formData,
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            changeRouteStatus(routeId, 'enroute');
+                            console.log("Holaaa");
+                        })
+                        .catch(error => {
+                        console.error('Error fetching data:', error);
+                    });
+                }else {
                     alertIncompleteChecklist();
                 }
 
