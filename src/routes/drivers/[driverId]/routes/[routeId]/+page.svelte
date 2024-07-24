@@ -26,6 +26,7 @@
     let checklist = [];
     let expenses = [];
     let refresher;
+    let isModalOpen = false;
 
     const refresh = async () => {
         await loadRoute(routeId);
@@ -164,12 +165,15 @@
 
     const showChecklistModal = (checklist,driverId,routeId) => {
         var isLast = false;
-        IonicShowModal("modal-checklist", ChecklistControl, {
-            checklist,driverId,routeId,isLast
-        }).then((result) => {
-            
-        });
-        changeRouteStatus(routeId,'checklist');
+        if(!isModalOpen){
+            isModalOpen = true;
+            IonicShowModal("modal-checklist", ChecklistControl, {
+                checklist,driverId,routeId,isLast
+            }).then((result) => {
+                isModalOpen=false;
+            });
+            changeRouteStatus(routeId,'checklist');
+        }
         return "";
     };
 
