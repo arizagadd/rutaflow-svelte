@@ -152,6 +152,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let checklist = [];
   let expenses = [];
   let refresher;
+  let isModalOpen = false;
   function loadRoute(routeId2) {
     return __awaiter(this, void 0, void 0, function* () {
       const requestData = new FormData();
@@ -175,9 +176,13 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   }
   const showChecklistModal = (checklist2, driverId2, routeId2) => {
     var isLast = false;
-    IonicShowModal("modal-checklist", ChecklistControl, { checklist: checklist2, driverId: driverId2, routeId: routeId2, isLast }).then((result) => {
-    });
-    changeRouteStatus(routeId2, "checklist");
+    if (!isModalOpen) {
+      isModalOpen = true;
+      IonicShowModal("modal-checklist", ChecklistControl, { checklist: checklist2, driverId: driverId2, routeId: routeId2, isLast }).then((result) => {
+        isModalOpen = false;
+      });
+      changeRouteStatus(routeId2, "checklist");
+    }
     return "";
   };
   const mustCharge = (delivery) => {

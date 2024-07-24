@@ -208,7 +208,6 @@
                         .then(response => response.json())
                         .then(data => {
                             changeRouteStatus(routeId, 'enroute');
-                            console.log("Holaaa");
                         })
                         .catch(error => {
                         console.error('Error fetching data:', error);
