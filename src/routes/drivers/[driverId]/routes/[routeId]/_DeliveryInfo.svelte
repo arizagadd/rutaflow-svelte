@@ -252,13 +252,13 @@
                 <ion-icon icon={locationOutline} slot="end"></ion-icon>
             </ion-item>
         {/if}
-        {#if delivery.comments && delivery.comments.trim().length}
-            {#if delivery.comments!='<br>'}
+        {#if delivery.comments_ext && delivery.comments_ext.trim().length}
+            {#if delivery.comments_ext!='<br>'}
                 <ion-item>
                     <ion-icon icon={informationCircleOutline} slot="start"></ion-icon>
                     <ion-label class="ion-text-wrap">
                         <p>Notas de ubicación</p>
-                        <h2>{delivery.comments}</h2>
+                        <h2>{delivery.comments_ext}</h2>
                     </ion-label>
                 </ion-item>
             {/if}
