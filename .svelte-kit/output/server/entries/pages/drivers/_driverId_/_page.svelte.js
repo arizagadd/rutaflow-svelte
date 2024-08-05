@@ -17,19 +17,19 @@ function compareDates(start_date) {
 function getDeliveryColor(status) {
   let color = "#ffffff";
   if (status === "pending") {
-    color = "#dbb814b2";
+    color = "#FAD733";
   } else if (status === "completed") {
-    color = "#77d039";
+    color = "#27C24C";
   } else if (status == "enroute") {
-    color = "#5c7de8";
+    color = "#3BBAC2";
   } else if (status == "paused") {
-    color = "#949db9";
+    color = "#949DB9";
   } else if (status == "cancelled") {
-    color = "#ea0909b2";
+    color = "#F05050";
   } else if (status == "checklist") {
-    color = "#11cab9b2";
+    color = "#F6A833";
   } else if (status == "checklist-pending") {
-    color = "#a8a8a8";
+    color = "#E98C00";
   }
   return color;
 }
