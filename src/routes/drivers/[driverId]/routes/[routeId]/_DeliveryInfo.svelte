@@ -3,7 +3,7 @@
     import {page} from '$app/stores';
     import { goto } from '$app/navigation';
     import {documentTextOutline, personOutline} from "ionicons/icons"; 
-    import {calendarClearOutline,phonePortraitOutline} from "ionicons/icons"; 
+    import {calendarClearOutline,phonePortraitOutline, callOutline} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
     import {duplicateOutline} from "ionicons/icons"; 
@@ -20,6 +20,25 @@
     let selectedImage = delivery.img?delivery.img:'';
     let img_id = "";
     let locationData = { latitude: null, longitude: null };
+    // Regular expression to match a phone number after "Teléfono:"
+    const phoneRegex = /Teléfono:\s*(\d{10,})/;
+    
+    let phoneNumber = "";
+    let remainingText = delivery.comments_ext;
+
+    if (delivery.comments_ext) {
+        const match = delivery.comments_ext.match(phoneRegex);
+        if (match) {
+        phoneNumber = match[1]; // Extract the phone number
+        remainingText = delivery.comments_ext.replace(phoneRegex, '').trim(); // Remove the phone part
+        }
+    }
+
+    function callNumber() {
+        if (phoneNumber) {
+        window.location.href = `tel:${phoneNumber}`;
+        }
+    }
 
     const handleFileChange = async (event) => {
         const fileInput = event.target;
@@ -200,13 +219,6 @@
 </ion-header>
 <ion-content fullscreen>
     <ion-list>
-        <!-- <ion-item>
-            <ion-icon name="gift" slot="start" />
-            <ion-label class="ion-text-wrap">
-                <p>Boxes</p>
-                <BoxesCount {delivery} />
-            </ion-label>
-        </ion-item> -->
         <ion-item>
             <ion-icon icon={personOutline} slot="start"></ion-icon>
             <ion-label>
@@ -218,7 +230,7 @@
             <ion-item href="tel:{delivery.client_phone}">
                 <ion-icon icon={phonePortraitOutline} slot="start"></ion-icon>
                 <ion-label class="ion-text-wrap">
-                    <p>Teléfono</p>
+                    <p>Teléfono de cliente</p>
                     <h2>{delivery.client_phone}</h2>
                 </ion-label>
             </ion-item>
@@ -252,16 +264,24 @@
                 <ion-icon icon={locationOutline} slot="end"></ion-icon>
             </ion-item>
         {/if}
-        {#if delivery.comments_ext && delivery.comments_ext.trim().length}
-            {#if delivery.comments_ext!='<br>'}
-                <ion-item>
-                    <ion-icon icon={informationCircleOutline} slot="start"></ion-icon>
-                    <ion-label class="ion-text-wrap">
-                        <p>Notas de ubicación</p>
-                        <h2>{delivery.comments_ext}</h2>
-                    </ion-label>
-                </ion-item>
-            {/if}
+        {#if phoneNumber}
+            <ion-item on:click={callNumber} href="tel:{phoneNumber}">
+                <ion-icon icon={callOutline} slot="start"></ion-icon>
+                <ion-label class="ion-text-wrap">
+                <p>Llamar a</p>
+                <h2>{phoneNumber}</h2>
+                </ion-label>
+            </ion-item>
+        {/if}
+
+        {#if remainingText && remainingText !== '<br>'}
+            <ion-item>
+                <ion-icon icon={informationCircleOutline} slot="start"></ion-icon>
+                <ion-label class="ion-text-wrap">
+                <p>Notas de ubicación</p>
+                <h2>{remainingText}</h2>
+                </ion-label>
+            </ion-item>
         {/if}
         {#if delivery.schedule && delivery.schedule.trim().length}
             <ion-item>
