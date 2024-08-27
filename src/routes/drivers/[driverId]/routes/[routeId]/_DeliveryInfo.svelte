@@ -312,18 +312,18 @@
             </ion-item>
         {/if}
         {#if phoneNumber}
-            <ion-item href="tel:{phoneNumber}">
+            <ion-item>
                 <ion-icon icon={callOutline} slot="start"></ion-icon>
                 <ion-label class="ion-text-wrap">
                     <p>Llamar al Cliente</p>
                     <h2>{phoneNumber}</h2>
                 </ion-label>
+                <!-- Button to send SMS, preventing ion-item href action -->
+                <ion-button fill="outline" on:click={sendSMS} style="margin-left: 16px;">
+                    <ion-icon icon={paperPlaneOutline} slot="start"></ion-icon>
+                    Notificar Cliente
+                </ion-button>
             </ion-item>
-            <!-- Button to send SMS, preventing ion-item href action -->
-            <ion-button fill="outline" on:click={sendSMS} style="margin-left: 16px;">
-                <ion-icon icon={paperPlaneOutline} slot="start"></ion-icon>
-                Notificar Cliente
-            </ion-button>
         {/if}
         {#if remainingText && remainingText !== '<br>'}
             <ion-item>
