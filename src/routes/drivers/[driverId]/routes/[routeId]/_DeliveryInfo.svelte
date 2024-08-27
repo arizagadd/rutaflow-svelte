@@ -312,7 +312,7 @@
             </ion-item>
         {/if}
         {#if phoneNumber}
-            <ion-item href="tel:{phoneNumber}">
+            <ion-item>
                 <ion-icon icon={callOutline} slot="start"></ion-icon>
                 <ion-label class="ion-text-wrap">
                     <p>Llamar al Cliente</p>
