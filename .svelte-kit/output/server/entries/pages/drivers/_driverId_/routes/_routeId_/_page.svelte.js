@@ -1,11 +1,11 @@
 import { c as create_ssr_component, a as add_attribute, e as escape, f as each, d as subscribe, v as validate_component } from "../../../../../../chunks/ssr.js";
-import { p as page } from "../../../../../../chunks/stores.js";
-import { g as goto } from "../../../../../../chunks/client.js";
-import { arrowBack, cashOutline, locationOutline } from "ionicons/icons/index.mjs";
 import { modalController } from "@ionic/core";
+import { arrowBack, cashOutline, locationOutline } from "ionicons/icons/index.mjs";
 import { defineCustomElement } from "@ionic/core/components/ion-modal.js";
 import { initialize } from "@ionic/core/components/index.js";
+import { g as goto } from "../../../../../../chunks/client.js";
 import { I as IonPage } from "../../../../../../chunks/IonPage.js";
+import { p as page } from "../../../../../../chunks/stores.js";
 const registerCustomElement = (tagName, component) => {
   if (!customElements.get(tagName)) {
     class SvelteElement extends HTMLElement {
@@ -106,7 +106,7 @@ function changeRouteStatus(id_route, status) {
   let requestData = new FormData();
   requestData.append("id_route", id_route);
   requestData.append("status", status);
-  fetch("https://rutaflow-app-development.up.railway.app/api/admin/route/change_status.php", { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
+  fetch("https://dev.rutaflow.com/api/admin/route/change_status.php", { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
   }).catch((error) => {
     console.error("Error fetching data:", error);
   });
@@ -158,7 +158,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
       const requestData = new FormData();
       requestData.append("id_route", routeId2);
       try {
-        const response = yield fetch("https://rutaflow-app-development.up.railway.app/api/admin/report/seguimiento_list.php", { method: "POST", body: requestData });
+        const response = yield fetch("https://dev.rutaflow.com/api/admin/report/seguimiento_list.php", { method: "POST", body: requestData });
         const data = yield response.json();
         stats = data.data.seguimiento_list[0];
         deliveries = data.data.event_list;

@@ -56,7 +56,7 @@
         const requestData = new FormData();
         requestData.append('id_route', routeId);
         try {
-            const response = await fetch('https://rutaflow-app-development.up.railway.app/api/admin/report/seguimiento_list.php', {
+            const response = await fetch('https://dev.rutaflow.com/api/admin/report/seguimiento_list.php', {
                 method: 'POST',
                 body: requestData,
             });
@@ -129,7 +129,7 @@
             requestData.append('id_route', delivery.id_route);
             requestData.append('id_event', delivery.id_event);
 
-            fetch('https://rutaflow-app-development.up.railway.app/api/admin/evidence/evidence_by_event.php', {
+            fetch('https://dev.rutaflow.com/api/admin/evidence/evidence_by_event.php', {
                 method: 'POST',
                 body: requestData,
             })
@@ -219,7 +219,7 @@
         let requestData = new FormData();
         requestData.append('id_route', id_route);
         requestData.append('status',status);
-        fetch('https://rutaflow-app-development.up.railway.app/api/admin/route/change_status.php', {
+        fetch('https://dev.rutaflow.com/api/admin/route/change_status.php', {
                 method: 'POST',
                 body: requestData,
             })

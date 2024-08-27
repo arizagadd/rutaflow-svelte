@@ -49,7 +49,7 @@
             const formData = new FormData();
             formData.append('fileToUpload', compressed_file);
             try {
-                const response = await fetch('https://rutaflow-app-development.up.railway.app/api/admin/manager/upload_img_driver.php', {
+                const response = await fetch('https://dev.rutaflow.com/api/admin/manager/upload_img_driver.php', {
                     method: 'POST',
                     body: formData,
                 });
@@ -139,7 +139,7 @@
         if(!img_id || !selectedImage || !comments.value || !expenseAmount.value || !concept.value){
             showAlert("Datos incompletos","Llena los datos requeridos para completar el registro");
         }else{
-            fetch('https://rutaflow-app-development.up.railway.app/api/admin/expenses/add_expense.php', {
+            fetch('https://dev.rutaflow.com/api/admin/expenses/add_expense.php', {
                 method: 'POST',
                 body: requestData,
             })

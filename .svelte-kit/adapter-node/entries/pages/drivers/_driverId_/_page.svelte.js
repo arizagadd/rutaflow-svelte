@@ -94,7 +94,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     var actualDate = getActualFormattedDate();
     const requestData = new FormData();
     requestData.append("actual_date", actualDate);
-    fetch(`https://rutaflow-app-development.up.railway.app/api/admin/report/seguimiento_list.php`, { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
+    fetch(`https://dev.rutaflow.com/api/admin/report/seguimiento_list.php`, { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
       const seguimiento_info = data;
       routes = seguimiento_info.data.seguimiento_list;
       seguimiento_info.data.event_list;

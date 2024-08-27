@@ -136,7 +136,7 @@
                 //cerrar modal
                 closeOverlay();
                 
-                fetch('https://rutaflow-app-development.up.railway.app/api/admin/checklist/add_evidence.php', {
+                fetch('https://dev.rutaflow.com/api/admin/checklist/add_evidence.php', {
                     method: 'POST',
                     body: formData,
                     })
@@ -175,7 +175,7 @@
                     formData.append(`km_inicial`,ini_km);
                     formData.append(`gas_inicial`,ini_gas);
                     formData.append(`id_route`,routeId);
-                    fetch('https://rutaflow-app-development.up.railway.app/api/admin/checklist/add_evidence.php', {
+                    fetch('https://dev.rutaflow.com/api/admin/checklist/add_evidence.php', {
                         method: 'POST',
                         body: formData,
                         })
@@ -201,7 +201,7 @@
                     var formData = new FormData();
                     formData.append(`km_inicial`,ini_km);
                     formData.append(`gas_inicial`,ini_gas);
-                    fetch('https://rutaflow-app-development.up.railway.app/api/admin/checklist/add_evidence.php', {
+                    fetch('https://dev.rutaflow.com/api/admin/checklist/add_evidence.php', {
                         method: 'POST',
                         body: formData,
                         })
@@ -231,7 +231,7 @@
             const formData = new FormData();
             formData.append('fileToUpload', compressed_file);
             try {
-                const response = await fetch('https://rutaflow-app-development.up.railway.app/api/admin/manager/upload_img_driver.php', {
+                const response = await fetch('https://dev.rutaflow.com/api/admin/manager/upload_img_driver.php', {
                     method: 'POST',
                     body: formData,
                 });
@@ -336,7 +336,7 @@
         let requestData = new FormData();
         requestData.append('id_route', id_route);
         requestData.append('status',status);
-        fetch('https://rutaflow-app-development.up.railway.app/api/admin/route/change_status.php', {
+        fetch('https://dev.rutaflow.com/api/admin/route/change_status.php', {
                 method: 'POST',
                 body: requestData,
                 })
