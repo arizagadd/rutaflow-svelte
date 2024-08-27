@@ -118,7 +118,7 @@
         }else if (status == 'cancelled'){
             color = '#F05050';
         }else if (status == 'checklist'){
-            color = "#F6A833"
+            color = "#F6A833";
         }else if (status == 'checklist-pending'){
             color = "#E98C00";
         }

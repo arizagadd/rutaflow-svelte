@@ -170,7 +170,7 @@
             IonicShowModal("modal-checklist", ChecklistControl, {
                 checklist,driverId,routeId,isLast
             }).then((result) => {
-                isModalOpen=false;
+                isModalOpen = false;
             });
             changeRouteStatus(routeId,'checklist');
         }

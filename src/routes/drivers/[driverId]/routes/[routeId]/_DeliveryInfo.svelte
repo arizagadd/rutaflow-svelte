@@ -1,18 +1,17 @@
 <script>
-    import BoxesCount from './_BoxesCount.svelte';
-    import {page} from '$app/stores';
-    import { goto } from '$app/navigation';
-    import {documentTextOutline, personOutline} from "ionicons/icons"; 
+    //import BoxesCount from './_BoxesCount.svelte';
+    import { alertController } from '@ionic/core';
+    import {documentTextOutline, personOutline, paperPlaneOutline} from "ionicons/icons"; 
     import {calendarClearOutline,phonePortraitOutline, callOutline} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
     import {duplicateOutline} from "ionicons/icons"; 
-    import {locationOutline} from "ionicons/icons"; 
+    import {locationOutline} from "ionicons/icons";
     import {informationCircleOutline} from "ionicons/icons";
     import {IonicShowModal} from "../../../../../services/IonicControllers";
     import ChecklistControl from './_ChecklistControl.svelte';
     let overlayElement = document.querySelector("ion-modal");
-    //console.log(overlayElement.componentProps);
+   
     let delivery = overlayElement.componentProps.delivery;
     let isLast = overlayElement.componentProps.isLast;
     //let checklist = overlayElement.componentProps.checklist;
@@ -25,7 +24,7 @@
     
     let phoneNumber = "";
     let remainingText = delivery.comments_ext;
-
+    
     if (delivery.comments_ext) {
         const match = delivery.comments_ext.match(phoneRegex);
         if (match) {
@@ -34,11 +33,33 @@
         }
     }
 
-    function callNumber() {
-        if (phoneNumber) {
-        window.location.href = `tel:${phoneNumber}`;
-        }
-    }
+    const alertSMSsent = async () => {
+		const alert = await alertController.create({
+			header: 'SMS enviado',
+			message: 'Se envío correctamente un SMS a '+delivery.title+' con número de teléfono: '+phoneNumber,
+			buttons: [
+                {
+                    text: 'Cerrar'
+                }
+			]
+		});
+	
+		await alert.present();
+	};
+
+    const alertSMSNotsent = async () => {
+		const alert = await alertController.create({
+			header: 'SMS no enviado',
+			message: 'Hubo un error al enviar SMS a '+delivery.title+' con número de teléfono: '+phoneNumber0+'. Por favor contacte a soporte.',
+			buttons: [
+                {
+                    text: 'Cerrar'
+                }
+			]
+		});
+	
+		await alert.present();
+	};
 
     const handleFileChange = async (event) => {
         const fileInput = event.target;
@@ -125,7 +146,6 @@
         try {
             // Get location
             const flag = await getLocation();
-            console.log(flag);
             
             if (flag) {
                 // Create an object to store evidence details
@@ -144,8 +164,6 @@
                 for (const key in lv) {
                     requestData.append(key, lv[key]);
                 }
-
-                console.log(requestData);
 
                 // Send the evidence data
                 const response = await fetch('https://app.rutaflow.com/api/admin/evidence/send_evidence.php', {
@@ -204,6 +222,35 @@
         });
     };
 
+    async function sendSMS(event){
+        // Stop the click event from propagating to the ion-item
+        event.stopPropagation();
+        // Create FormData from the object
+        const formData = new FormData();
+        formData.append('client_phone', phoneNumber);
+        formData.append('client_name', delivery.title);
+        formData.append('delivery_phone', delivery.client_phone);
+        formData.append('enterprise_name', delivery.enterprise_name);
+        try {
+            // Send the evidence data
+            const response = await fetch('https://app.rutaflow.com/api/admin/message_central/send_sms.php', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (response.ok) {
+                // File uploaded successfully, handle any additional logic
+                const result = await response.json();
+               
+                alertSMSsent();
+            } else {
+                alertSMSNotsent();
+            }
+            } catch (error) {
+                console.error('Error during file upload:', error);
+            }
+    }
+
 </script>
 
 <ion-header translucent>
@@ -222,7 +269,7 @@
         <ion-item>
             <ion-icon icon={personOutline} slot="start"></ion-icon>
             <ion-label>
-                <p>Cliente</p>
+                <p>Negocio</p>
                 <h2>{delivery.client_name}</h2>
             </ion-label>
         </ion-item>
@@ -230,7 +277,7 @@
             <ion-item href="tel:{delivery.client_phone}">
                 <ion-icon icon={phonePortraitOutline} slot="start"></ion-icon>
                 <ion-label class="ion-text-wrap">
-                    <p>Teléfono de cliente</p>
+                    <p>Teléfono de Negocio</p>
                     <h2>{delivery.client_phone}</h2>
                 </ion-label>
             </ion-item>
@@ -239,7 +286,7 @@
             <ion-item href="https://www.google.com/maps/search/?api=1&query={delivery.line1}">
                 <ion-icon icon={storefrontOutline} slot="start"></ion-icon>
                 <ion-label class="ion-text-wrap">
-                    <p>Domicilio 1</p>
+                    <p>Domicilio</p>
                     <h2>{delivery.line1}</h2>
                 </ion-label>
                 <ion-icon icon={locationOutline} slot="end"></ion-icon>
@@ -248,7 +295,7 @@
                 <ion-item href="https://www.google.com/maps/search/?api=1&query={delivery.line2}">
                     <ion-icon icon={storefrontOutline} slot="start"></ion-icon>
                     <ion-label class="ion-text-wrap">
-                        <p>Domicilio 2</p>
+                        <p>Domicilio Alternativo</p>
                         <h2>{delivery.line2}</h2>
                     </ion-label>
                     <ion-icon icon={locationOutline} slot="end"></ion-icon>
@@ -258,22 +305,26 @@
             <ion-item href="https://www.google.com/maps/searhc/?api=1&query={delivery.line2}">
                 <ion-icon icon={storefrontOutline} slot="start"></ion-icon>
                 <ion-label class="ion-text-wrap">
-                    <p>Domicilio 2</p>
+                    <p>Domicilio Alternativo</p>
                     <h2>{delivery.line2}</h2>
                 </ion-label>
                 <ion-icon icon={locationOutline} slot="end"></ion-icon>
             </ion-item>
         {/if}
         {#if phoneNumber}
-            <ion-item on:click={callNumber} href="tel:{phoneNumber}">
+            <ion-item href="tel:{phoneNumber}">
                 <ion-icon icon={callOutline} slot="start"></ion-icon>
                 <ion-label class="ion-text-wrap">
-                <p>Llamar a</p>
-                <h2>{phoneNumber}</h2>
+                    <p>Llamar al Cliente</p>
+                    <h2>{phoneNumber}</h2>
                 </ion-label>
+                <!-- Button to send SMS, preventing ion-item href action -->
+                <ion-button fill="outline" on:click={sendSMS} style="margin-left: 16px;">
+                    <ion-icon icon={paperPlaneOutline} slot="start"></ion-icon>
+                    Notificar Cliente
+                </ion-button>
             </ion-item>
         {/if}
-
         {#if remainingText && remainingText !== '<br>'}
             <ion-item>
                 <ion-icon icon={informationCircleOutline} slot="start"></ion-icon>
