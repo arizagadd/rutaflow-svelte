@@ -10,6 +10,7 @@
     import {informationCircleOutline} from "ionicons/icons";
     import {IonicShowModal} from "../../../../../services/IonicControllers";
     import ChecklistControl from './_ChecklistControl.svelte';
+    import {onMount} from 'svelte';
     let overlayElement = document.querySelector("ion-modal");
    
     let delivery = overlayElement.componentProps.delivery;
@@ -19,11 +20,20 @@
     let selectedImage = delivery.img?delivery.img:'';
     let img_id = "";
     let locationData = { latitude: null, longitude: null };
+    let settings = new Object();
+    let stopsApproval = "";
+    let smsActive = "";
+    let isLoading = false;
     // Regular expression to match a phone number after "Teléfono:"
     const phoneRegex = /Teléfono:\s*(\d{10,})/;
     
     let phoneNumber = "";
     let remainingText = delivery.comments_ext;
+
+    onMount(() => {
+        checkSettings();
+    });
+    /*$: href = (smsActive && smsActive === "0") ? `tel:${phoneNumber}` : ``;*/
     
     if (delivery.comments_ext) {
         const match = delivery.comments_ext.match(phoneRegex);
@@ -62,6 +72,7 @@
 	};
 
     const handleFileChange = async (event) => {
+        isLoading = true; // Show spinner
         const fileInput = event.target;
         const file = fileInput.files[0];
         const compressed_file = await compressImage(file);
@@ -88,6 +99,8 @@
                 }
             } catch (error) {
                 console.error('Error during file upload:', error);
+            } finally {
+                isLoading = false; // Hide spinner
             }
         }
 
@@ -156,7 +169,9 @@
                     img: selectedImage,
                     img_id: img_id,
                     lat: locationData.latitude,
-                    lon: locationData.longitude
+                    lon: locationData.longitude,
+                    ...(stopsApproval === "0" && { approve: "0" }),
+                    ...(isLast && { isLast: true })
                 };
 
                 // Create FormData from the object
@@ -251,6 +266,48 @@
             }
     }
 
+    const checkSettings = async (event) => {
+        
+
+        if (delivery.id_enterprise) {
+            const formData = new FormData();
+            formData.append('id_enterprise', delivery.id_enterprise);
+            try {
+                const response = await fetch('https://dev.rutaflow.com/api/admin/enterprise/enterprise_settings.php', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    // File uploaded successfully, handle any additional logic
+                    const result = await response.json();
+                    settings = result.nodos;
+
+                    // Get specific settings
+                    stopsApproval = getSettingVal("stops_wait_approval", settings);
+                    smsActive = getSettingVal("sms_active", settings);
+                    
+                } else {
+                    // Handle error response
+                    console.error('File upload failed:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error during file upload:', error);
+            }
+        }
+
+    };
+
+    function getSettingVal(alias, settings) {
+        for (let i = 0; i < settings.length; i++) {
+            if (settings[i].alias === alias) {
+                return settings[i].val;
+            }
+        }
+        return ""; // Default value if no match found
+    }
+
+
 </script>
 
 <ion-header translucent>
@@ -315,14 +372,16 @@
             <ion-item>
                 <ion-icon icon={callOutline} slot="start"></ion-icon>
                 <ion-label class="ion-text-wrap">
-                    <p>Llamar al Cliente</p>
+                    <p>Contacto del Cliente</p>
                     <h2>{phoneNumber}</h2>
                 </ion-label>
                 <!-- Button to send SMS, preventing ion-item href action -->
-                <ion-button fill="outline" on:click={sendSMS} style="margin-left: 16px;">
-                    <ion-icon icon={paperPlaneOutline} slot="start"></ion-icon>
-                    Notificar Cliente
-                </ion-button>
+                {#if smsActive && smsActive === "1"}
+                    <ion-button fill="outline" on:click={sendSMS} style="margin-left: 16px;">
+                        <ion-icon icon={paperPlaneOutline} slot="start"></ion-icon>
+                        Notificar Cliente
+                    </ion-button>
+                {/if}
             </ion-item>
         {/if}
         {#if remainingText && remainingText !== '<br>'}
@@ -378,6 +437,9 @@
                 </ion-button>
             </label>
         </section>
+        {#if isLoading}
+            <ion-spinner name="dots"></ion-spinner>
+        {/if}
         {#if selectedImage}
         <section>
             <ion-img
@@ -387,26 +449,7 @@
             ></ion-img>
         </section>
         {/if}
-        <!-- {#if delivery.subscriber_info}
-            <ion-item>
-                <ion-icon class:warn={mustCharge(delivery)} name="{delivery.payment_type === 'cash'? 'cash': 'card'}" slot="start" />
-                <ion-label class="ion-text-wrap">
-                    <p>Payment ({delivery.payment_type === 'cash'? 'cash': 'card'}, ${delivery.payment_pending})</p>
-                    <h2>{mustCharge(delivery)? 'Pending, remind client of payment': 'On time'}</h2>
-                </ion-label>
-            </ion-item>
-        {/if}
-        {#if delivery.support_list && delivery.support_list.length}
-            <ion-item>
-                <ion-icon class="alertCircle" name="alert" slot="start" />
-                <ion-label class="ion-text-wrap">
-                    <p>Support tickets</p>
-                    {#each delivery.support_list as ticket (ticket.id_support_log)}
-                        <h2>{ticket.action}</h2>
-                    {/each}
-                </ion-label>
-            </ion-item>
-        {/if} -->
+
     </ion-list>
 </ion-content>
 <!-- <ion-footer>
@@ -418,3 +461,6 @@
         </ion-item>
     </ion-toolbar>
 </ion-footer> -->
+<!-- <style>
+
+</style> -->
