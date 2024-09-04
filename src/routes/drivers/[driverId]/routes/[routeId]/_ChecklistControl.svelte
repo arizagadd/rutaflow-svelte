@@ -20,6 +20,8 @@
     let evidenceChecklist=null;
     let checkbox_item={};
     let KmInicial,GasInicial,KmFinal,GasFinal;
+    let loadingStates = {};
+    
 
     // checklist trae las img en caso de que existan, declarar selectedImage como objeto
     let selectedImages = {};
@@ -39,6 +41,10 @@
         }
         
     });
+
+    function startLoading(id) {
+        loadingStates[id] = true;
+    }
 
     const alertIncompleteChecklist = async () => {
 		const alert = await alertController.create({
@@ -193,8 +199,8 @@
                             
                         })
                         .catch(error => {
-                        console.error('Error fetching data:', error);
-                    });
+                            console.error('Error fetching data:', error);
+                        });
                     //goto(`/drivers/${driverId}/routes/${routeId}`);
                     //window.location.reload();
                 }else if(!mandatoryVal && ini_km && ini_gas){
@@ -211,7 +217,7 @@
                         })
                         .catch(error => {
                         console.error('Error fetching data:', error);
-                    });
+                        });
                 }else {
                     alertIncompleteChecklist();
                 }
@@ -223,6 +229,7 @@
     };
 
     const handleFileChange = async (event, checklistItemId) => {
+        startLoading(checklistItemId);
         const fileInput = event.target;
         const file = fileInput.files[0];
         const compressed_file = await compressImage(file);
@@ -255,6 +262,8 @@
                     markCheckbox(checklistItemId);
                     checkbox_item[checklistItemId].checked =true; 
                     
+                    // Reset loading state after success
+                    loadingStates[checklistItemId] = false;
                 } else {
                     // Handle error response
                     console.error('File upload failed:', response.statusText);
@@ -513,13 +522,17 @@
                         />
                         <p style="margin-left:10px;">{check.item}</p>
                     </ion-label>
-
                     <ion-button fill="outline" class="loadEvidence" size="small">
-                        <label for="chklist-{check.id_checklist_event}">
-                            {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
-                        </label>
-                        <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
-                        <!-- <input type="submit" value="Upload Image" name="submit" style="display:none;"/> -->
+                        <div class="button-content">
+                            {#if loadingStates[check.id_checklist_event]}
+                                <ion-spinner name="dots" class="button-spinner"></ion-spinner>
+                            {:else}
+                                <label for="chklist-{check.id_checklist_event}" class="button-label">
+                                    {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
+                                </label>
+                            {/if}
+                            <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
+                        </div>
                     </ion-button>
                 </ion-item>
             {/each}
@@ -535,34 +548,33 @@
 </ion-footer>
 
 <style>
-    .myFakeUploadButton {
-        border: 1px solid #000; 
-        padding: 6px 10px; 
-        border-radius: 6px;
-        background-color: #858585;
-    }
-    .ini-km,
-    .ini-gas{
-        --padding-top: 10px;
-    }
     .loadEvidence {
-        --background: #93e9be;
-        --background-hover: #9ce0be;
-        --background-activated: #88f4be;
-        --background-focused: #88f4be;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: auto; /* Adjust button width */
+        height: auto; /* Adjust button height */
+    }
 
-        --color: blue;
+    .button-content {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
 
-        --border-radius: 0;
-        --border-color: #000;
-        --border-style: solid;
-        --border-width: 1px;
+    .button-label {
+        display: inline-block;
+        margin-right: 8px; /* Adjust margin as needed */
+    }
 
-        --box-shadow: 0 2px 6px 0 rgb(0, 0, 0, 0.25);
-
-        --ripple-color: deeppink;
-
-        --padding-top: 10px;
-        --padding-bottom: 10px;
+    .button-spinner {
+        position: absolute;
+        display: inline-block;
+        width: 24px; /* Adjust spinner size as needed */
+        height: 24px; /* Adjust spinner size as needed */
+        z-index: 1; /* Ensure spinner is on top */
     }
 </style>
