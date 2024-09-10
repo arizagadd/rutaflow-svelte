@@ -284,7 +284,7 @@
                 <ion-button>{dataSession.name}</ion-button>
                 </ion-buttons>
         
-                <ion-title>Rutas del día</ion-title>
+                <ion-title>RUTAS DEL DÍA</ion-title>
         
                 <ion-buttons slot="primary">
                 <ion-button title="Salir" alt="Salir" on:click={logout}><ion-icon icon={logOut}></ion-icon></ion-button>
@@ -313,7 +313,7 @@
                                     </div>
                                 </ion-avatar>
                                 <ion-label>
-                                    <h2>{route.name}</h2>
+                                    <h2>{route.name ? route.name.toUpperCase() : ''}</h2>
                                     <h3 class="text-muted">Inicio: {route.date_start}</h3>
                                 </ion-label>
                                 <div slot="end"></div>

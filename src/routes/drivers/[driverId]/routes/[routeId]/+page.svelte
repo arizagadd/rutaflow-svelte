@@ -9,14 +9,14 @@
     import ExpenseDetails from './_ExpenseDetails.svelte';
     import {logOut} from "ionicons/icons"; 
     import { checklistStore } from '../../../../../stores/checklistStore';
-    import { onMount } from 'svelte';
+    import { onMount, tick } from 'svelte';
     import BoxesCount from './_BoxesCount.svelte';
     import {IonicShowModal} from "../../../../../services/IonicControllers";
     import {alertController } from '@ionic/core';
     import {page} from '$app/stores';
     import { goto } from '$app/navigation';
     import {locationOutline,cashOutline} from "ionicons/icons"; 
-    import {arrowBack} from "ionicons/icons"; 
+    import {arrowBack} from "ionicons/icons";
 
     let dataSession = new Object();
     let loading = true;
@@ -27,14 +27,35 @@
     let expenses = [];
     let refresher;
     let isModalOpen = false;
+    let segmentValue = "list"; // Controls the tab selection
+    let mapElement;
+
+    // Initialize map
+    /*function initMap() {
+        const mapOptions = {
+            center: { lat: -34.397, lng: 150.644 }, // Replace with default center or dynamic position
+            zoom: 8,
+        };
+
+        map = new google.maps.Map(document.getElementById('map'), mapOptions);
+
+        // Example of adding markers for stops/events
+        deliveries.forEach(delivery => {
+            const marker = new google.maps.Marker({
+                position: { lat: delivery.lat, lng: delivery.lng },
+                map: map,
+                title: delivery.title,
+            });
+        });
+    }*/
 
     const refresh = async () => {
         await loadRoute(routeId);
         refresher.complete();
     }
 
-    onMount(() => {
-		refresh();
+    onMount(async () => {
+		await refresh();
 	});
 
     $: {({routeId,driverId} = $page.params)
@@ -51,6 +72,62 @@
                 goto('/');
             }
         }
+
+    async function setSegmentValue(value) {
+        segmentValue = value;
+        if (segmentValue === "map") {
+            await tick();
+            mapElement = document.getElementById("g_map");
+            const map = new google.maps.Map(mapElement, {  
+                zoom: 8,  
+                center: {lat: 20.6745683, lng: -103.3986104},
+                mapId: "4504f8b37365c3d0"
+            });
+            const bounds = new google.maps.LatLngBounds();
+            const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary(
+                "marker",
+            );
+            // Example of adding markers for stops/events
+            deliveries.forEach((delivery, index) => {
+                const lat = parseFloat(delivery.lat);
+                const lon = parseFloat(delivery.lon);
+                const waypointLatLng = new google.maps.LatLng(lat, lon);
+
+                const marker = new google.maps.Marker({
+                    position: { lat: lat, lng: lon },
+                    map: map,
+                    title: delivery.title,
+                });
+
+                // Change the background color.
+				const pin = new PinElement({
+                    background: getDeliveryColor(delivery.status),
+					borderColor: "#000",
+					glyphColor: "#000",
+					glyph:  (parseInt(delivery.pos)+1).toString()
+	
+				});
+
+                const waypointMarker = new AdvancedMarkerElement({
+					map: map,
+					position: waypointLatLng,
+					content: pin.element,
+					title: "Parada "+ (parseInt(delivery.pos)+1).toString()+": "+delivery.title,
+				});
+
+                // Add a click listener for each marker, and set up the info window.
+				waypointMarker.addListener("click", function(domEvent) {
+					const { target } = domEvent;
+					showDeliveryInfoModal(delivery, isLastDelivery(index));
+				});
+
+                bounds.extend(marker.getPosition());
+            });
+
+            // Adjust map to fit all markers
+            map.fitBounds(bounds);
+        }
+    }
 
     async function loadRoute(routeId) {
         const requestData = new FormData();
@@ -76,12 +153,12 @@
                 
     }
 
-    function getDeliveryColor(delivery) {
+    function getDeliveryColor(status) {
         let color = '#ffffff';
 
-        if (delivery.status === 'pending') {
+        if (status === 'pending') {
             color = '#f2e300';
-        }else if (delivery.status === 'completed') {
+        }else if (status === 'completed') {
             color = '#44d900';
         }
 
@@ -158,6 +235,9 @@
                 delivery,isLast
             }).then((result) => {
                 //console.log(result);
+            }).finally(() => {
+                // Modal is closed, now call loadRoute and refresh
+                loadRoute(routeId);
             });
         });
         
@@ -263,31 +343,10 @@
 </script>
 
 <style>
-    .delivery-icon {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        position: relative;
-        display: inline-block;
-        text-align: center;
-        line-height: 20px;
-        font-weight: bold;
-        margin-right: 5px;
-        border: 1px solid #CBCFDE;
-    }
 
     .sub {
         font-size: 12px;
         margin-top: 5px;
-    }
-
-    .sub .prod {
-        letter-spacing: 1px;
-        font-weight: 600;
-    }
-
-    .sub .time {
-        color: #888;
     }
 
     .order-wrapper {
@@ -311,6 +370,10 @@
         height: 8px;
         border-radius: 50%;
     }
+    #map {
+        height: 400px;
+        width: 100%;
+    }
 </style>
 
 <svelte:head>
@@ -329,145 +392,162 @@
                     <!-- <ion-button>{dataSession.name}</ion-button> -->
                 </ion-buttons>
         
-                <ion-title>{stats.name}</ion-title>
+                <ion-title>{stats.name ? stats.name.toUpperCase() : ''}</ion-title>
         
             </ion-toolbar>
+            <!-- Tabs for switching between List and Map -->
+            <ion-segment value="list" on:ionChange={e => setSegmentValue(e.detail.value)}>
+                <ion-segment-button value="list">
+                    <ion-label>Paradas</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="map">
+                    <ion-label>Mapa</ion-label>
+                </ion-segment-button>
+            </ion-segment>
         </ion-header>
-
-        {#if checklist.length > 0}
-            {#if checklist.every(item => item.img)}
-                <ion-content>
-                    <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
-                        <ion-refresher-content pulling-icon="arrow-dropdown"
-                                            pulling-text="Jale para actualizar"
-                                            refreshing-spinner="circles"
-                                            refreshing-text="Actualizando..."></ion-refresher-content>
-                    </ion-refresher>
-                    <ion-list>
-                        {#each deliveries as delivery, index (delivery.id_event)}
-                            <ion-item>
-                                <ion-avatar slot="start">
-                                    <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery)}; color: {getContrast(getDeliveryColor(delivery))}">
-                                        <div class="order">
-                                            {parseInt(delivery.pos) + 1}
+        <!-- Conditional rendering based on the selected tab -->
+        {#if segmentValue === "list"}
+            {#if checklist.length > 0}
+                {#if checklist.every(item => item.img)}
+                    <ion-content>
+                        <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
+                            <ion-refresher-content pulling-icon="arrow-dropdown"
+                                                pulling-text="Jale para actualizar"
+                                                refreshing-spinner="circles"
+                                                refreshing-text="Actualizando..."></ion-refresher-content>
+                        </ion-refresher>
+                        <ion-list>
+                            {#each deliveries as delivery, index (delivery.id_event)}
+                                <ion-item>
+                                    <ion-avatar slot="start">
+                                        <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status)}; color: {getContrast(getDeliveryColor(delivery.status))}">
+                                            <div class="order">
+                                                {parseInt(delivery.pos) + 1}
+                                            </div>
                                         </div>
-                                    </div>
-                                </ion-avatar>
-                                <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}>
-                                    <ion-text color="#2e2e2e">
-                                        <h3>
-                                            {delivery.title}
-                                            {#if (delivery.support_list && delivery.support_list.length) || mustCharge(delivery)}
-                                                <span class="notes"></span>
-                                            {/if}
-                                        </h3>
-                                    </ion-text>
-                                    <div class="sub">
-                                        <!-- <BoxesCount delivery={delivery} /> -->
+                                    </ion-avatar>
+                                    <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}>
+                                        <ion-text color="#2e2e2e">
+                                            <h3>
+                                                {delivery.title}
+                                                {#if (delivery.support_list && delivery.support_list.length) || mustCharge(delivery)}
+                                                    <span class="notes"></span>
+                                                {/if}
+                                            </h3>
+                                        </ion-text>
+                                        <div class="sub">
+                                            <!-- <BoxesCount delivery={delivery} /> -->
 
-                                    </div>
-                                </ion-label>
-                                <ion-icon icon={locationOutline} slot="end"></ion-icon>
-                            </ion-item>
-                        {/each}
-                    </ion-list>
-                </ion-content>
-            {:else}
-                {showChecklistModal(checklist,driverId,routeId)}
-                <ion-content>
-                    <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
-                        <ion-refresher-content pulling-icon="arrow-dropdown"
-                                            pulling-text="Pull to refresh"
-                                            refreshing-spinner="circles"
-                                            refreshing-text="Refreshing..."></ion-refresher-content>
-                    </ion-refresher>
-                    <ion-list>
-                        {#each deliveries as delivery, index (delivery.id_event)}
-                            <ion-item>
-                                <ion-avatar slot="start">
-                                    <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery)}; color: {getContrast(getDeliveryColor(delivery))}">
-                                        <div class="order">
-                                            {parseInt(delivery.pos) + 1}
                                         </div>
-                                    </div>
-                                </ion-avatar>
-                                <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}>
-                                    <ion-text color="#2e2e2e">
-                                        <h3>
-                                            {delivery.title}
-                                            {#if (delivery.support_list && delivery.support_list.length) || mustCharge(delivery)}
-                                                <span class="notes"></span>
-                                            {/if}
-                                        </h3>
-                                    </ion-text>
-                                    <div class="sub">
-                                        <!-- <BoxesCount delivery={delivery} /> -->
+                                    </ion-label>
+                                    <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                                </ion-item>
+                            {/each}
+                        </ion-list>
+                    </ion-content>
+                {:else}
+                    {showChecklistModal(checklist,driverId,routeId)}
+                    <ion-content>
+                        <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
+                            <ion-refresher-content pulling-icon="arrow-dropdown"
+                                                pulling-text="Pull to refresh"
+                                                refreshing-spinner="circles"
+                                                refreshing-text="Refreshing..."></ion-refresher-content>
+                        </ion-refresher>
+                        <ion-list>
+                            {#each deliveries as delivery, index (delivery.id_event)}
+                                <ion-item>
+                                    <ion-avatar slot="start">
+                                        <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status)}; color: {getContrast(getDeliveryColor(delivery.status))}">
+                                            <div class="order">
+                                                {parseInt(delivery.pos) + 1}
+                                            </div>
+                                        </div>
+                                    </ion-avatar>
+                                    <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}>
+                                        <ion-text color="#2e2e2e">
+                                            <h3>
+                                                {delivery.title}
+                                                {#if (delivery.support_list && delivery.support_list.length) || mustCharge(delivery)}
+                                                    <span class="notes"></span>
+                                                {/if}
+                                            </h3>
+                                        </ion-text>
+                                        <div class="sub">
+                                            <!-- <BoxesCount delivery={delivery} /> -->
 
-                                    </div>
-                                </ion-label>
-                                <ion-icon icon={locationOutline} slot="end"></ion-icon>
-                            </ion-item>
-                        {/each}
-                    </ion-list>
-                </ion-content>
-            {/if}
-        {:else}
-            {#if !loading}
-                {#if showChecklist}
-                    {showChecklistModal("",driverId,routeId)}
+                                        </div>
+                                    </ion-label>
+                                    <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                                </ion-item>
+                            {/each}
+                        </ion-list>
+                    </ion-content>
                 {/if}
-                <ion-content>
-                    <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
-                        <ion-refresher-content pulling-icon="arrow-dropdown"
-                                            pulling-text="Jala para actualizar"
-                                            refreshing-spinner="circles"
-                                            refreshing-text="Actualizando..."></ion-refresher-content>
-                    </ion-refresher>
-                    <ion-list>
-                        {#each deliveries as delivery (delivery.id_event)}
-                            <ion-item>
-                                <ion-avatar slot="start">
-                                    <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery)}; color: {getContrast(getDeliveryColor(delivery))}">
-                                        <div class="order">
-                                            {parseInt(delivery.pos) + 1}
+            {:else}
+                {#if !loading}
+                    {#if showChecklist}
+                        {showChecklistModal("",driverId,routeId)}
+                    {/if}
+                    <ion-content>
+                        <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
+                            <ion-refresher-content pulling-icon="arrow-dropdown"
+                                                pulling-text="Jala para actualizar"
+                                                refreshing-spinner="circles"
+                                                refreshing-text="Actualizando..."></ion-refresher-content>
+                        </ion-refresher>
+                        <ion-list>
+                            {#each deliveries as delivery (delivery.id_event)}
+                                <ion-item>
+                                    <ion-avatar slot="start">
+                                        <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status)}; color: {getContrast(getDeliveryColor(delivery.status))}">
+                                            <div class="order">
+                                                {parseInt(delivery.pos) + 1}
+                                            </div>
                                         </div>
-                                    </div>
-                                </ion-avatar>
-                                <ion-label button on:click={() => {
-                                    // Get the index of the current delivery in the array
-                                    const currentIndex = deliveries.findIndex(item => item.id_event === delivery.id_event);
-                                    
-                                    // Check if the previous delivery has an image (or if it's the first delivery)
-                                    const isFirstDelivery = currentIndex === 0;
-                                    const previousDelivery = currentIndex > 0 ? deliveries[currentIndex - 1] : null;
-                                    const previousDeliveryHasImage = isFirstDelivery || (previousDelivery && previousDelivery.img !== null);
-                                    
-                                    // Check if the current delivery has an image
-                                    const currentDeliveryHasImage = delivery.img !== null && delivery.img !== '';
-                                    
-                                    // Allow showing the modal only if the current delivery has an image
-                                    // or if it's the first delivery and the current delivery does not have an image
-                                    if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
-                                        showDeliveryInfoModal(delivery);
-                                    } else {
-                                        showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
-                                    }
-                                }}>                            
-                                    <ion-text color="#2e2e2e">
-                                        <h3>
-                                            {delivery.title}
-                                            {#if (delivery.support_list && delivery.support_list.length) || mustCharge(delivery)}
-                                                <span class="notes"></span>
-                                            {/if}
-                                        </h3>
-                                    </ion-text>
-                                </ion-label>
-                                <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery)}"></ion-icon>
-                            </ion-item>
-                        {/each}
-                    </ion-list>
-                </ion-content>
+                                    </ion-avatar>
+                                    <ion-label button on:click={() => {
+                                        // Get the index of the current delivery in the array
+                                        const currentIndex = deliveries.findIndex(item => item.id_event === delivery.id_event);
+                                        
+                                        // Check if the previous delivery has an image (or if it's the first delivery)
+                                        const isFirstDelivery = currentIndex === 0;
+                                        const previousDelivery = currentIndex > 0 ? deliveries[currentIndex - 1] : null;
+                                        const previousDeliveryHasImage = isFirstDelivery || (previousDelivery && previousDelivery.img !== null);
+                                        
+                                        // Check if the current delivery has an image
+                                        const currentDeliveryHasImage = delivery.img !== null && delivery.img !== '';
+                                        
+                                        // Allow showing the modal only if the current delivery has an image
+                                        // or if it's the first delivery and the current delivery does not have an image
+                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                            showDeliveryInfoModal(delivery);
+                                        } else {
+                                            showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
+                                        }
+                                    }}>                            
+                                        <ion-text color="#2e2e2e">
+                                            <h3>
+                                                {delivery.title}
+                                                {#if (delivery.support_list && delivery.support_list.length) || mustCharge(delivery)}
+                                                    <span class="notes"></span>
+                                                {/if}
+                                            </h3>
+                                        </ion-text>
+                                    </ion-label>
+                                    <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status)}"></ion-icon>
+                                </ion-item>
+                            {/each}
+                        </ion-list>
+                    </ion-content>
+                {/if}
             {/if}
+        {:else if segmentValue === "map"}
+            <!-- Google Maps View -->
+            <ion-content>
+                <!-- HTML where the map will render -->
+                <div id="g_map" style="width: 100%; height: 100vh;"></div>
+            </ion-content>
         {/if}
     </IonPage>
 {/if}
