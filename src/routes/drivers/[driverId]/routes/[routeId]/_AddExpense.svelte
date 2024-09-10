@@ -21,6 +21,7 @@
     let expenseAmount=0;
     let comments="";
     let concept="";
+    let isLoading = false;
 
     onMount(() => {
        
@@ -41,6 +42,7 @@
     };
 
     const handleFileChange = async (event) => {
+        isLoading = true; // Show spinner
         const fileInput = event.target;
         const file = fileInput.files[0];
         const compressed_file = await compressImage(file);
@@ -67,6 +69,8 @@
                 }
             } catch (error) {
                 console.error('Error during file upload:', error);
+            } finally {
+                isLoading = false; // Hide spinner
             }
         }
 
@@ -161,7 +165,7 @@
         <ion-buttons slot="start">
           <ion-button color="medium" on:click={closeModal}>Cancelar</ion-button>
         </ion-buttons>
-        <ion-title title="">Agregar Gasto</ion-title>
+        <ion-title title="">AGREGAR GASTO</ion-title>
         <!-- <ion-buttons slot="end">
           <ion-button on:click={sendExpense} strong>Confirmar</ion-button>
         </ion-buttons> -->
@@ -201,6 +205,9 @@
                 </ion-button>
             </label>
         </section>
+        {#if isLoading}
+            <ion-spinner name="dots"></ion-spinner>
+        {/if}
         {#if selectedImage}
         <section>
             <ion-img

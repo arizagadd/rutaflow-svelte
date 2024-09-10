@@ -198,7 +198,7 @@
                     showKmGasModal("", "", routeId, isLast);
                 }
             } else {
-                console.log("No entré");
+                //console.log("No entré");
             }
         } catch (error) {
             console.error('Error fetching data:', error);
