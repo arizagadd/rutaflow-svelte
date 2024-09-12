@@ -2,17 +2,14 @@
     export let driverId;
     import {page} from '$app/stores';
     import { alertController } from '@ionic/core';
-    //import {ready, url, goto, params} from '@sveltech/routify';
     import {logOut} from "ionicons/icons"; 
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import IonPage from 'ionic-svelte/components/IonPage.svelte';
-    //import moment from 'moment';
-    import authStore from '../../../stores/authStore';
+
     let routes = [];
     let events = new Object();
     let hasPendingRoutes = false;
-    let formattedDate = new Date();
     let flag = false;
     let dataSession = new Object();
     let refresher;
@@ -24,6 +21,10 @@
 
     onMount( async () => {
 		await refresh();
+        if(driverId === "41"){
+            localStorage.clear();
+            console.log("Cleared all sessions from localStorage");
+        }
 	});
 
     $: {({driverId} = $page.params);

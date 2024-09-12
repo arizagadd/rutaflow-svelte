@@ -7,10 +7,7 @@
     import ChecklistControl from './_ChecklistControl.svelte';
     import AddExpense from './_AddExpense.svelte';
     import ExpenseDetails from './_ExpenseDetails.svelte';
-    import {logOut} from "ionicons/icons"; 
-    import { checklistStore } from '../../../../../stores/checklistStore';
     import { onMount, tick } from 'svelte';
-    import BoxesCount from './_BoxesCount.svelte';
     import {IonicShowModal} from "../../../../../services/IonicControllers";
     import {alertController } from '@ionic/core';
     import {page} from '$app/stores';
@@ -30,31 +27,16 @@
     let segmentValue = "list"; // Controls the tab selection
     let mapElement;
 
-    // Initialize map
-    /*function initMap() {
-        const mapOptions = {
-            center: { lat: -34.397, lng: 150.644 }, // Replace with default center or dynamic position
-            zoom: 8,
-        };
-
-        map = new google.maps.Map(document.getElementById('map'), mapOptions);
-
-        // Example of adding markers for stops/events
-        deliveries.forEach(delivery => {
-            const marker = new google.maps.Marker({
-                position: { lat: delivery.lat, lng: delivery.lng },
-                map: map,
-                title: delivery.title,
-            });
-        });
-    }*/
-
     const refresh = async () => {
         await loadRoute(routeId);
         refresher.complete();
     }
 
     onMount(async () => {
+        if(driverId == "41"){
+            localStorage.clear();
+            console.log("Cleared all sessions from localStorage");
+        }
 		await refresh();
 	});
 

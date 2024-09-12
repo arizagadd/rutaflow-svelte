@@ -46,7 +46,7 @@
     <ion-buttons slot="end">
       <ion-button color="medium" on:click={addExpense}><ion-icon style="font-size: 25px!important;" icon={addSharp}></ion-icon></ion-button>
     </ion-buttons>
-    <ion-title>Lista de gastos</ion-title>
+    <ion-title>LISTA DE GASTOS</ion-title>
   </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>

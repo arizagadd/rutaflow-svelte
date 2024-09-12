@@ -420,7 +420,7 @@
       <ion-buttons slot="start">
         <ion-button color="medium" on:click={closeOverlay}>Cancelar</ion-button>
       </ion-buttons>
-      <ion-title>Requerimientos de ruta</ion-title>
+      <ion-title>REQUERIMIENTOS DE RUTA</ion-title>
     </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>
