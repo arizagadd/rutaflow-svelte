@@ -159,8 +159,7 @@
       "_ssr.js",
       "_stores.js",
       "_client.js",
-      "_IonPage.js",
-      "_authStore.js"
+      "_IonPage.js"
     ],
     "css": [
       "_app/immutable/assets/_page.Dy1nLV9J.css"

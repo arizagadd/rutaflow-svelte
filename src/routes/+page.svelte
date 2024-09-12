@@ -5,6 +5,7 @@
     import IonPage from 'ionic-svelte/components/IonPage.svelte';
     import authStore from "../stores/authStore";
 	import { goto } from '$app/navigation';
+    import { onMount } from 'svelte';
 
     let data = {};
     let dataSession = new Object();
@@ -20,6 +21,12 @@
             goto('/');
         }
     }
+
+    // This will clear all localStorage when the page loads
+    onMount(() => {
+        localStorage.clear();
+        console.log("Cleared all sessions from localStorage");
+    });
 
     const handleSubmit = (e) => {
         e.preventDefault();
