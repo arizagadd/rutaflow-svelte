@@ -33,7 +33,7 @@
     }
 
     onMount(async () => {
-		await refresh();
+		await loadRoute(routeId);
 	});
 
     $: {({routeId,driverId} = $page.params)
@@ -65,6 +65,43 @@
             const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary(
                 "marker",
             );
+            // Get user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const userLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+                    // Draw the outer blurred area (larger circle with low opacity)
+                    const blurredAreaCircle = new google.maps.Circle({
+                        strokeColor: '#00BFFF',
+                        strokeOpacity: 0.2,
+                        strokeWeight: 0,
+                        fillColor: '#00BFFF',
+                        fillOpacity: 0.2,  // Light fill to mimic blur
+                        map: map,
+                        center: userLatLng,
+                        radius: 150, // Radius for blurred area
+                    });
+
+                    // Draw the blue dot with white border (smaller circle inside)
+                    const userCircle = new google.maps.Circle({
+                        strokeColor: '#FFFFFF',  // White border
+                        strokeOpacity: 1.0,
+                        strokeWeight: 3,
+                        fillColor: '#0062ff',    // Blue fill
+                        fillOpacity: 1.0,
+                        map: map,
+                        center: userLatLng,
+                        radius: 35, // Radius for the blue dot
+                    });
+
+                    // Extend the map bounds to include the user's location
+                    bounds.extend(userLatLng);
+                }, function(error) {
+                    console.error("Error retrieving location:", error);
+                });
+            } else {
+                console.error("Geolocation not supported by this browser.");
+            }
             // Example of adding markers for stops/events
             deliveries.forEach((delivery, index) => {
                 const lat = parseFloat(delivery.lat);
@@ -386,7 +423,7 @@
         <!-- Conditional rendering based on the selected tab -->
         {#if segmentValue === "list"}
             {#if checklist.length > 0}
-                {#if checklist.every(item => item.img)}
+                {#if checklist.filter(item => item.mandatory === "1").every(item => item.img) && !showChecklist}
                     <ion-content>
                         <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
                             <ion-refresher-content pulling-icon="arrow-dropdown"

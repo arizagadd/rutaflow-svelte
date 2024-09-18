@@ -20,7 +20,7 @@
     }
 
     onMount( async () => {
-		await refresh();
+		await loadRoutes(driverId);
 	});
 
     $: {({driverId} = $page.params);
