@@ -162,11 +162,13 @@
             checklistStore.update(store => {
                 const itemIds = store.items;
                 const mandatoryVal = store.mandatory;
-                
-                // Check if all expected indices are present in the checkedIndices array
-                const allChecked = itemIds.every(id => store.checkedIndices.includes(id));
-
-                if (allChecked && ini_km && ini_gas) {
+                // Extract the mandatory items
+                const mandatoryItems = store.items.filter((item, index) => store.mandatory[index] === "1");
+                // Check if all mandatory items are checked
+                const allMandatoryChecked = mandatoryItems.every(mandatoryItem =>
+                    store.checkedIndices.includes(mandatoryItem)
+                );
+                if (allMandatoryChecked && ini_km && ini_gas) {
                     closeOverlay();
                     const formData = new FormData();
 
@@ -187,16 +189,11 @@
                         })
                         .then(response => response.json())
                         .then(data => {
-                            if(mandatoryVal){
-                                if(mandatoryVal[0]=='1'){
-                                    changeRouteStatus(routeId, 'checklist-pending');
-                                }else{
-                                    changeRouteStatus(routeId, 'enroute');
-                                }
-                            }else{
+                            if (mandatoryVal && mandatoryVal.some(val => val === '1')) {
+                                changeRouteStatus(routeId, 'checklist-pending');
+                            } else {
                                 changeRouteStatus(routeId, 'enroute');
                             }
-                            
                         })
                         .catch(error => {
                             console.error('Error fetching data:', error);
@@ -397,10 +394,10 @@
         gas_inicial = obj.gas_inicial? obj.gas_inicial : null;
         km_final = obj.km_final? obj.km_final: null;
         gas_final = obj.gas_final? obj.gas_final : null;
-        r=='km_inicial'?KmInicial.checked=true:"";
-        r=='gas_inicial'?GasInicial.checked=true:"";
-        r=='km_final'?KmFinal.checked=true:"";
-        r=='gas_final'?GasFinal.checked=true:"";
+        r=='km_inicial' && KmInicial ?KmInicial.checked=true:"";
+        r=='gas_inicial' && GasInicial?GasInicial.checked=true:"";
+        r=='km_final' && KmFinal?KmFinal.checked=true:"";
+        r=='gas_final' && GasFinal?GasFinal.checked=true:"";
         let checkbox;
     }
 
@@ -508,33 +505,35 @@
         {/if}
         {#if checklist}
             {#each checklist as check (check.id_checklist_event)}
-                <ion-item>
-                    <ion-label style="display:flex;">
-                        <input
-                        id={`chkbox-${check.id_checklist_event}`}
-                        style="pointer-events: auto;"
-                        type="checkbox"
-                        value={check.id_checklist_event}
-                        bind:group={checkk}
-                        bind:this = {checkbox_item[check.id_checklist_event]}
-                        on:change={() => markCheckbox(check.id_checklist_event)}
-                        required
-                        />
-                        <p style="margin-left:10px;">{check.item}</p>
-                    </ion-label>
-                    <ion-button fill="outline" class="loadEvidence" size="small">
-                        <div class="button-content">
-                            {#if loadingStates[check.id_checklist_event]}
-                                <ion-spinner name="dots" class="button-spinner"></ion-spinner>
-                            {:else}
-                                <label for="chklist-{check.id_checklist_event}" class="button-label">
-                                    {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
-                                </label>
-                            {/if}
-                            <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
-                        </div>
-                    </ion-button>
-                </ion-item>
+                
+                    <ion-item>
+                        <ion-label style="display:flex;">
+                            <input
+                            id={`chkbox-${check.id_checklist_event}`}
+                            style="pointer-events: auto;"
+                            type="checkbox"
+                            value={check.id_checklist_event}
+                            bind:group={checkk}
+                            bind:this = {checkbox_item[check.id_checklist_event]}
+                            on:change={() => markCheckbox(check.id_checklist_event)}
+                            required
+                            />
+                            <p style="margin-left:10px;">{check.item} </p><b style="margin-left:5px;">{check.mandatory == "1"?" * ":""} </b>
+                        </ion-label>
+                        <ion-button fill="outline" class="loadEvidence" size="small">
+                            <div class="button-content">
+                                {#if loadingStates[check.id_checklist_event]}
+                                    <ion-spinner name="dots" class="button-spinner"></ion-spinner>
+                                {:else}
+                                    <label for="chklist-{check.id_checklist_event}" class="button-label">
+                                        {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
+                                    </label>
+                                {/if}
+                                <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
+                            </div>
+                        </ion-button>
+                    </ion-item>
+                
             {/each}
         {/if}
     </ion-list>

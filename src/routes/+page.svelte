@@ -24,8 +24,8 @@
 
     // This will clear all localStorage when the page loads
     onMount(() => {
-        /*localStorage.clear();
-        console.log("Cleared all sessions from localStorage");*/
+        localStorage.clear();
+        console.log("Cleared all sessions from localStorage");
     });
 
     const handleSubmit = (e) => {

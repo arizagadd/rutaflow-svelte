@@ -35,9 +35,9 @@
     onMount(async () => {
         if(driverId == "41"){
             localStorage.clear();
-            console.log("Cleared all sessions from localStorage");
+            console.log("Cleared session from localStorage");
         }
-		await refresh();
+		await loadRoute(routeId);
 	});
 
     $: {({routeId,driverId} = $page.params)
@@ -69,6 +69,53 @@
             const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary(
                 "marker",
             );
+            // Get user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const userLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+
+                    // Initial setup for the user's location circle
+                    let blurredAreaCircle = new google.maps.Circle({
+                        strokeColor: '#00BFFF',
+                        strokeOpacity: 0.2,
+                        strokeWeight: 0,
+                        fillColor: '#00BFFF',
+                        fillOpacity: 0.2,
+                        map: map,
+                        center: userLatLng,
+                        radius: 150, // Radius for blurred area
+                    });
+
+                    let userCircle = new google.maps.Circle({
+                        strokeColor: '#FFFFFF',  // White border
+                        strokeOpacity: 1.0,
+                        strokeWeight: 3,
+                        fillColor: '#0062ff',    // Blue fill
+                        fillOpacity: 1.0,
+                        map: map,
+                        center: userLatLng,
+                        radius: 40, // Radius for the blue dot
+                    });
+
+                    // Extend the map bounds to include the user's location
+                    bounds.extend(userLatLng);
+
+                    // Adjust circle sizes based on zoom level
+                    google.maps.event.addListener(map, 'zoom_changed', function() {
+                        const zoomLevel = map.getZoom();
+
+                        // Adjust the radii of the circles based on the zoom level
+                        const scaleFactor = Math.pow(2, 14 - zoomLevel); // Adjust scale factor as needed
+                        userCircle.setRadius(35 * scaleFactor);  // Dynamically scale the blue dot
+                        blurredAreaCircle.setRadius(150 * scaleFactor);  // Dynamically scale the blurred area
+                    });
+                }, function(error) {
+                    console.error("Error retrieving location:", error);
+                });
+            } else {
+                console.error("Geolocation not supported by this browser.");
+            }
+
             // Example of adding markers for stops/events
             deliveries.forEach((delivery, index) => {
                 const lat = parseFloat(delivery.lat);
@@ -296,10 +343,10 @@
 
     const goBack = () => {
         // Redirect to backpage
-        if(dataSession.id_driver){
-            goto(`/drivers/${dataSession.id_driver}`);
-        }else{
+        if(dataSession.type=="super"){
             goto(`/drivers/me`);
+        }else if(dataSession.id_driver){
+            goto(`/drivers/${dataSession.id_driver}`);
         }
     }
 
@@ -390,7 +437,7 @@
         <!-- Conditional rendering based on the selected tab -->
         {#if segmentValue === "list"}
             {#if checklist.length > 0}
-                {#if checklist.every(item => item.img)}
+                {#if checklist.filter(item => item.mandatory === "1").every(item => item.img) && !showChecklist}
                     <ion-content>
                         <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
                             <ion-refresher-content pulling-icon="arrow-dropdown"

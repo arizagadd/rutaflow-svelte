@@ -20,11 +20,11 @@
     }
 
     onMount( async () => {
-		await refresh();
         if(driverId === "41"){
             localStorage.clear();
-            console.log("Cleared all sessions from localStorage");
+            console.log("Cleared session from localStorage");
         }
+		await loadRoutes(driverId);
 	});
 
     $: {({driverId} = $page.params);
