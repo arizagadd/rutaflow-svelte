@@ -70,28 +70,30 @@
                 navigator.geolocation.getCurrentPosition(function(position) {
                     const userLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 
-                    // Draw the outer blurred area (larger circle with low opacity)
-                    const blurredAreaCircle = new google.maps.Circle({
-                        strokeColor: '#00BFFF',
-                        strokeOpacity: 0.2,
-                        strokeWeight: 0,
-                        fillColor: '#00BFFF',
-                        fillOpacity: 0.2,  // Light fill to mimic blur
+                    // Add a blue dot to indicate the user's location
+                    new google.maps.Marker({
+                        position: userLatLng,
                         map: map,
-                        center: userLatLng,
-                        radius: 150, // Radius for blurred area
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: '#0062ff',
+                            fillOpacity: 1.0,
+                            scale: 6, // Adjust size as needed
+                            strokeColor: '#ffffff',
+                            strokeWeight: 2
+                        }
                     });
 
-                    // Draw the blue dot with white border (smaller circle inside)
-                    const userCircle = new google.maps.Circle({
-                        strokeColor: '#FFFFFF',  // White border
-                        strokeOpacity: 1.0,
-                        strokeWeight: 3,
-                        fillColor: '#0062ff',    // Blue fill
-                        fillOpacity: 1.0,
+                    // Optional: Draw an accuracy circle around the user's location
+                    new google.maps.Circle({
+                        strokeColor: '#00BFFF',
+                        strokeOpacity: 0.5,
+                        strokeWeight: 1,
+                        fillColor: '#00BFFF',
+                        fillOpacity: 0.2,
                         map: map,
                         center: userLatLng,
-                        radius: 35, // Radius for the blue dot
+                        radius: position.coords.accuracy // Radius is based on accuracy of location
                     });
 
                     // Extend the map bounds to include the user's location
