@@ -74,48 +74,40 @@
                 navigator.geolocation.getCurrentPosition(function(position) {
                     const userLatLng = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
 
-                    // Initial setup for the user's location circle
-                    let blurredAreaCircle = new google.maps.Circle({
+                    // Add a blue dot to indicate the user's location
+                    new google.maps.Marker({
+                        position: userLatLng,
+                        map: map,
+                        icon: {
+                            path: google.maps.SymbolPath.CIRCLE,
+                            fillColor: '#0062ff',
+                            fillOpacity: 1.0,
+                            scale: 6, // Adjust size as needed
+                            strokeColor: '#ffffff',
+                            strokeWeight: 2
+                        }
+                    });
+
+                    // Optional: Draw an accuracy circle around the user's location
+                    new google.maps.Circle({
                         strokeColor: '#00BFFF',
-                        strokeOpacity: 0.2,
-                        strokeWeight: 0,
+                        strokeOpacity: 0.5,
+                        strokeWeight: 1,
                         fillColor: '#00BFFF',
                         fillOpacity: 0.2,
                         map: map,
                         center: userLatLng,
-                        radius: 150, // Radius for blurred area
-                    });
-
-                    let userCircle = new google.maps.Circle({
-                        strokeColor: '#FFFFFF',  // White border
-                        strokeOpacity: 1.0,
-                        strokeWeight: 3,
-                        fillColor: '#0062ff',    // Blue fill
-                        fillOpacity: 1.0,
-                        map: map,
-                        center: userLatLng,
-                        radius: 40, // Radius for the blue dot
+                        radius: position.coords.accuracy // Radius is based on accuracy of location
                     });
 
                     // Extend the map bounds to include the user's location
                     bounds.extend(userLatLng);
-
-                    // Adjust circle sizes based on zoom level
-                    google.maps.event.addListener(map, 'zoom_changed', function() {
-                        const zoomLevel = map.getZoom();
-
-                        // Adjust the radii of the circles based on the zoom level
-                        const scaleFactor = Math.pow(2, 14 - zoomLevel); // Adjust scale factor as needed
-                        userCircle.setRadius(35 * scaleFactor);  // Dynamically scale the blue dot
-                        blurredAreaCircle.setRadius(150 * scaleFactor);  // Dynamically scale the blurred area
-                    });
                 }, function(error) {
                     console.error("Error retrieving location:", error);
                 });
             } else {
                 console.error("Geolocation not supported by this browser.");
             }
-
             // Example of adding markers for stops/events
             deliveries.forEach((delivery, index) => {
                 const lat = parseFloat(delivery.lat);
