@@ -1,8 +1,8 @@
 <script>
     //import BoxesCount from './_BoxesCount.svelte';
     import { alertController } from '@ionic/core';
-    import {documentTextOutline, personOutline, paperPlaneOutline} from "ionicons/icons"; 
-    import {calendarClearOutline,phonePortraitOutline, callOutline} from "ionicons/icons"; 
+    import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline} from "ionicons/icons"; 
+    import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
     import {duplicateOutline} from "ionicons/icons"; 
@@ -26,14 +26,33 @@
     let isLoading = false;
     // Regular expression to match a phone number after "Teléfono:"
     const phoneRegex = /Teléfono:\s*(\d{10,})/;
+    // State variables to track button status and times
+    let checkInActive = true;
+    let checkOutActive = false;
+    let checkInTime;
+    let checkOutTime;
     
     let phoneNumber = "";
     let remainingText = delivery.comments_ext;
 
     onMount(() => {
         checkSettings();
+        setCheckButtons();
     });
-    /*$: href = (smsActive && smsActive === "0") ? `tel:${phoneNumber}` : ``;*/
+
+    function setCheckButtons(){
+        if(!delivery.date_service){
+            console.log("date_service");
+            checkInActive = true;
+            checkOutActive = false;
+        }else if(delivery.date_service && !delivery.date_completed && !delivery.service_time){
+            checkInActive = false;
+            checkOutActive = true;
+        }else if(delivery.date_service && delivery.date_completed && delivery.service_time){
+            checkInActive = false;
+            checkOutActive = false;
+        }
+    }
     
     if (delivery.comments_ext) {
         const match = delivery.comments_ext.match(phoneRegex);
@@ -307,6 +326,51 @@
         return ""; // Default value if no match found
     }
 
+    // Function to handle check-in
+    function checkIn() {
+        checkInActive = false;
+        checkOutActive = true;
+        sendCheckInCheckOut(delivery.id_event,"checkin");
+    }
+
+    // Function to handle check-out
+    function checkOut() {
+        checkOutActive = false;
+        checkInActive = false;
+        sendCheckInCheckOut(delivery.id_event,"checkout");
+    }
+
+    async function sendCheckInCheckOut(id_event,type) {
+        if (type) {
+            const formData = new FormData();
+            formData.append('type', type);
+            formData.append('id_event', id_event);
+            try {
+                const response = await fetch('https://app.rutaflow.com/api/admin/route/record_check_date.php', {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    // File uploaded successfully, handle any additional logic
+                    const result = await response.json();
+                    selectedImage = result.img;
+                    img_id = result.img_id;
+                    
+                    //console.log(selectedImage);
+                } else {
+                    // Handle error response
+                    console.error('File upload failed:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error during file upload:', error);
+            } finally {
+                //isLoading = false; // Hide spinner
+            }
+        }
+
+    };
+
 
 </script>
 
@@ -426,6 +490,27 @@
             <ion-icon icon={createOutline} slot="start"></ion-icon>
             <ion-textarea bind:this={driverComments} label="Notas" placeholder="Escribe aquí..."></ion-textarea>
         </ion-item>
+        <!-- Check-In and Check-Out Buttons -->
+        <section style="display: flex; gap: 8px; padding: 16px;">
+            <ion-button 
+                id="checkInBtn" 
+                style="flex: 1;" 
+                on:click={checkIn} 
+                disabled={checkInActive === false}
+            >
+            <ion-icon icon={logInOutline} slot="start"></ion-icon>
+                Ingreso
+            </ion-button>
+            <ion-button 
+                id="checkOutBtn" 
+                style="flex: 1;" 
+                on:click={checkOut} 
+                disabled={checkOutActive === false}
+            >
+            <ion-icon icon={logOutOutline} slot="start"></ion-icon>
+                Salida
+            </ion-button>
+        </section>
         <section>
             <label for="eventEvidence" style="display: block; width: 100%;">
                 <ion-button fill="outline" class="loadEvidence" expand="block">
