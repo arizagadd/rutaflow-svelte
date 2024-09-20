@@ -335,7 +335,7 @@
 
     const goBack = () => {
         // Redirect to backpage
-        if(dataSession.type=="super"){
+        if(dataSession.type=="super" || dataSession.type=="admin"){
             goto(`/drivers/me`);
         }else if(dataSession.id_driver){
             goto(`/drivers/${dataSession.id_driver}`);

@@ -29,8 +29,6 @@
     // State variables to track button status and times
     let checkInActive = true;
     let checkOutActive = false;
-    let checkInTime;
-    let checkOutTime;
     
     let phoneNumber = "";
     let remainingText = delivery.comments_ext;
@@ -42,7 +40,6 @@
 
     function setCheckButtons(){
         if(!delivery.date_service){
-            console.log("date_service");
             checkInActive = true;
             checkOutActive = false;
         }else if(delivery.date_service && !delivery.date_completed && !delivery.service_time){
@@ -80,6 +77,20 @@
 		const alert = await alertController.create({
 			header: 'SMS no enviado',
 			message: 'Hubo un error al enviar SMS a '+delivery.title+' con número de teléfono: '+phoneNumber0+'. Por favor contacte a soporte.',
+			buttons: [
+                {
+                    text: 'Cerrar'
+                }
+			]
+		});
+	
+		await alert.present();
+	};
+
+    async function alertMinutesPerStop(minutes) {
+		const alert = await alertController.create({
+			header: 'Tiempo por parada',
+			message: 'Completaste la parada en '+minutes+' minutos.',
 			buttons: [
                 {
                     text: 'Cerrar'
@@ -354,10 +365,9 @@
                 if (response.ok) {
                     // File uploaded successfully, handle any additional logic
                     const result = await response.json();
-                    selectedImage = result.img;
-                    img_id = result.img_id;
-                    
-                    //console.log(selectedImage);
+                    if(result.minutes){
+                        alertMinutesPerStop(result.minutes);
+                    }
                 } else {
                     // Handle error response
                     console.error('File upload failed:', response.statusText);
