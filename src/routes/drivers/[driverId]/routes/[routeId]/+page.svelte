@@ -118,7 +118,7 @@
 
                 // Change the background color.
 				const pin = new PinElement({
-                    background: getDeliveryColor(delivery.status),
+                    background: getDeliveryColor(delivery.status, delivery.date_service),
 					borderColor: "#000",
 					glyphColor: "#000",
 					glyph:  (parseInt(delivery.pos)+1).toString()
@@ -170,11 +170,12 @@
                 
     }
 
-    function getDeliveryColor(status) {
+    function getDeliveryColor(status,service_time="") {
         let color = '#ffffff';
-
-        if (status === 'pending') {
+        if (status === 'pending' && !service_time) {
             color = '#f2e300';
+        }else if(status == "pending" && service_time){
+            color = '#F6A833';
         }else if (status === 'completed') {
             color = '#44d900';
         }
@@ -437,7 +438,7 @@
                             {#each deliveries as delivery, index (delivery.id_event)}
                                 <ion-item>
                                     <ion-avatar slot="start">
-                                        <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status)}; color: {getContrast(getDeliveryColor(delivery.status))}">
+                                        <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status,delivery.date_service)}; color: {getContrast(getDeliveryColor(delivery.status))}">
                                             <div class="order">
                                                 {parseInt(delivery.pos) + 1}
                                             </div>
@@ -475,7 +476,7 @@
                             {#each deliveries as delivery, index (delivery.id_event)}
                                 <ion-item>
                                     <ion-avatar slot="start">
-                                        <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status)}; color: {getContrast(getDeliveryColor(delivery.status))}">
+                                        <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status, delivery.date_service)}; color: {getContrast(getDeliveryColor(delivery.status))}">
                                             <div class="order">
                                                 {parseInt(delivery.pos) + 1}
                                             </div>
@@ -517,7 +518,7 @@
                             {#each deliveries as delivery (delivery.id_event)}
                                 <ion-item>
                                     <ion-avatar slot="start">
-                                        <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status)}; color: {getContrast(getDeliveryColor(delivery.status))}">
+                                        <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status, delivery.date_service)}; color: {getContrast(getDeliveryColor(delivery.status))}">
                                             <div class="order">
                                                 {parseInt(delivery.pos) + 1}
                                             </div>
@@ -552,7 +553,7 @@
                                             </h3>
                                         </ion-text>
                                     </ion-label>
-                                    <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status)}"></ion-icon>
+                                    <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
                                 </ion-item>
                             {/each}
                         </ion-list>
