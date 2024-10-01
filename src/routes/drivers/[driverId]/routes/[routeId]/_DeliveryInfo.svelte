@@ -1,8 +1,8 @@
 <script>
     //import BoxesCount from './_BoxesCount.svelte';
     import { alertController } from '@ionic/core';
-    import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline} from "ionicons/icons"; 
-    import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline} from "ionicons/icons"; 
+    import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, todayOutline} from "ionicons/icons"; 
+    import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline, listOutline} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
     import {duplicateOutline} from "ionicons/icons"; 
@@ -32,11 +32,21 @@
     
     let phoneNumber = "";
     let remainingText = delivery.comments_ext;
+    //Deliver status
+    let status = "";
+    let showMotiveInput = false;
+    let motive = "";
 
     onMount(() => {
         checkSettings();
         setCheckButtons();
     });
+
+    // Function to handle status selection
+    function handleStatusChange(event) {
+        status = event.detail.value;
+        showMotiveInput = (status === "No entregado" || status === "Entrega Parcial");
+    }
 
     function setCheckButtons(){
         if(!delivery.date_service){
@@ -339,16 +349,16 @@
 
     // Function to handle check-in
     function checkIn() {
-        checkInActive = false;
-        checkOutActive = true;
-        sendCheckInCheckOut(delivery.id_event,"checkin");
+        checkInActive = false;  // Hide "Ingreso"
+        checkOutActive = true;  // Show "Salida"
+        sendCheckInCheckOut(delivery.id_event, "checkin");
     }
 
     // Function to handle check-out
     function checkOut() {
-        checkOutActive = false;
-        checkInActive = false;
-        sendCheckInCheckOut(delivery.id_event,"checkout");
+        checkOutActive = false;  // Disable "Salida"
+        checkInActive = false;   // Keep "Ingreso" hidden
+        sendCheckInCheckOut(delivery.id_event, "checkout");
     }
 
     async function sendCheckInCheckOut(id_event,type) {
@@ -389,7 +399,7 @@
         <ion-buttons slot="start">
           <ion-button color="medium" on:click={closeModal}>Cancelar</ion-button>
         </ion-buttons>
-        <ion-title title="{delivery.title}">{delivery.title}</ion-title>
+        <ion-title style="text-align: center;" title="{delivery.title}">{delivery.title}</ion-title>
         <ion-buttons slot="end">
           <ion-button on:click={sendEvidence} strong>Confirmar</ion-button>
         </ion-buttons>
@@ -496,44 +506,65 @@
                 </ion-item>
             {/if}
         {/if}
+        <!-- <ion-item>
+            <ion-icon icon={todayOutline} slot="start"></ion-icon>
+            <ion-select placeholder="Selecciona estado de entrega" on:ionChange={handleStatusChange} value={status}>
+                <ion-select-option value="Completado">Completado</ion-select-option>
+                <ion-select-option value="No entregado">No entregado</ion-select-option>
+                <ion-select-option value="Entrega Parcial">Entrega Parcial</ion-select-option>
+            </ion-select>
+        </ion-item> -->
+        
+        {#if showMotiveInput}
+            <ion-item>
+                <ion-icon icon={listOutline} slot="start"></ion-icon>
+                <ion-textarea bind:this={motive} placeholder="Escribe el motivo..."></ion-textarea>
+            </ion-item>
+        {/if}
         <ion-item>
             <ion-icon icon={createOutline} slot="start"></ion-icon>
             <ion-textarea bind:this={driverComments} label="Notas" placeholder="Escribe aquí..."></ion-textarea>
         </ion-item>
         <!-- Check-In and Check-Out Buttons -->
-        <section style="display: flex; gap: 8px; padding: 16px;">
-            <ion-button 
-                id="checkInBtn" 
-                style="flex: 1;" 
-                on:click={checkIn} 
-                disabled={checkInActive === false}
-            >
-            <ion-icon icon={logInOutline} slot="start"></ion-icon>
-                Ingreso
-            </ion-button>
-            <ion-button 
-                id="checkOutBtn" 
-                style="flex: 1;" 
-                on:click={checkOut} 
-                disabled={checkOutActive === false}
-            >
-            <ion-icon icon={logOutOutline} slot="start"></ion-icon>
-                Salida
-            </ion-button>
+        <section style="display: flex; gap: 8px; padding: 16px 16px 6px;">
+            {#if checkInActive === true}
+                <ion-button 
+                    id="checkInBtn" 
+                    style="flex: 1;" 
+                    on:click={checkIn}
+                >
+                    <ion-icon icon={logInOutline} slot="start"></ion-icon>
+                    Ingreso
+                </ion-button>
+            {/if}
+
+            {#if checkOutActive === true || (checkOutActive === false && checkInActive === false)}
+                <ion-button 
+                    id="checkOutBtn" 
+                    style="flex: 1;" 
+                    on:click={checkOut} 
+                    disabled={checkOutActive === false}
+                >
+                    <ion-icon icon={logOutOutline} slot="start"></ion-icon>
+                    Salida
+                </ion-button>
+            {/if}
         </section>
-        <section>
-            <label for="eventEvidence" style="display: block; width: 100%;">
-                <ion-button fill="outline" class="loadEvidence" expand="block">
+        <section style="display: flex; gap: 8px; padding: 0px 16px;">
+            <!-- <label for="eventEvidence" style="display: block; width: 100%;"> -->
+                <ion-button fill="outline" class="loadEvidence" style="flex: 1;" >
                     <ion-icon icon={duplicateOutline} slot="start"></ion-icon>
-                    <label for="eventEvidence" style="padding: 8px 10px">
+                    <label for="eventEvidence">
                         Subir Evidencia
                     </label>
                     <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" accept="image/*" on:change={handleFileChange}>
                 </ion-button>
-            </label>
+            <!-- </label> -->
         </section>
         {#if isLoading}
+        <section style="text-align:center;">
             <ion-spinner name="dots"></ion-spinner>
+        </section>
         {/if}
         {#if selectedImage}
         <section>
