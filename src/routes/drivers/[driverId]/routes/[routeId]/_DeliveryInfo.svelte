@@ -69,47 +69,19 @@
         }
     }
 
-    const alertSMSsent = async () => {
-		const alert = await alertController.create({
-			header: 'SMS enviado',
-			message: 'Se envío correctamente un SMS a '+delivery.title+' con número de teléfono: '+phoneNumber,
-			buttons: [
+    const showAlert = async (customHeader, customMessage) => {
+        const alert = await alertController.create({
+            header: customHeader || 'Error', // Use customHeader or default value
+            message: customMessage || 'Vuelva a intentar', // Use customMessage or default value
+            buttons: [
                 {
                     text: 'Cerrar'
                 }
-			]
-		});
-	
-		await alert.present();
-	};
+            ]
+        });
 
-    const alertSMSNotsent = async () => {
-		const alert = await alertController.create({
-			header: 'SMS no enviado',
-			message: 'Hubo un error al enviar SMS a '+delivery.title+' con número de teléfono: '+phoneNumber0+'. Por favor contacte a soporte.',
-			buttons: [
-                {
-                    text: 'Cerrar'
-                }
-			]
-		});
-	
-		await alert.present();
-	};
-
-    async function alertMinutesPerStop(minutes) {
-		const alert = await alertController.create({
-			header: 'Tiempo por parada',
-			message: 'Completaste la parada en '+minutes+' minutos.',
-			buttons: [
-                {
-                    text: 'Cerrar'
-                }
-			]
-		});
-	
-		await alert.present();
-	};
+        await alert.present();
+    };
 
     const handleFileChange = async (event) => {
         isLoading = true; // Show spinner
@@ -220,23 +192,20 @@
                     requestData.append(key, lv[key]);
                 }
 
-                // Send the evidence data
-                const response = await fetch('https://dev.rutaflow.com/api/admin/evidence/send_evidence.php', {
-                    method: 'POST',
-                    body: requestData
-                });
+                console.log(requestData);
 
-                const data = await response.json();
-
-                // Handle the response data
-                closeModal();
-                const checklist = {};
-                const routeId = lv.id_route;
-
-                // Show final km and gas inputs if it is the last
-                if (isLast) {
-                    showKmGasModal("", "", routeId, isLast);
+                if(lv.img && lv.img_id){
+                    // Send the evidence data
+                    const response = await fetch('https://dev.rutaflow.com/api/admin/evidence/send_evidence.php', {
+                        method: 'POST',
+                        body: requestData
+                    });
+                }else{
+                    showAlert('Información incompleta','Cargar evidencia fotográfica faltante para completar parada.');
                 }
+
+                
+
             } else {
                 //console.log("No entré");
             }
@@ -297,9 +266,9 @@
                 // File uploaded successfully, handle any additional logic
                 const result = await response.json();
                
-                alertSMSsent();
+                showAlert('SMS enviado','Se envío correctamente un SMS a '+delivery.title+' con número de teléfono: '+phoneNumber);
             } else {
-                alertSMSNotsent();
+                showAlert('SMS no enviado','Hubo un error al enviar SMS a '+delivery.title+' con número de teléfono: '+phoneNumber0+'. Por favor contacte a soporte.');
             }
             } catch (error) {
                 console.error('Error during file upload:', error);
@@ -376,7 +345,7 @@
                     // File uploaded successfully, handle any additional logic
                     const result = await response.json();
                     if(result.minutes){
-                        alertMinutesPerStop(result.minutes);
+                        showAlert('Tiempo por parada','Completaste la parada en '+result.minutes+' minutos.');
                     }
                 } else {
                     // Handle error response
