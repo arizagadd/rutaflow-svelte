@@ -12,7 +12,7 @@
     import ChecklistControl from './_ChecklistControl.svelte';
     import {onMount} from 'svelte';
     let overlayElement = document.querySelector("ion-modal");
-    let bck_url = ""; 
+    let bck_url = "https://app.rutaflow.com/"; 
     let delivery = overlayElement.componentProps.delivery;
     let isLast = overlayElement.componentProps.isLast;
     //let checklist = overlayElement.componentProps.checklist;
