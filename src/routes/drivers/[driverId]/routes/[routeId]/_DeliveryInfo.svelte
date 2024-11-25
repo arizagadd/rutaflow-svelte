@@ -1,5 +1,4 @@
 <script>
-    //import BoxesCount from './_BoxesCount.svelte';
     import { alertController } from '@ionic/core';
     import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, todayOutline} from "ionicons/icons"; 
     import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline, listOutline} from "ionicons/icons"; 
@@ -12,9 +11,10 @@
     import ChecklistControl from './_ChecklistControl.svelte';
     import {onMount} from 'svelte';
     import {DATABASE_URL} from '../../../../../hooks';
+
     /*Back URL*/
     let back_url = DATABASE_URL;
-    
+
     let overlayElement = document.querySelector("ion-modal");
     let delivery = overlayElement.componentProps.delivery;
     let isLast = overlayElement.componentProps.isLast;
@@ -193,20 +193,22 @@
                 for (const key in lv) {
                     requestData.append(key, lv[key]);
                 }
-
-                console.log(requestData);
-
+                
                 if(lv.img && lv.img_id){
                     // Send the evidence data
                     const response = await fetch(`${back_url}api/admin/evidence/send_evidence.php`, {
                         method: 'POST',
                         body: requestData
                     });
+
+                    closeModal();
+
+                }else if(delivery.img){
+                    //if it's already loaded the image and the file input is empty, just close the modal
+                    closeModal();
                 }else{
                     showAlert('Información incompleta','Cargar evidencia fotográfica faltante para completar parada.');
                 }
-
-                
 
             } else {
                 //console.log("No entré");
@@ -477,14 +479,6 @@
                 </ion-item>
             {/if}
         {/if}
-        <!-- <ion-item>
-            <ion-icon icon={todayOutline} slot="start"></ion-icon>
-            <ion-select placeholder="Selecciona estado de entrega" on:ionChange={handleStatusChange} value={status}>
-                <ion-select-option value="Completado">Completado</ion-select-option>
-                <ion-select-option value="No entregado">No entregado</ion-select-option>
-                <ion-select-option value="Entrega Parcial">Entrega Parcial</ion-select-option>
-            </ion-select>
-        </ion-item> -->
         
         {#if showMotiveInput}
             <ion-item>
@@ -549,15 +543,3 @@
 
     </ion-list>
 </ion-content>
-<!-- <ion-footer>
-    <ion-toolbar>
-        <ion-item target="_blank" href="https://www.google.com/maps/search/?api=1&query={delivery.lat}%2C{delivery.lon}">
-            <ion-label class="ion-text-wrap">
-                <h2>Mostrar ubicación</h2>
-            </ion-label>
-        </ion-item>
-    </ion-toolbar>
-</ion-footer> -->
-<!-- <style>
-
-</style> -->
