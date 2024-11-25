@@ -8,3 +8,5 @@ export async function handle404() {
     await goto('/');
   }
 }
+
+export const DATABASE_URL = "https://dev.rutaflow.com/";

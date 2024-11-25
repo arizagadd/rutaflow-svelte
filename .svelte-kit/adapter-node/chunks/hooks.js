@@ -6,6 +6,8 @@ async function handle404() {
     await goto();
   }
 }
+const DATABASE_URL = "https://dev.rutaflow.com/";
 export {
+  DATABASE_URL,
   handle404
 };

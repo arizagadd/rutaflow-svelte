@@ -6,7 +6,11 @@
     import authStore from "../stores/authStore";
 	import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
+    import {DATABASE_URL} from '../hooks';
 
+    /*Back URL*/
+    let back_url = DATABASE_URL;
+    
     let data = {};
     let dataSession = new Object();
 
@@ -63,7 +67,7 @@
 		const requestData = new FormData();
         requestData.append('email', data.email);
 		requestData.append('pass', data.password);
-        return fetch(`https://dev.rutaflow.com/api/admin/user/user_login.php`,{
+        return fetch(`${back_url}api/admin/user/user_login.php`,{
 					method: 'POST',
 					body: requestData,
                 })

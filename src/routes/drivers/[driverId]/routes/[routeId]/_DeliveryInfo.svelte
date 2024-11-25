@@ -11,11 +11,13 @@
     import {IonicShowModal} from "../../../../../services/IonicControllers";
     import ChecklistControl from './_ChecklistControl.svelte';
     import {onMount} from 'svelte';
+    import {DATABASE_URL} from '../../../../../hooks';
+    /*Back URL*/
+    let back_url = DATABASE_URL;
+    
     let overlayElement = document.querySelector("ion-modal");
-   
     let delivery = overlayElement.componentProps.delivery;
     let isLast = overlayElement.componentProps.isLast;
-    //let checklist = overlayElement.componentProps.checklist;
     let driverComments = delivery.driver_comments?delivery.driver_comments:'';
     let selectedImage = delivery.img?delivery.img:'';
     let img_id = "";
@@ -93,7 +95,7 @@
             const formData = new FormData();
             formData.append('fileToUpload', compressed_file);
             try {
-                const response = await fetch('https://dev.rutaflow.com/api/admin/manager/upload_img_driver.php', {
+                const response = await fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -196,7 +198,7 @@
 
                 if(lv.img && lv.img_id){
                     // Send the evidence data
-                    const response = await fetch('https://dev.rutaflow.com/api/admin/evidence/send_evidence.php', {
+                    const response = await fetch(`${back_url}api/admin/evidence/send_evidence.php`, {
                         method: 'POST',
                         body: requestData
                     });
@@ -257,7 +259,7 @@
         formData.append('enterprise_name', delivery.enterprise_name);
         try {
             // Send the evidence data
-            const response = await fetch('https://dev.rutaflow.com/api/admin/message_central/send_sms.php', {
+            const response = await fetch(`${back_url}api/admin/message_central/send_sms.php`, {
                 method: 'POST',
                 body: formData
             });
@@ -282,7 +284,7 @@
             const formData = new FormData();
             formData.append('id_enterprise', delivery.id_enterprise);
             try {
-                const response = await fetch('https://dev.rutaflow.com/api/admin/enterprise/enterprise_settings.php', {
+                const response = await fetch(`${back_url}api/admin/enterprise/enterprise_settings.php`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -336,7 +338,7 @@
             formData.append('type', type);
             formData.append('id_event', id_event);
             try {
-                const response = await fetch('https://dev.rutaflow.com/api/admin/route/record_check_date.php', {
+                const response = await fetch(`${back_url}api/admin/route/record_check_date.php`, {
                     method: 'POST',
                     body: formData,
                 });

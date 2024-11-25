@@ -4,6 +4,7 @@ import { arrowBack, cashOutline, locationOutline } from "ionicons/icons/index.mj
 import { defineCustomElement } from "@ionic/core/components/ion-modal.js";
 import { initialize } from "@ionic/core/components/index.js";
 import { g as goto } from "../../../../../../chunks/client.js";
+import { DATABASE_URL } from "../../../../../../chunks/hooks.js";
 import { I as IonPage } from "../../../../../../chunks/IonPage.js";
 import { p as page } from "../../../../../../chunks/stores.js";
 const registerCustomElement = (tagName, component) => {
@@ -105,16 +106,6 @@ function getContrast(hexColor) {
   const yiq = (r * 299 + g * 587 + b * 114) / 1e3;
   return yiq >= 128 ? "#414040" : "#fff";
 }
-function changeRouteStatus(id_route, status) {
-  let requestData = new FormData();
-  requestData.append("id_route", id_route);
-  requestData.append("status", status);
-  fetch("https://dev.rutaflow.com/api/admin/route/change_status.php", { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
-  }).catch((error) => {
-    console.error("Error fetching data:", error);
-  });
-  return "";
-}
 const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $page, $$unsubscribe_page;
   $$unsubscribe_page = subscribe(page, (value) => $page = value);
@@ -147,6 +138,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   };
   let { routeId } = $$props;
   let { driverId } = $$props;
+  let back_url = DATABASE_URL;
   let dataSession = new Object();
   let loading = true;
   let showChecklist = false;
@@ -161,7 +153,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
       const requestData = new FormData();
       requestData.append("id_route", routeId2);
       try {
-        const response = yield fetch("https://dev.rutaflow.com/api/admin/report/seguimiento_list.php", { method: "POST", body: requestData });
+        const response = yield fetch(`${back_url}api/admin/report/seguimiento_list.php`, { method: "POST", body: requestData });
         const data = yield response.json();
         stats = data.data.seguimiento_list[0];
         deliveries = data.data.event_list;
@@ -203,6 +195,16 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     }
     return false;
   };
+  function changeRouteStatus(id_route, status) {
+    let requestData = new FormData();
+    requestData.append("id_route", id_route);
+    requestData.append("status", status);
+    fetch(`${back_url}api/admin/route/change_status.php`, { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
+    }).catch((error) => {
+      console.error("Error fetching data:", error);
+    });
+    return "";
+  }
   if ($$props.routeId === void 0 && $$bindings.routeId && routeId !== void 0)
     $$bindings.routeId(routeId);
   if ($$props.driverId === void 0 && $$bindings.driverId && driverId !== void 0)

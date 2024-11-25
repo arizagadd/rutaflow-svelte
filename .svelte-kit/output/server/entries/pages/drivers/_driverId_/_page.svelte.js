@@ -4,6 +4,7 @@ import { alertController } from "@ionic/core";
 import { logOut } from "ionicons/icons/index.mjs";
 import { g as goto } from "../../../../chunks/client.js";
 import { I as IonPage } from "../../../../chunks/IonPage.js";
+import { DATABASE_URL } from "../../../../chunks/hooks.js";
 const css = {
   code: ".route-color.svelte-1xh3ip{width:100%;height:100%;border-radius:50%;display:flex;justify-content:center}.route-symbol.svelte-1xh3ip{text-align:center;align-self:center;font-size:30px}h3.svelte-1xh3ip{font-size:13px}.text-muted.svelte-1xh3ip{color:#8e8e8e}",
   map: null
@@ -84,6 +85,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let $page, $$unsubscribe_page;
   $$unsubscribe_page = subscribe(page, (value) => $page = value);
   let { driverId } = $$props;
+  let back_url = DATABASE_URL;
   let routes = [];
   let hasPendingRoutes = false;
   let flag = false;
@@ -93,7 +95,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     var actualDate = getActualFormattedDate();
     const requestData = new FormData();
     requestData.append("actual_date", actualDate);
-    fetch(`https://dev.rutaflow.com/api/admin/report/seguimiento_list.php`, { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
+    fetch(`${back_url}api/admin/report/seguimiento_list.php`, { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
       const seguimiento_info = data;
       routes = seguimiento_info.data.seguimiento_list;
       seguimiento_info.data.event_list;

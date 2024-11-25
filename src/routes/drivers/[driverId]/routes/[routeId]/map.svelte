@@ -1,37 +1,33 @@
 <script>
-
-    import {onMount} from "svelte";
-    //import {ready, url, goto, params} from '@sveltech/routify';
     import DeliveryInfo from './_DeliveryInfo.svelte';
     import {IonicShowModal} from "../../../../../services/IonicControllers";
+    import {DATABASE_URL} from '../../../../../hooks';
 
-    let mapReady = false;
+    /*Back url*/
+    let back_url = DATABASE_URL;
 
+    /* Variables to set map*/
     let mapElement;
     let map;
-    let routeId;
     let deliveries = [];
     let stats;
     let markers = [];
-    let polyline;
-    let frutifyMarker;
-    let currentPositionMarker;
     let bounds;
 
-    const frutifyLocation = {lat: 20.670537, lng: -103.436613};
+    const rutaflowLocation = {lat: 20.670537, lng: -103.436613};
 
     window.initMap = () => {
         mapReady = true;
 
         map = new google.maps.Map(mapElement, {
             zoom: 14,
-            center: frutifyLocation,
+            center: rutaflowLocation,
             mapTypeControl: false,
         });
 
         const scale = 0.15;
 
-        frutifyMarker = new google.maps.Marker({
+        /*frutifyMarker = new google.maps.Marker({
             icon: {
                 url: `https://frutify.co/images/favicon.png`,
                 size: new google.maps.Size(291 * scale, 279 * scale),
@@ -39,10 +35,10 @@
                 anchor: new google.maps.Point(145.5 * scale, 279 * scale),
                 scaledSize: new google.maps.Size(291 * scale, 279 * scale)
             },
-            position: frutifyLocation,
+            position: rutaflowLocation,
             title: 'frutify',
             map
-        });
+        });*/
 
         // Try HTML5 geolocation.
         if (navigator.geolocation) {
@@ -72,7 +68,7 @@
 
         bounds  = new google.maps.LatLngBounds();
 
-        const location = new google.maps.LatLng(frutifyLocation.lat, frutifyLocation.lng);
+        const location = new google.maps.LatLng(rutaflowLocation.lat, rutaflowLocation.lng);
 
         bounds.extend(location);
         map.fitBounds(bounds);
@@ -173,7 +169,6 @@
 
     $: loadRoute($params.routeId);
 
-
     $: {
       if(map && deliveries && stats) {
           addMarkers(deliveries);
@@ -185,7 +180,7 @@
 
     function loadRoute(routeId) {
 
-        fetch(`https://dev.rutaflow.com/admin/delivery/driver_route_deliveries.php?id_route=${routeId}`)
+        fetch(`${back_url}admin/delivery/driver_route_deliveries.php?id_route=${routeId}`)
                 .then(response => response.json())
                 .then(data => {
                     console.log(data.data);
@@ -193,7 +188,7 @@
 
                     deliveries.forEach((delivery, index) => {
 
-                        fetch(`https://dev.rutaflow.com/admin/subscriber/driver_subscriber_info.php?id_subscriber=${delivery.id_subscriber}`)
+                        fetch(`${back_url}admin/subscriber/driver_subscriber_info.php?id_subscriber=${delivery.id_subscriber}`)
                                 .then(response => response.json())
                                 .then(data => {
                                     deliveries[index].subscriber_info = data.data.subscriber_info;

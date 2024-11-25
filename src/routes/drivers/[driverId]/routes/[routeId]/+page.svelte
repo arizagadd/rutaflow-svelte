@@ -1,5 +1,4 @@
 <script lang="ts">
-    //import {ready, url, goto} from '@sveltech/routify';
     export let routeId;
     export let driverId;
     import DeliveryInfo from './_DeliveryInfo.svelte';
@@ -14,6 +13,9 @@
     import { goto } from '$app/navigation';
     import {locationOutline,cashOutline} from "ionicons/icons"; 
     import {arrowBack} from "ionicons/icons";
+    import {DATABASE_URL} from '../../../../../hooks';
+    /*Back URL*/
+    let back_url = DATABASE_URL;
 
     let dataSession = new Object();
     let loading = true;
@@ -150,7 +152,7 @@
         const requestData = new FormData();
         requestData.append('id_route', routeId);
         try {
-            const response = await fetch('https://dev.rutaflow.com/api/admin/report/seguimiento_list.php', {
+            const response = await fetch(`${back_url}api/admin/report/seguimiento_list.php`, {
                 method: 'POST',
                 body: requestData,
             });
@@ -224,7 +226,7 @@
             requestData.append('id_route', delivery.id_route);
             requestData.append('id_event', delivery.id_event);
 
-            fetch('https://dev.rutaflow.com/api/admin/evidence/evidence_by_event.php', {
+            fetch(`${back_url}api/admin/evidence/evidence_by_event.php`, {
                 method: 'POST',
                 body: requestData,
             })
@@ -317,7 +319,7 @@
         let requestData = new FormData();
         requestData.append('id_route', id_route);
         requestData.append('status',status);
-        fetch('https://dev.rutaflow.com/api/admin/route/change_status.php', {
+        fetch(`${back_url}api/admin/route/change_status.php`, {
                 method: 'POST',
                 body: requestData,
             })

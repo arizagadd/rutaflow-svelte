@@ -8,9 +8,12 @@
 	import { onMount } from 'svelte';
     import { gasKmStore } from '../../../../../stores/gasKmStore';
     import { flagStore } from '../../../../../stores/flagStore';
+    import {DATABASE_URL} from '../../../../../hooks';
 
+    /*Back URL*/
+    let back_url = DATABASE_URL;
+    
     let overlayElement = document.querySelector("ion-modal");
-    //console.log(overlayElement.componentProps);
     const checklist = overlayElement.componentProps.checklist;
     const driverId = overlayElement.componentProps.driverId;
     const routeId = overlayElement.componentProps.routeId;
@@ -142,7 +145,7 @@
                 //cerrar modal
                 closeOverlay();
                 
-                fetch('https://dev.rutaflow.com/api/admin/checklist/add_evidence.php', {
+                fetch(`${back_url}api/admin/checklist/add_evidence.php`, {
                     method: 'POST',
                     body: formData,
                     })
@@ -183,7 +186,7 @@
                     formData.append(`km_inicial`,ini_km);
                     formData.append(`gas_inicial`,ini_gas);
                     formData.append(`id_route`,routeId);
-                    fetch('https://dev.rutaflow.com/api/admin/checklist/add_evidence.php', {
+                    fetch(`${back_url}api/admin/checklist/add_evidence.php`, {
                         method: 'POST',
                         body: formData,
                         })
@@ -204,7 +207,7 @@
                     var formData = new FormData();
                     formData.append(`km_inicial`,ini_km);
                     formData.append(`gas_inicial`,ini_gas);
-                    fetch('https://dev.rutaflow.com/api/admin/checklist/add_evidence.php', {
+                    fetch(`${back_url}api/admin/checklist/add_evidence.php`, {
                         method: 'POST',
                         body: formData,
                         })
@@ -235,7 +238,7 @@
             const formData = new FormData();
             formData.append('fileToUpload', compressed_file);
             try {
-                const response = await fetch('https://dev.rutaflow.com/api/admin/manager/upload_img_driver.php', {
+                const response = await fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -342,7 +345,7 @@
         let requestData = new FormData();
         requestData.append('id_route', id_route);
         requestData.append('status',status);
-        fetch('https://dev.rutaflow.com/api/admin/route/change_status.php', {
+        fetch(`${back_url}api/admin/route/change_status.php`, {
                 method: 'POST',
                 body: requestData,
                 })
