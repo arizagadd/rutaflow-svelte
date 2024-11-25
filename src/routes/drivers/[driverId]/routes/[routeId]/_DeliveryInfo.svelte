@@ -1,5 +1,4 @@
 <script>
-    //import BoxesCount from './_BoxesCount.svelte';
     import { alertController } from '@ionic/core';
     import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, todayOutline} from "ionicons/icons"; 
     import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline, listOutline} from "ionicons/icons"; 
@@ -11,11 +10,14 @@
     import {IonicShowModal} from "../../../../../services/IonicControllers";
     import ChecklistControl from './_ChecklistControl.svelte';
     import {onMount} from 'svelte';
+    import {DATABASE_URL} from '../../../../../hooks';
+
+    /*Back URL*/
+    let back_url = DATABASE_URL;
+
     let overlayElement = document.querySelector("ion-modal");
-    let bck_url = "https://app.rutaflow.com/"; 
     let delivery = overlayElement.componentProps.delivery;
     let isLast = overlayElement.componentProps.isLast;
-    //let checklist = overlayElement.componentProps.checklist;
     let driverComments = delivery.driver_comments?delivery.driver_comments:'';
     let selectedImage = delivery.img?delivery.img:'';
     let img_id = "";
@@ -93,7 +95,7 @@
             const formData = new FormData();
             formData.append('fileToUpload', compressed_file);
             try {
-                const response = await fetch(bck_url+'api/admin/manager/upload_img_driver.php', {
+                const response = await fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -103,8 +105,7 @@
                     const result = await response.json();
                     selectedImage = result.img;
                     img_id = result.img_id;
-                    
-                    //console.log(selectedImage);
+
                 } else {
                     // Handle error response
                     console.error('File upload failed:', response.statusText);
@@ -191,18 +192,22 @@
                 for (const key in lv) {
                     requestData.append(key, lv[key]);
                 }
-
+                
                 if(lv.img && lv.img_id){
                     // Send the evidence data
-                    const response = await fetch(bck_url+'api/admin/evidence/send_evidence.php', {
+                    const response = await fetch(`${back_url}api/admin/evidence/send_evidence.php`, {
                         method: 'POST',
                         body: requestData
                     });
+
+                    closeModal();
+
+                }else if(delivery.img){
+                    //if it's already loaded the image and the file input is empty, just close the modal
+                    closeModal();
                 }else{
                     showAlert('Información incompleta','Cargar evidencia fotográfica faltante para completar parada.');
                 }
-
-                
 
             } else {
                 //console.log("No entré");
@@ -255,7 +260,7 @@
         formData.append('enterprise_name', delivery.enterprise_name);
         try {
             // Send the evidence data
-            const response = await fetch(bck_url+'api/admin/message_central/send_sms.php', {
+            const response = await fetch(`${back_url}api/admin/message_central/send_sms.php`, {
                 method: 'POST',
                 body: formData
             });
@@ -280,7 +285,7 @@
             const formData = new FormData();
             formData.append('id_enterprise', delivery.id_enterprise);
             try {
-                const response = await fetch(bck_url+'api/admin/enterprise/enterprise_settings.php', {
+                const response = await fetch(`${back_url}api/admin/enterprise/enterprise_settings.php`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -334,7 +339,7 @@
             formData.append('type', type);
             formData.append('id_event', id_event);
             try {
-                const response = await fetch(bck_url+'api/admin/route/record_check_date.php', {
+                const response = await fetch(`${back_url}api/admin/route/record_check_date.php`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -473,14 +478,6 @@
                 </ion-item>
             {/if}
         {/if}
-        <!-- <ion-item>
-            <ion-icon icon={todayOutline} slot="start"></ion-icon>
-            <ion-select placeholder="Selecciona estado de entrega" on:ionChange={handleStatusChange} value={status}>
-                <ion-select-option value="Completado">Completado</ion-select-option>
-                <ion-select-option value="No entregado">No entregado</ion-select-option>
-                <ion-select-option value="Entrega Parcial">Entrega Parcial</ion-select-option>
-            </ion-select>
-        </ion-item> -->
         
         {#if showMotiveInput}
             <ion-item>
@@ -545,15 +542,3 @@
 
     </ion-list>
 </ion-content>
-<!-- <ion-footer>
-    <ion-toolbar>
-        <ion-item target="_blank" href="https://www.google.com/maps/search/?api=1&query={delivery.lat}%2C{delivery.lon}">
-            <ion-label class="ion-text-wrap">
-                <h2>Mostrar ubicación</h2>
-            </ion-label>
-        </ion-item>
-    </ion-toolbar>
-</ion-footer> -->
-<!-- <style>
-
-</style> -->

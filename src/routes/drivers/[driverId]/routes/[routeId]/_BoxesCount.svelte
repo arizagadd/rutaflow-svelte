@@ -56,7 +56,6 @@
         throw new Error('Bad Hex');
     }
     function getColorPill(str,box){
-      console.log("getcolor",str,box)
         var hex;
         if( String(str).indexOf('#')!=-1 ){
           hex=str;
@@ -64,7 +63,7 @@
         else{
           hex=colorsMap[box];
         }
-        console.log("hex",hex);
+
         return hex;
     }
     function getColorPillOpacity(str,box){
@@ -85,7 +84,6 @@
       boxes = JSON.parse(delivery.boxes);
     }
 
-    //console.log('boxes', boxes);
   }
 
 

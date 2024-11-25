@@ -6,7 +6,11 @@
     import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
     import IonPage from 'ionic-svelte/components/IonPage.svelte';
+    import {DATABASE_URL} from '../../../hooks';
 
+    /*Back URL*/
+    let back_url = DATABASE_URL;
+    
     let routes = [];
     let events = new Object();
     let hasPendingRoutes = false;
@@ -20,10 +24,6 @@
     }
 
     onMount( async () => {
-        if(driverId === "41"){
-            localStorage.clear();
-            console.log("Cleared session from localStorage");
-        }
 		await loadRoutes(driverId);
 	});
 
@@ -63,7 +63,7 @@
         var actualDate = getActualFormattedDate();
         const requestData = new FormData();
         requestData.append('actual_date', actualDate);
-        fetch(`https://app.rutaflow.com/api/admin/report/seguimiento_list.php`, {
+        fetch(`${back_url}api/admin/report/seguimiento_list.php`, {
                 method: 'POST',
                 body: requestData,
             })

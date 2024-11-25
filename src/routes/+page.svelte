@@ -6,7 +6,11 @@
     import authStore from "../stores/authStore";
 	import { goto } from '$app/navigation';
     import { onMount } from 'svelte';
+    import {DATABASE_URL} from '../hooks';
 
+    /*Back URL*/
+    let back_url = DATABASE_URL;
+    
     let data = {};
     let dataSession = new Object();
 
@@ -25,12 +29,10 @@
     // This will clear all localStorage when the page loads
     onMount(() => {
         localStorage.clear();
-        console.log("Cleared all sessions from localStorage");
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('submit', data);
 
 		const showAlert = async () => {
 			const alert = await alertController.create({
@@ -63,7 +65,7 @@
 		const requestData = new FormData();
         requestData.append('email', data.email);
 		requestData.append('pass', data.password);
-        return fetch(`https://app.rutaflow.com/api/admin/user/user_login.php`,{
+        return fetch(`${back_url}api/admin/user/user_login.php`,{
 					method: 'POST',
 					body: requestData,
                 })
@@ -79,7 +81,7 @@
                                 userData
                             }
                         });
-                        console.log(userData);
+                        
                         if(userData.id_driver){
                             goto(`/drivers/${userData.id_driver}`);
                         }else{

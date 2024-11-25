@@ -9,6 +9,11 @@
     import {informationCircleOutline} from "ionicons/icons";
     import { onMount } from 'svelte';
     import { modalController } from '@ionic/core';
+    import {DATABASE_URL} from '../../../../../hooks';
+
+    /*Back URL*/
+    let back_url = DATABASE_URL;
+    
     let overlayElement = document.querySelector("ion-modal");
     let routeId = overlayElement.componentProps.routeId;
     let det_concept = overlayElement.componentProps.ex_concept;
@@ -51,7 +56,7 @@
             const formData = new FormData();
             formData.append('fileToUpload', compressed_file);
             try {
-                const response = await fetch('https://app.rutaflow.com/api/admin/manager/upload_img_driver.php', {
+                const response = await fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -143,7 +148,7 @@
         if(!img_id || !selectedImage || !comments.value || !expenseAmount.value || !concept.value){
             showAlert("Datos incompletos","Llena los datos requeridos para completar el registro");
         }else{
-            fetch('https://app.rutaflow.com/api/admin/expenses/add_expense.php', {
+            fetch(`${back_url}api/admin/expenses/add_expense.php`, {
                 method: 'POST',
                 body: requestData,
             })
