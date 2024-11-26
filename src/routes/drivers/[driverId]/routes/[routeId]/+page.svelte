@@ -35,7 +35,7 @@
     }
 
     onMount(async () => {
-        await loadRoute(routeId);
+		await loadRoute(routeId);
 	});
 
     $: {({routeId,driverId} = $page.params)
@@ -446,7 +446,27 @@
                                             </div>
                                         </div>
                                     </ion-avatar>
-                                    <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}>
+                                    <ion-label button on:click={() => {
+                                        // Get the index of the current delivery in the array
+                                        const currentIndex = deliveries.findIndex(item => item.id_event === delivery.id_event);
+                                        
+                                        // Check if the previous delivery has an image (or if it's the first delivery)
+                                        const isFirstDelivery = currentIndex === 0;
+                                        const previousDelivery = currentIndex > 0 ? deliveries[currentIndex - 1] : null;
+                                        const previousDeliveryHasImage = isFirstDelivery || (previousDelivery && previousDelivery.img !== null);
+                                        
+                                        // Check if the current delivery has an image
+                                        const currentDeliveryHasImage = delivery.img !== null && delivery.img !== '';
+                                        
+                                        // Allow showing the modal only if the current delivery has an image
+                                        // or if it's the first delivery and the current delivery does not have an image
+                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                            showDeliveryInfoModal(delivery, isLastDelivery(index));
+                                        } else {
+                                            showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
+                                        }
+                                    }}>
+                                    <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
                                         <ion-text color="#2e2e2e">
                                             <h3>
                                                 {delivery.title}
@@ -484,7 +504,27 @@
                                             </div>
                                         </div>
                                     </ion-avatar>
-                                    <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}>
+                                    <ion-label button on:click={() => {
+                                        // Get the index of the current delivery in the array
+                                        const currentIndex = deliveries.findIndex(item => item.id_event === delivery.id_event);
+                                        
+                                        // Check if the previous delivery has an image (or if it's the first delivery)
+                                        const isFirstDelivery = currentIndex === 0;
+                                        const previousDelivery = currentIndex > 0 ? deliveries[currentIndex - 1] : null;
+                                        const previousDeliveryHasImage = isFirstDelivery || (previousDelivery && previousDelivery.img !== null);
+                                        
+                                        // Check if the current delivery has an image
+                                        const currentDeliveryHasImage = delivery.img !== null && delivery.img !== '';
+                                        
+                                        // Allow showing the modal only if the current delivery has an image
+                                        // or if it's the first delivery and the current delivery does not have an image
+                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                            showDeliveryInfoModal(delivery, isLastDelivery(index));
+                                        } else {
+                                            showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
+                                        }
+                                    }}>
+                                    <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
                                         <ion-text color="#2e2e2e">
                                             <h3>
                                                 {delivery.title}
@@ -517,7 +557,7 @@
                                                 refreshing-text="Actualizando..."></ion-refresher-content>
                         </ion-refresher>
                         <ion-list>
-                            {#each deliveries as delivery (delivery.id_event)}
+                            {#each deliveries as delivery, index (delivery.id_event)}
                                 <ion-item>
                                     <ion-avatar slot="start">
                                         <div class="order-wrapper" title="{getStatusTitle(delivery.status)}" style="background-color: {getDeliveryColor(delivery.status, delivery.date_service)}; color: {getContrast(getDeliveryColor(delivery.status))}">
@@ -541,7 +581,7 @@
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
                                         if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
-                                            showDeliveryInfoModal(delivery);
+                                            showDeliveryInfoModal(delivery, isLastDelivery(index));
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
                                         }
