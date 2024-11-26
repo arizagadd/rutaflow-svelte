@@ -106,7 +106,6 @@
                     selectedImage = result.img;
                     img_id = result.img_id;
                     
-                    //console.log(selectedImage);
                 } else {
                     // Handle error response
                     console.error('File upload failed:', response.statusText);
@@ -200,8 +199,20 @@
                         method: 'POST',
                         body: requestData
                     });
-
-                    closeModal();
+                    const data = await response.json();
+                    
+                    if(data.success == true){
+                        const routeId = lv.id_route;
+                        //Close delivery modal
+                        closeModal();
+                        // Show final km and gas inputs if it is the last
+                        if (isLast) {
+                            showKmGasModal("", "", routeId, isLast);
+                        }
+                    }else{
+                        showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
+                    }
+                    
 
                 }else if(delivery.img){
                     //if it's already loaded the image and the file input is empty, just close the modal
