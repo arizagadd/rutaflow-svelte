@@ -44,6 +44,35 @@
         setCheckButtons();
     });
 
+    async function getJson(apiUrl="", callback, variables = {}) {
+        const formData = new FormData();
+        isLoading = true; // Show spinner
+
+        // Append variables to FormData
+        for (const [key, value] of Object.entries(variables)) {
+            formData.append(key, value);
+        }
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                // Pass the JSON result to the provided callback function
+                callback(result);
+            } else {
+                console.error('Request failed:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error during file upload:', error);
+        } finally {
+            isLoading = false; // Hide spinner
+        }
+    }
+
     // Function to handle status selection
     function handleStatusChange(event) {
         status = event.detail.value;
@@ -83,41 +112,71 @@
         });
 
         await alert.present();
+    }
+
+    const showYNAlert = async (customHeader="", customMessage="", url="",func,lv={}) => {
+        const alert = await alertController.create({
+            header: customHeader || 'Error', // Use customHeader or default value
+            message: customMessage || 'Vuelva a intentar', // Use customMessage or default value
+            buttons: [
+            {
+                text: 'No',
+                role: 'cancel', // Indicates a cancel action
+                handler: () => {
+                    console.log('User selected "No"');
+                }
+            },
+            {
+                text: 'Sí',
+                handler: () => {
+                    getJson(url,func,lv);
+                }
+            }
+        ]
+        });
+
+        await alert.present();
     };
 
     const handleFileChange = async (event) => {
-        isLoading = true; // Show spinner
         const fileInput = event.target;
         const file = fileInput.files[0];
         const compressed_file = await compressImage(file);
 
         if (compressed_file) {
-            const formData = new FormData();
-            formData.append('fileToUpload', compressed_file);
-            try {
-                const response = await fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (response.ok) {
-                    // File uploaded successfully, handle any additional logic
-                    const result = await response.json();
-                    selectedImage = result.img;
-                    img_id = result.img_id;
-                    
-                } else {
-                    // Handle error response
-                    console.error('File upload failed:', response.statusText);
-                }
-            } catch (error) {
-                console.error('Error during file upload:', error);
-            } finally {
-                isLoading = false; // Hide spinner
-            }
+            var lv = new Object(); 
+            lv.fileToUpload = compressed_file;
+            getJson(`${back_url}api/admin/manager/upload_img_driver.php`,function(result){
+                selectedImage = result.img;
+                img_id = result.img_id;
+            },lv);
         }
 
     };
+
+    function handleCheckIn(event){
+        
+        if(!delivery.service_time && checkInActive){
+            event.preventDefault(); // Prevent the file upload dialog from opening
+            showAlert("Registrar Ingreso","Antes de subir la evidencia registra el ingreso a la actual parada.");
+        }
+
+    }
+
+    function handleCheckOut(){
+        console.log("entrar");
+        if(!delivery.date_completed && !checkInActive && checkOutActive){
+            var lv = new Object();
+            lv.id_event = delivery.id_event;
+            lv.type = "checkout";
+            showYNAlert("Registrar Salida","¿Completaste tu entrega?",back_url+"api/admin/route/record_check_date.php",function(result){
+                if(result.minutes){
+                    showAlert('Tiempo por parada','Completaste la parada en '+result.minutes+' minutos.');
+                }
+            },lv);
+        }
+
+    }
 
     const compressImage = async (file) => {
         return new Promise((resolve) => {
@@ -170,6 +229,7 @@
 
     const sendEvidence = async () => {
         try {
+            handleCheckOut();
             // Get location
             const flag = await getLocation();
             
@@ -186,22 +246,11 @@
                     ...(stopsApproval === "0" && { approve: "0" }),
                     ...(isLast && { isLast: true })
                 };
-
-                // Create FormData from the object
-                const requestData = new FormData();
-                for (const key in lv) {
-                    requestData.append(key, lv[key]);
-                }
                 
                 if(lv.img && lv.img_id){
                     // Send the evidence data
-                    const response = await fetch(`${back_url}api/admin/evidence/send_evidence.php`, {
-                        method: 'POST',
-                        body: requestData
-                    });
-                    const data = await response.json();
-                    
-                    if(data.success == true){
+                    getJson(`${back_url}api/admin/evidence/send_evidence.php`,function(result){
+                        if(result.success == true){
                         const routeId = lv.id_route;
                         //Close delivery modal
                         closeModal();
@@ -209,9 +258,10 @@
                         if (isLast) {
                             showKmGasModal("", "", routeId, isLast);
                         }
-                    }else{
-                        showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
-                    }
+                        }else{
+                            showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
+                        }
+                    },lv);
                     
 
                 }else if(delivery.img){
@@ -290,7 +340,7 @@
             }
     }
 
-    const checkSettings = async (event) => {
+    const checkSettings = async () => {
         
 
         if (delivery.id_enterprise) {
@@ -533,7 +583,7 @@
                     <label for="eventEvidence">
                         Subir Evidencia
                     </label>
-                    <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" accept="image/*" on:change={handleFileChange}>
+                    <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" accept="image/*" on:change={handleFileChange} on:click={handleCheckIn}>
                 </ion-button>
             <!-- </label> -->
         </section>
