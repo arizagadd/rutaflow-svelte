@@ -55,6 +55,7 @@
 
     async function setSegmentValue(value) {
         segmentValue = value;
+
         if (segmentValue === "map") {
             await tick();
 
@@ -108,9 +109,9 @@
                 console.error("Geolocation not supported by this browser.");
             }
             //For origin marker
-            createMarker(map,{lat:stats.lat1,lon:stats.lon1,color:stats.color,title:stats.origin},{ type: "icon", iconClass: "icon-home", title: "Origen", glyph: "0"});
+            createMarker(bounds, map,{lat:stats.lat1,lon:stats.lon1,color:stats.color,title:stats.origin},{ type: "icon", iconClass: "icon-home", title: "Origen", glyph: "0"});
             //For destination marker
-            createMarker(map,{lat:stats.lat2,lon:stats.lon2,color:stats.color,title:stats.destination},{ type: "icon", iconClass: "icon-flag", title: "Destino", glyph: String(deliveries.length+1)});
+            createMarker(bounds, map,{lat:stats.lat2,lon:stats.lon2,color:stats.color,title:stats.destination},{ type: "icon", iconClass: "icon-flag", title: "Destino", glyph: String(deliveries.length+1)});
 
             // Example of adding markers for stops/events
             deliveries.forEach((delivery, index) => {
@@ -154,12 +155,11 @@
         }
     }
 
-    async function createMarker(map,obj,contentConfig){
+    async function createMarker(bounds, map,obj,contentConfig){
         let contentElement;
         const lat = parseFloat(obj.lat);
         const lon = parseFloat(obj.lon);
         const waypointLatLng = new google.maps.LatLng(lat, lon);
-        const bounds = new google.maps.LatLngBounds();
         const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
 
         if(contentConfig.type == "icon"){
@@ -200,7 +200,7 @@
 			//showDeliveryInfoModal(delivery, isLastDelivery(index));
 		});
 
-        bounds.extend(marker.getPosition());
+        return marker;
     }
 
     async function loadRoute(routeId) {
