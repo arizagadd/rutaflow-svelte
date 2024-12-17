@@ -17,7 +17,8 @@
 
     let overlayElement = document.querySelector("ion-modal");
     let delivery = overlayElement.componentProps.delivery;
-    let isLast = overlayElement.componentProps.isLast;
+    let isLast = overlayElement.componentProps.isLast || false;
+    let OriDesFlag = overlayElement.componentProps.flag || false;
     let driverComments = delivery.driver_comments?delivery.driver_comments:'';
     let selectedImage = delivery.img?delivery.img:'';
     let img_id = "";
@@ -155,8 +156,8 @@
     };
 
     function handleCheckIn(event){
-        
-        if(!delivery.service_time && checkInActive){
+        var service_time = delivery.service_time;
+        if(!service_time && checkInActive && !isLast && !OriDesFlag){
             event.preventDefault(); // Prevent the file upload dialog from opening
             showAlert("Registrar Ingreso","Antes de subir la evidencia registra el ingreso a la actual parada.");
         }
@@ -164,8 +165,8 @@
     }
 
     function handleCheckOut(){
-        console.log("entrar");
-        if(!delivery.date_completed && !checkInActive && checkOutActive){
+        var date = !OriDesFlag ? false:delivery.date_completed;
+        if(!date && !checkInActive && checkOutActive && !isLast && !OriDesFlag){
             var lv = new Object();
             lv.id_event = delivery.id_event;
             lv.type = "checkout";
@@ -229,10 +230,11 @@
 
     const sendEvidence = async () => {
         try {
+            //To record checkOut date
             handleCheckOut();
-            // Get location
+            // Get location ** this lasts some minutes so i need to put a loader upon **
             const flag = await getLocation();
-            
+
             if (flag) {
                 // Create an object to store evidence details
                 const lv = {
@@ -244,7 +246,8 @@
                     lat: locationData.latitude,
                     lon: locationData.longitude,
                     ...(stopsApproval === "0" && { approve: "0" }),
-                    ...(isLast && { isLast: true })
+                    ...(isLast && { isLast: true }),
+                    ...(OriDesFlag && isLast == true && {destiny: true})
                 };
                 
                 if(lv.img && lv.img_id){
@@ -272,7 +275,7 @@
                 }
 
             } else {
-                //console.log("No entré");
+                showAlert("Ubicación faltante","Asegúrate darle permisos a Rutaflow para acceder a tu ubicación");
             }
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -431,12 +434,14 @@
 <ion-header translucent>
     <ion-toolbar>
         <ion-buttons slot="start">
-          <ion-button color="medium" on:click={closeModal}>Cancelar</ion-button>
+          <ion-button color="medium" on:click={closeModal}>Cerrar</ion-button>
         </ion-buttons>
         <ion-title style="text-align: center;" title="{delivery.title}">{delivery.title}</ion-title>
-        <ion-buttons slot="end">
-          <ion-button on:click={sendEvidence} strong>Confirmar</ion-button>
-        </ion-buttons>
+        {#if (!isLast && !OriDesFlag) || (isLast && OriDesFlag)}
+            <ion-buttons slot="end">
+                <ion-button on:click={sendEvidence} strong>Confirmar</ion-button>
+            </ion-buttons>
+        {/if}
     </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>
@@ -547,46 +552,50 @@
                 <ion-textarea bind:this={motive} placeholder="Escribe el motivo..."></ion-textarea>
             </ion-item>
         {/if}
-        <ion-item>
-            <ion-icon icon={createOutline} slot="start"></ion-icon>
-            <ion-textarea bind:this={driverComments} label="Notas" placeholder="Escribe aquí..."></ion-textarea>
-        </ion-item>
-        <!-- Check-In and Check-Out Buttons -->
-        <section style="display: flex; gap: 8px; padding: 16px 16px 6px;">
-            {#if checkInActive === true}
-                <ion-button 
-                    id="checkInBtn" 
-                    style="flex: 1;" 
-                    on:click={checkIn}
-                >
-                    <ion-icon icon={logInOutline} slot="start"></ion-icon>
-                    Ingreso
-                </ion-button>
-            {/if}
+        {#if !OriDesFlag}
+            <ion-item>
+                <ion-icon icon={createOutline} slot="start"></ion-icon>
+                <ion-textarea bind:this={driverComments} label="Notas" placeholder="Escribe aquí..."></ion-textarea>
+            </ion-item>
+            <!-- Check-In and Check-Out Buttons -->
+            <section style="display: flex; gap: 8px; padding: 16px 16px 6px;">
+                {#if checkInActive === true}
+                    <ion-button 
+                        id="checkInBtn" 
+                        style="flex: 1;" 
+                        on:click={checkIn}
+                    >
+                        <ion-icon icon={logInOutline} slot="start"></ion-icon>
+                        Ingreso
+                    </ion-button>
+                {/if}
 
-            {#if checkOutActive === true || (checkOutActive === false && checkInActive === false)}
-                <ion-button 
-                    id="checkOutBtn" 
-                    style="flex: 1;" 
-                    on:click={checkOut} 
-                    disabled={checkOutActive === false}
-                >
-                    <ion-icon icon={logOutOutline} slot="start"></ion-icon>
-                    Salida
-                </ion-button>
-            {/if}
-        </section>
-        <section style="display: flex; gap: 8px; padding: 0px 16px;">
-            <!-- <label for="eventEvidence" style="display: block; width: 100%;"> -->
-                <ion-button fill="outline" class="loadEvidence" style="flex: 1;" >
-                    <ion-icon icon={duplicateOutline} slot="start"></ion-icon>
-                    <label for="eventEvidence">
-                        Subir Evidencia
-                    </label>
-                    <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" accept="image/*" on:change={handleFileChange} on:click={handleCheckIn}>
-                </ion-button>
-            <!-- </label> -->
-        </section>
+                {#if checkOutActive === true || (checkOutActive === false && checkInActive === false)}
+                    <ion-button 
+                        id="checkOutBtn" 
+                        style="flex: 1;" 
+                        on:click={checkOut} 
+                        disabled={checkOutActive === false}
+                    >
+                        <ion-icon icon={logOutOutline} slot="start"></ion-icon>
+                        Salida
+                    </ion-button>
+                {/if}
+            </section>
+        {/if}
+        {#if (isLast && OriDesFlag) || (!isLast && !OriDesFlag)}
+            <section style="display: flex; gap: 8px; padding: 0px 16px;">
+                <!-- <label for="eventEvidence" style="display: block; width: 100%;"> -->
+                    <ion-button fill="outline" class="loadEvidence" style="flex: 1;" >
+                        <ion-icon icon={duplicateOutline} slot="start"></ion-icon>
+                        <label for="eventEvidence">
+                            Subir Evidencia
+                        </label>
+                        <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" accept="image/*" on:change={handleFileChange} on:click={handleCheckIn}>
+                    </ion-button>
+                <!-- </label> -->
+            </section>
+        {/if}
         {#if isLoading}
         <section style="text-align:center;">
             <ion-spinner name="dots"></ion-spinner>

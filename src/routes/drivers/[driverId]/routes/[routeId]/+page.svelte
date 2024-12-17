@@ -11,7 +11,7 @@
     import {alertController } from '@ionic/core';
     import {page} from '$app/stores';
     import { goto } from '$app/navigation';
-    import {locationOutline,cashOutline} from "ionicons/icons"; 
+    import {locationOutline,cashOutline, homeSharp,flagSharp} from "ionicons/icons"; 
     import {arrowBack} from "ionicons/icons";
     import {DATABASE_URL} from '../../../../../hooks';
     /*Back URL*/
@@ -55,8 +55,10 @@
 
     async function setSegmentValue(value) {
         segmentValue = value;
+
         if (segmentValue === "map") {
             await tick();
+
             mapElement = document.getElementById("g_map");
             const map = new google.maps.Map(mapElement, {  
                 zoom: 8,  
@@ -106,6 +108,11 @@
             } else {
                 console.error("Geolocation not supported by this browser.");
             }
+            //For origin marker
+            createMarker(bounds, map,{lat:stats.lat1,lon:stats.lon1,color:stats.color,title:stats.origin},{ type: "icon", iconClass: "icon-home", title: "Origen", glyph: "0"});
+            //For destination marker
+            createMarker(bounds, map,{lat:stats.lat2,lon:stats.lon2,color:stats.color,title:stats.destination},{ type: "icon", iconClass: "icon-flag", title: "Destino", glyph: String(deliveries.length+1)});
+
             // Example of adding markers for stops/events
             deliveries.forEach((delivery, index) => {
                 const lat = parseFloat(delivery.lat);
@@ -137,7 +144,7 @@
                 // Add a click listener for each marker, and set up the info window.
 				waypointMarker.addListener("click", function(domEvent) {
 					const { target } = domEvent;
-					showDeliveryInfoModal(delivery, isLastDelivery(index));
+					showDeliveryInfoModal(delivery, false);
 				});
 
                 bounds.extend(marker.getPosition());
@@ -146,6 +153,54 @@
             // Adjust map to fit all markers
             map.fitBounds(bounds);
         }
+    }
+
+    async function createMarker(bounds, map,obj,contentConfig){
+        let contentElement;
+        const lat = parseFloat(obj.lat);
+        const lon = parseFloat(obj.lon);
+        const waypointLatLng = new google.maps.LatLng(lat, lon);
+        const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
+
+        if(contentConfig.type == "icon"){
+            contentElement = document.createElement("i");
+            contentElement.className = `${contentConfig.iconClass} icon`; // Add your icon class
+            contentElement.style.fontSize = "14px"; // Adjust size as needed
+            contentElement.style.color = getContrast(obj.color); // Set color dynamically
+            contentElement.style.fontWeight = "600"; 
+        }else if(contentConfig.type == "text"){
+            //En caso de que queramos usar la función "createMarker" para agregar markers con texto
+        }
+
+        const marker = new google.maps.Marker({
+            position: { lat: lat, lng: lon },
+            map: map,
+            title: `${contentConfig.title}. ${obj.title}`,
+        });
+
+        // Change the background color.
+		const pin = new PinElement({
+            background: obj.color,
+			borderColor: "#000",
+			glyphColor: getContrast(obj.color),
+			glyph: contentConfig.glyph
+		});
+
+        const waypointMarker = new AdvancedMarkerElement({
+			map: map,
+			position: waypointLatLng,
+			content: pin.element,
+			title: contentConfig.title+": "+obj.title,
+		});
+
+        // Add a click listener for each marker, and set up the info window.
+		waypointMarker.addListener("click", function(domEvent) {
+			const { target } = domEvent;
+            showOrigenDestinyModal(stats,contentConfig.title=="Destino"?true:false);
+			//showDeliveryInfoModal(delivery, isLastDelivery(index));
+		});
+
+        return marker;
     }
 
     async function loadRoute(routeId) {
@@ -260,7 +315,29 @@
                 loadRoute(routeId);
             });
         });
+    };
+
+    const showOrigenDestinyModal = (stats,isLast) => {
+        var delivery = new Object();
         
+        if(isLast){
+            delivery = {
+                title: stats.destination,
+                line1: stats.dest_address
+            }
+        }else{
+            delivery = {
+                title: stats.origin,
+                line1: stats.origin_address
+            }
+        }
+        delivery.client_name = stats.client_name;
+        delivery.client_phone = stats.tel;
+        delivery.id_route = stats.id_route;
+        var flag = true; //Flag to know is origen or destiny
+        IonicShowModal("modal-delivery-info", DeliveryInfo, {
+                delivery,isLast,flag
+        });
     };
 
     const showChecklistModal = (checklist,driverId,routeId) => {
@@ -437,6 +514,27 @@
                                                 refreshing-text="Actualizando..."></ion-refresher-content>
                         </ion-refresher>
                         <ion-list>
+                            <ion-item>
+                                <ion-avatar slot="start">
+                                    <div class="order-wrapper" title="${stats.origin}" style="background-color: {stats.color}; color: {getContrast(stats.color)}">
+                                        <div class="order">
+                                            0
+                                        </div>
+                                    </div>
+                                </ion-avatar>
+                                <ion-label button on:click={() => {showOrigenDestinyModal(stats, false)}}>
+
+                                    <ion-text color="#2e2e2e">
+                                        <h3>
+                                            {stats.origin}
+                                        </h3>
+                                    </ion-text>
+                                    <div class="sub">
+
+                                    </div>
+                                </ion-label>
+                                <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                            </ion-item>
                             {#each deliveries as delivery, index (delivery.id_event)}
                                 <ion-item>
                                     <ion-avatar slot="start">
@@ -461,7 +559,7 @@
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
                                         if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
-                                            showDeliveryInfoModal(delivery, isLastDelivery(index));
+                                            showDeliveryInfoModal(delivery, false);
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
                                         }
@@ -483,6 +581,28 @@
                                     <ion-icon icon={locationOutline} slot="end"></ion-icon>
                                 </ion-item>
                             {/each}
+                            <ion-item>
+                                <ion-avatar slot="start">
+                                    <div class="order-wrapper" title="${stats.destination}" style="background-color: {stats.color}; color: {getContrast(stats.color)}">
+                                        <div class="order">
+                                            {deliveries.length + 1}
+                                        </div>
+                                    </div>
+                                </ion-avatar>
+                                <ion-label button on:click={() => {showOrigenDestinyModal(stats, true)}}>
+                                <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
+                                    <ion-text color="#2e2e2e">
+                                        <h3>
+                                            {stats.destination}
+                                        </h3>
+                                    </ion-text>
+                                    <div class="sub">
+                                        <!-- <BoxesCount delivery={delivery} /> -->
+
+                                    </div>
+                                </ion-label>
+                                <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                            </ion-item>
                         </ion-list>
                     </ion-content>
                 {:else}
