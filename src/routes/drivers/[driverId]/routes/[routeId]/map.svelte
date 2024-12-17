@@ -165,42 +165,12 @@
         });
     }
 
-
-
-    $: loadRoute($params.routeId);
-
     $: {
       if(map && deliveries && stats) {
           addMarkers(deliveries);
-          addPolyline(stats.polyline)
+          addPolyline(stats.polyline);
+        console.log(stats);
       }
-    }
-
-
-
-    function loadRoute(routeId) {
-
-        fetch(`${back_url}admin/delivery/driver_route_deliveries.php?id_route=${routeId}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data.data);
-                    deliveries = data.data.deliveries_list;
-
-                    deliveries.forEach((delivery, index) => {
-
-                        fetch(`${back_url}admin/subscriber/driver_subscriber_info.php?id_subscriber=${delivery.id_subscriber}`)
-                                .then(response => response.json())
-                                .then(data => {
-                                    deliveries[index].subscriber_info = data.data.subscriber_info;
-                                    deliveries[index].support_list = data.data.support_list;
-                                });
-
-
-                    });
-
-                    stats = data.data.route_deliveries_stats;
-                    $ready();
-                });
     }
 
 
