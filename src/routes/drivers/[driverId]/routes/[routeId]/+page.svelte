@@ -108,10 +108,14 @@
             } else {
                 console.error("Geolocation not supported by this browser.");
             }
-            //For origin marker
-            createMarker(bounds, map,{lat:stats.lat1,lon:stats.lon1,color:stats.color,title:stats.origin},{ type: "icon", iconClass: "icon-home", title: "Origen", glyph: "0"});
-            //For destination marker
-            createMarker(bounds, map,{lat:stats.lat2,lon:stats.lon2,color:stats.color,title:stats.destination},{ type: "icon", iconClass: "icon-flag", title: "Destino", glyph: String(deliveries.length+1)});
+            if (stats.lat1 === stats.lat2 && stats.lon1 === stats.lon2) {
+                createMarker(bounds, map, {lat:stats.lat2,lon:stats.lon2,color:stats.color,title:stats.destination}, { type: "icon", iconClass: "icon-home", title: "Origen/Destino", glyph: `0,${String(deliveries.length+1)}`});
+            } else {
+                //For origin marker
+                createMarker(bounds, map,{lat:stats.lat1,lon:stats.lon1,color:stats.color,title:stats.origin},{ type: "icon", iconClass: "icon-home", title: "Origen", glyph: "0"});
+                //For destination marker
+                createMarker(bounds, map,{lat:stats.lat2,lon:stats.lon2,color:stats.color,title:stats.destination},{ type: "icon", iconClass: "icon-flag", title: "Destino", glyph: String(deliveries.length+1)});
+            }
 
             // Example of adding markers for stops/events
             deliveries.forEach((delivery, index) => {
@@ -196,8 +200,7 @@
         // Add a click listener for each marker, and set up the info window.
 		waypointMarker.addListener("click", function(domEvent) {
 			const { target } = domEvent;
-            showOrigenDestinyModal(stats,contentConfig.title=="Destino"?true:false);
-			//showDeliveryInfoModal(delivery, isLastDelivery(index));
+            showOrigenDestinyModal(stats,contentConfig.title=="Destino" || contentConfig.title=="Origen/Destino"?true:false);
 		});
 
         return marker;
@@ -615,6 +618,27 @@
                                                 refreshing-text="Refreshing..."></ion-refresher-content>
                         </ion-refresher>
                         <ion-list>
+                            <ion-item>
+                                <ion-avatar slot="start">
+                                    <div class="order-wrapper" title="${stats.origin}" style="background-color: {stats.color}; color: {getContrast(stats.color)}">
+                                        <div class="order">
+                                            0
+                                        </div>
+                                    </div>
+                                </ion-avatar>
+                                <ion-label button on:click={() => {showOrigenDestinyModal(stats, false)}}>
+
+                                    <ion-text color="#2e2e2e">
+                                        <h3>
+                                            {stats.origin}
+                                        </h3>
+                                    </ion-text>
+                                    <div class="sub">
+
+                                    </div>
+                                </ion-label>
+                                <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                            </ion-item>
                             {#each deliveries as delivery, index (delivery.id_event)}
                                 <ion-item>
                                     <ion-avatar slot="start">
@@ -639,7 +663,7 @@
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
                                         if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
-                                            showDeliveryInfoModal(delivery, isLastDelivery(index));
+                                            showDeliveryInfoModal(delivery, false);
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
                                         }
@@ -661,6 +685,28 @@
                                     <ion-icon icon={locationOutline} slot="end"></ion-icon>
                                 </ion-item>
                             {/each}
+                            <ion-item>
+                                <ion-avatar slot="start">
+                                    <div class="order-wrapper" title="${stats.destination}" style="background-color: {stats.color}; color: {getContrast(stats.color)}">
+                                        <div class="order">
+                                            {deliveries.length + 1}
+                                        </div>
+                                    </div>
+                                </ion-avatar>
+                                <ion-label button on:click={() => {showOrigenDestinyModal(stats, true)}}>
+                                <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
+                                    <ion-text color="#2e2e2e">
+                                        <h3>
+                                            {stats.destination}
+                                        </h3>
+                                    </ion-text>
+                                    <div class="sub">
+                                        <!-- <BoxesCount delivery={delivery} /> -->
+
+                                    </div>
+                                </ion-label>
+                                <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                            </ion-item>
                         </ion-list>
                     </ion-content>
                 {/if}
@@ -677,6 +723,27 @@
                                                 refreshing-text="Actualizando..."></ion-refresher-content>
                         </ion-refresher>
                         <ion-list>
+                            <ion-item>
+                                <ion-avatar slot="start">
+                                    <div class="order-wrapper" title="${stats.origin}" style="background-color: {stats.color}; color: {getContrast(stats.color)}">
+                                        <div class="order">
+                                            0
+                                        </div>
+                                    </div>
+                                </ion-avatar>
+                                <ion-label button on:click={() => {showOrigenDestinyModal(stats, false)}}>
+
+                                    <ion-text color="#2e2e2e">
+                                        <h3>
+                                            {stats.origin}
+                                        </h3>
+                                    </ion-text>
+                                    <div class="sub">
+
+                                    </div>
+                                </ion-label>
+                                <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                            </ion-item>
                             {#each deliveries as delivery, index (delivery.id_event)}
                                 <ion-item>
                                     <ion-avatar slot="start">
@@ -701,7 +768,7 @@
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
                                         if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
-                                            showDeliveryInfoModal(delivery, isLastDelivery(index));
+                                            showDeliveryInfoModal(delivery, false);
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
                                         }
@@ -718,6 +785,28 @@
                                     <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
                                 </ion-item>
                             {/each}
+                            <ion-item>
+                                <ion-avatar slot="start">
+                                    <div class="order-wrapper" title="${stats.destination}" style="background-color: {stats.color}; color: {getContrast(stats.color)}">
+                                        <div class="order">
+                                            {deliveries.length + 1}
+                                        </div>
+                                    </div>
+                                </ion-avatar>
+                                <ion-label button on:click={() => {showOrigenDestinyModal(stats, true)}}>
+                                <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
+                                    <ion-text color="#2e2e2e">
+                                        <h3>
+                                            {stats.destination}
+                                        </h3>
+                                    </ion-text>
+                                    <div class="sub">
+                                        <!-- <BoxesCount delivery={delivery} /> -->
+
+                                    </div>
+                                </ion-label>
+                                <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                            </ion-item>
                         </ion-list>
                     </ion-content>
                 {/if}
