@@ -1,7 +1,8 @@
 <script>
+    //export let class = '';
     import { alertController } from '@ionic/core';
-    import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, todayOutline} from "ionicons/icons"; 
-    import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline, listOutline} from "ionicons/icons"; 
+    import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, trash} from "ionicons/icons"; 
+    import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline, listOutline, closeSharp} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
     import {duplicateOutline} from "ionicons/icons"; 
@@ -20,12 +21,14 @@
     let isLast = overlayElement.componentProps.isLast || false;
     let OriDesFlag = overlayElement.componentProps.flag || false;
     let driverComments = delivery.driver_comments?delivery.driver_comments:'';
-    let selectedImage = delivery.img?delivery.img:'';
-    let img_id = "";
+    let selectedImages = delivery.img?delivery.img:'';
+    let img_id = delivery.img_id?delivery.img_id:'';
+    let files = selectedImages ? getImgsArray(selectedImages) : new Array();
+    let img_ids = img_id ? getImgsArray(img_id): new Array();
     let locationData = { latitude: null, longitude: null };
     let settings = new Object();
-    let stopsApproval = "";
-    let smsActive = "";
+    let stopsApproval = '';
+    let smsActive = '';
     let isLoading = false;
     // Regular expression to match a phone number after "Teléfono:"
     const phoneRegex = /Teléfono:\s*(\d{10,})/;
@@ -33,12 +36,15 @@
     let checkInActive = true;
     let checkOutActive = false;
     
-    let phoneNumber = "";
+    let phoneNumber = '';
     let remainingText = delivery.comments_ext;
     //Deliver status
-    let status = "";
+    let status = '';
     let showMotiveInput = false;
-    let motive = "";
+    let motive = '';
+    let showModal = false;
+    let currentImage = null;
+
 
     onMount(() => {
         checkSettings();
@@ -140,17 +146,29 @@
     };
 
     const handleFileChange = async (event) => {
-        const fileInput = event.target;
-        const file = fileInput.files[0];
-        const compressed_file = await compressImage(file);
+        if(files.length == 5){
+            showAlert("Límite de evidencias","Solo se permite subir 5 fotos por parada");
+        }else if(OriDesFlag && isLast && files.length == 1){
+            showAlert("Límite de evidencias","Para el final de la ruta solo se permite subir 1 foto");
+        }else{
+            const fileInput = event.target;
+            const file = fileInput.files[0];
+            const compressed_file = await compressImage(file);
 
-        if (compressed_file) {
-            var lv = new Object(); 
-            lv.fileToUpload = compressed_file;
-            getJson(`${back_url}api/admin/manager/upload_img_driver.php`,function(result){
-                selectedImage = result.img;
-                img_id = result.img_id;
-            },lv);
+            if (compressed_file) {
+                selectedImages = files.join(',');
+                img_id = img_ids.join(',');
+                var lv = new Object(); 
+                lv.fileToUpload = compressed_file;
+
+                getJson(`${back_url}api/admin/manager/upload_img_driver.php`,function(result){
+                    selectedImages = selectedImages ? `${selectedImages},${result.img}`:result.img;
+                    img_id = img_id ? `${img_id},${result.img_id}` :result.img_id;
+                    files = getImgsArray(selectedImages);
+                    img_ids = getImgsArray(img_id);
+                },lv);
+
+            }
         }
 
     };
@@ -228,8 +246,14 @@
         overlayElement.dismiss({ data: Date.now() });
     };
 
+    function removeFile(index) {
+        files = files.filter((_, i) => i !== index);
+    }
+
     const sendEvidence = async () => {
         try {
+            selectedImages = files.join(',');
+            img_id = img_ids.join(',');
             //To record checkOut date
             handleCheckOut();
             // Get location ** this lasts some minutes so i need to put a loader upon **
@@ -241,7 +265,7 @@
                     id_route: delivery.id_route,
                     id_event: delivery.id_event,
                     comments: driverComments.value,
-                    img: selectedImage,
+                    img: selectedImages,
                     img_id: img_id,
                     lat: locationData.latitude,
                     lon: locationData.longitude,
@@ -265,11 +289,7 @@
                             showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
                         }
                     },lv);
-                    
 
-                }else if(delivery.img){
-                    //if it's already loaded the image and the file input is empty, just close the modal
-                    closeModal();
                 }else{
                     showAlert('Información incompleta','Cargar evidencia fotográfica faltante para completar parada.');
                 }
@@ -428,8 +448,25 @@
 
     };
 
+    function getImgsArray(stringImg='') {
+        // Split the input string by commas and trim any extra whitespace from each URL
+        const imgArray = stringImg.split(',').map(url => url.trim());
+        return imgArray;
+    }
+
+    const openImage = (image) => {
+        currentImage = image;
+        showModal = true;
+    };
+
+    const closeImgModal = () => {
+        showModal = false;
+        currentImage = null;
+    };
+
 
 </script>
+
 
 <ion-header translucent>
     <ion-toolbar>
@@ -591,7 +628,7 @@
                         <label for="eventEvidence">
                             Subir Evidencia
                         </label>
-                        <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" accept="image/*" on:change={handleFileChange} on:click={handleCheckIn}>
+                        <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" multiple accept="image/*" on:change={handleFileChange} on:click={handleCheckIn}>
                     </ion-button>
                 <!-- </label> -->
             </section>
@@ -601,15 +638,39 @@
             <ion-spinner name="dots"></ion-spinner>
         </section>
         {/if}
-        {#if selectedImage}
+        {#if selectedImages}
         <section>
-            <ion-img
-                src="{selectedImage}"
-                alt="Evidencia fotográfica"
-                style="max-width: 100%; margin-top: 16px;"
-            ></ion-img>
+            <div class="image-grid" style="display: grid;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));gap: 10px;padding: 0px 10px;">
+                    {#each files as file, index}
+                    <div class="image-container" style="position: relative;">
+                        <ion-img
+                            src="{file}"
+                            alt="Evidencia fotográfica"
+                            style="width: 100%;height: 100px; object-fit:cover;cursor: pointer;border: 1px solid #ccc;border-radius: 4px;margin-top: 16px;"
+                            on:click={() => openImage(file)}
+                        ></ion-img>
+                        <button class="remove-button" on:click={() => removeFile(index)} 
+                            style="position: absolute;top: 5px;right: 5px;border:none;cursor: pointer;font-size: 18px;background: white;border-radius: 50%;padding: 3px 4px 0px;box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);color: #0000008f;">
+                            <ion-icon icon={trash}></ion-icon>
+                        </button>
+                        </div>
+                    {/each}
+            </div>
         </section>
         {/if}
 
     </ion-list>
 </ion-content>
+
+{#if showModal}
+    <div class="modal-overlay" on:click={closeImgModal} 
+        style="position: fixed;top: 0;left: 0;width: 100vw;height: 100vh; background: rgba(0, 0, 0, 0.8);display: flex;justify-content: center;align-items: center;z-index: 1000;">
+        <div class="modal-content" on:click|stopPropagation
+            style="position: relative;background: white;padding: 20px;border-radius: 8px;max-width: 90vw;max-height: 90vh;overflow: auto;">
+            <ion-img src="{currentImage}" alt="Evidencia fotográfica" style="width:100%; height:auto;"></ion-img>
+            <button class="close-button" on:click={closeImgModal} style="position: absolute;top: 5px;right: 5px;background: white;color: #444444d1;border: none;cursor: pointer;padding: 2px 2px 0px 6px;border-radius: 50%;font-size: 20px;">
+                <ion-icon icon={closeSharp}></ion-icon>
+            </button>
+        </div>
+    </div>
+{/if}

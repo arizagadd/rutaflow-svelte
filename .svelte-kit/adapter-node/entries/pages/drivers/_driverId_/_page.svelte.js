@@ -130,7 +130,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
       dataSession = JSON.parse(storedSession);
       if (dataSession) {
         if (driverId == "me" && dataSession.id_user) {
-          if (dataSession.type == "admin" || dataSession.type == "superadmin") {
+          if (dataSession.type == "admin" || dataSession.type == "super") {
             goto();
             loadRoutes();
             flag = true;

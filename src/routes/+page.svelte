@@ -16,7 +16,7 @@
 
     $: { dataSession = JSON.parse(localStorage.getItem('userSession'));
         if(dataSession){
-            if(dataSession.id_user && (dataSession.type=="admin" || dataSession.type=="superadmin")){
+            if(dataSession.id_user && (dataSession.type=="admin" || dataSession.type=="super")){
                 goto(`/drivers/me`);
             }else if(dataSession.id_user && dataSession.id_driver){
                 goto(`/drivers/${dataSession.id_driver}`);

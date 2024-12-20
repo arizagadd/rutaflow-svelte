@@ -36,7 +36,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
       {
         dataSession = JSON.parse(localStorage.getItem("userSession"));
         if (dataSession) {
-          if (dataSession.id_user && (dataSession.type == "admin" || dataSession.type == "superadmin")) {
+          if (dataSession.id_user && (dataSession.type == "admin" || dataSession.type == "super")) {
             goto();
           } else if (dataSession.id_user && dataSession.id_driver) {
             goto(`/drivers/${dataSession.id_driver}`);

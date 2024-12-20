@@ -32,7 +32,7 @@
         dataSession = JSON.parse(storedSession);
         if(dataSession){
             if(driverId=='me' && dataSession.id_user){
-                if(dataSession.type=='admin' || dataSession.type == 'superadmin'){
+                if(dataSession.type=='admin' || dataSession.type == 'super'){
                     goto(`/drivers/me`);
                     loadRoutes(driverId);
                     flag = true;
