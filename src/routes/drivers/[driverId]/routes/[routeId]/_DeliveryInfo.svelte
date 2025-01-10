@@ -265,10 +265,8 @@
 
             if (flag) {
                 // Create an object to store evidence details
-                const lv = {
+                let lv = {
                     id_route: delivery.id_route,
-                    ...(OriDesFlag && isLast == false && {id_event: delivery.id_event}),
-                    ...(OriDesFlag && isLast == false && {comments: driverComments.value}),
                     img: selectedImages,
                     img_id: img_id,
                     lat: locationData.latitude,
@@ -276,9 +274,14 @@
                     ...(stopsApproval === "0" && { approve: "0" }),
                     ...(isLast && { isLast: true }),
                     ...(OriDesFlag && isLast == true && {destiny: true}),
-                    token: dataSession.token,
-                    id_user_over: dataSession.id_user
                 };
+                
+                console.log('desflag ',OriDesFlag, 'islast ',isLast);
+
+                if(OriDesFlag && isLast == false){
+                    lv.id_event = delivery.id_event;
+                    lv.comments = driverComments.value;
+                }
                 
                 if(lv.img && lv.img_id){
                     // Send the evidence data
