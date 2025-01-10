@@ -265,15 +265,15 @@
                 // Create an object to store evidence details
                 const lv = {
                     id_route: delivery.id_route,
-                    ...(OriDesFlag && isLast == false && {id_event: delivery.id_event}),
-                    ...(OriDesFlag && isLast == false && {comments: driverComments.value}),
+                    ...(OriDesFlag && isLast && {id_event: delivery.id_event}),
+                    ...(OriDesFlag && isLast && {comments: driverComments.value}),
                     img: selectedImages,
                     img_id: img_id,
                     lat: locationData.latitude,
                     lon: locationData.longitude,
                     ...(stopsApproval === "0" && { approve: "0" }),
                     ...(isLast && { isLast: true }),
-                    ...(OriDesFlag && isLast == true && {destiny: true})
+                    ...(OriDesFlag && isLast && {destiny: true})
                 };
                 
                 if(lv.img && lv.img_id){
