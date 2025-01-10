@@ -10,3 +10,4 @@ export async function handle404() {
 }
 
 export const DATABASE_URL = "https://dev.rutaflow.com/";
+//export const DATABASE_URL = "http://localhost/rutaflow/";

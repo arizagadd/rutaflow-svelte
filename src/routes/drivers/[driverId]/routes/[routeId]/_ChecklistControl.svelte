@@ -24,6 +24,7 @@
     let checkbox_item={};
     let KmInicial,GasInicial,KmFinal,GasFinal;
     let loadingStates = {};
+    let dataSession = new Object();
     
 
     // checklist trae las img en caso de que existan, declarar selectedImage como objeto
@@ -31,6 +32,7 @@
     let imagesName = {};
 
     onMount(() => {
+        dataSession = JSON.parse(localStorage.getItem('userSession'));
         if(isLast){
             console.log("Último checklist");
         }else{
@@ -136,11 +138,11 @@
         if(isLast){
             var fin_km = transformFormatValue(km_final,"km");
             var fin_gas = transformFormatValue(gas_final,"gas");
-            const formData = new FormData();
+            let formData = new FormData();
             formData.append(`km_final`,fin_km);
             formData.append(`gas_final`,fin_gas);
             formData.append(`id_route`,routeId);
-            
+            formData = addAuthData(formData);
             if(fin_km && fin_gas){
                 //cerrar modal
                 closeOverlay();
@@ -173,8 +175,12 @@
                 );
                 if (allMandatoryChecked && ini_km && ini_gas) {
                     closeOverlay();
-                    const formData = new FormData();
-
+                    let formData = new FormData();
+                    formData = addAuthData(formData);
+                    formData.append(`km_inicial`,ini_km);
+                    formData.append(`gas_inicial`,ini_gas);
+                    formData.append(`id_route`,routeId);
+                    
                     // Iterate over the selectedImages object
                     for (const key in selectedImages) {
                         if (selectedImages.hasOwnProperty(key)) {
@@ -183,9 +189,7 @@
                             formData.append(`selectedImages[${key}][img_id]`, img_id); // Append the image ID
                         }
                     }
-                    formData.append(`km_inicial`,ini_km);
-                    formData.append(`gas_inicial`,ini_gas);
-                    formData.append(`id_route`,routeId);
+
                     fetch(`${back_url}api/admin/checklist/add_evidence.php`, {
                         method: 'POST',
                         body: formData,
@@ -204,9 +208,10 @@
                     //goto(`/drivers/${driverId}/routes/${routeId}`);
                     //window.location.reload();
                 }else if(!mandatoryVal && ini_km && ini_gas){
-                    var formData = new FormData();
+                    let formData = new FormData();
                     formData.append(`km_inicial`,ini_km);
                     formData.append(`gas_inicial`,ini_gas);
+                    formData = addAuthData(formData);
                     fetch(`${back_url}api/admin/checklist/add_evidence.php`, {
                         method: 'POST',
                         body: formData,
@@ -235,8 +240,9 @@
         const compressed_file = await compressImage(file);
 
         if (compressed_file) {
-            const formData = new FormData();
+            let formData = new FormData();
             formData.append('fileToUpload', compressed_file);
+            formData = addAuthData(formData);
             try {
                 const response = await fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
                     method: 'POST',
@@ -345,6 +351,7 @@
         let requestData = new FormData();
         requestData.append('id_route', id_route);
         requestData.append('status',status);
+        requestData = addAuthData(requestData);
         fetch(`${back_url}api/admin/route/change_status.php`, {
                 method: 'POST',
                 body: requestData,
@@ -411,6 +418,13 @@
             km_final: [],
             gas_final: []
         });
+    }
+
+    function addAuthData(requestData){
+        requestData.append('token', dataSession.token);
+        requestData.append('id_user_over', dataSession.id_user);
+
+        return requestData;
     }
 
 </script>

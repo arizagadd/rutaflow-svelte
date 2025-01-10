@@ -150,8 +150,9 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let isModalOpen = false;
   function loadRoute(routeId2) {
     return __awaiter(this, void 0, void 0, function* () {
-      const requestData = new FormData();
+      let requestData = new FormData();
       requestData.append("id_route", routeId2);
+      requestData = addAuthData(requestData);
       try {
         const response = yield fetch(`${back_url}api/admin/report/seguimiento_list.php`, { method: "POST", body: requestData });
         const data = yield response.json();
@@ -199,11 +200,17 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     let requestData = new FormData();
     requestData.append("id_route", id_route);
     requestData.append("status", status);
+    requestData = addAuthData(requestData);
     fetch(`${back_url}api/admin/route/change_status.php`, { method: "POST", body: requestData }).then((response) => response.json()).then((data) => {
     }).catch((error) => {
       console.error("Error fetching data:", error);
     });
     return "";
+  }
+  function addAuthData(requestData) {
+    requestData.append("token", dataSession.token);
+    requestData.append("id_user_over", dataSession.id_user);
+    return requestData;
   }
   if ($$props.routeId === void 0 && $$bindings.routeId && routeId !== void 0)
     $$bindings.routeId(routeId);
