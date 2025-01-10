@@ -28,8 +28,7 @@
 	});
 
     $: {({driverId} = $page.params);
-        const storedSession = localStorage.getItem('userSession');
-        dataSession = JSON.parse(storedSession);
+        dataSession = JSON.parse(localStorage.getItem('userSession'));
         if(dataSession){
             if(driverId=='me' && dataSession.id_user){
                 if(dataSession.type=='admin' || dataSession.type == 'super'){
@@ -63,6 +62,8 @@
         var actualDate = getActualFormattedDate();
         const requestData = new FormData();
         requestData.append('actual_date', actualDate);
+        requestData.append('token', dataSession.token);
+        requestData.append('id_user_over', dataSession.id_user);
         fetch(`${back_url}api/admin/report/seguimiento_list.php`, {
                 method: 'POST',
                 body: requestData,
@@ -305,20 +306,24 @@
                     {#each routes as route (route.id_route)}
                         {#if compareDates(route.date_start)}
                             {changePendingState("true")}
-                            <ion-item button on:click={openRoute(route.id_route,route.status)}>
-                                <ion-avatar slot="start">
-                                    <div class="route-color" style="background-color:{getDeliveryColor(route.status)};color: {getContrast(getDeliveryColor(route.status))}" title="{setTitleStatus(route.status)}">
-                                        <div class="route-symbol" style="">
-                                            {capitalizeFirstLetter(route.name.charAt(0))}
+                            {#if route.status != 'completed' && route.status != 'cancelled' && route.status != 'finished'}
+                                <ion-item button on:click={openRoute(route.id_route,route.status)}>
+                                    <ion-avatar slot="start">
+                                        <div class="route-color" style="background-color:{getDeliveryColor(route.status)};color: {getContrast(getDeliveryColor(route.status))}" title="{setTitleStatus(route.status)}">
+                                            <div class="route-symbol" style="">
+                                                {capitalizeFirstLetter(route.name.charAt(0))}
+                                            </div>
                                         </div>
-                                    </div>
-                                </ion-avatar>
-                                <ion-label>
-                                    <h2>{route.name ? route.name.toUpperCase() : ''}</h2>
-                                    <h3 class="text-muted">Inicio: {route.date_start}</h3>
-                                </ion-label>
-                                <div slot="end"></div>
-                            </ion-item>
+                                    </ion-avatar>
+                                    <ion-label>
+                                        <h2>{route.name ? route.name.toUpperCase() : ''}</h2>
+                                        <h3 class="text-muted">Inicio: {route.date_start}</h3>
+                                    </ion-label>
+                                    <div slot="end"></div>
+                                </ion-item>
+                            {:else}
+                                {changePendingState("false")}
+                            {/if}
                         {:else}
                             {changePendingState("false")}
                         {/if}
@@ -328,7 +333,7 @@
                     {#each routes.filter(route => route.id_driver === driverId) as route (route.id_route)}
                         {#if compareDates(route.date_start)}
                             {changePendingState("true")}
-                            {#if route.status!='completed' && route.status != 'cancelled'}
+                            {#if route.status != 'completed' && route.status != 'cancelled' && route.status != 'finished'}
                                 <ion-item button on:click={openRoute(route.id_route,route.status)}>
                                     <ion-avatar slot="start">
                                         <div class="route-color" style="background-color:{getDeliveryColor(route.status)};color: {getContrast(getDeliveryColor(route.status))}" title="{setTitleStatus(route.status)}">

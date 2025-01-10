@@ -207,8 +207,9 @@
     }
 
     async function loadRoute(routeId) {
-        const requestData = new FormData();
+        let requestData = new FormData();
         requestData.append('id_route', routeId);
+        requestData = addAuthData(requestData);
         try {
             const response = await fetch(`${back_url}api/admin/report/seguimiento_list.php`, {
                 method: 'POST',
@@ -280,10 +281,10 @@
 
     const refresh_event_info = (delivery) => {
         return new Promise((resolve, reject) => {
-            const requestData = new FormData();
+            let requestData = new FormData();
             requestData.append('id_route', delivery.id_route);
             requestData.append('id_event', delivery.id_event);
-
+            requestData = addAuthData(requestData);
             fetch(`${back_url}api/admin/evidence/evidence_by_event.php`, {
                 method: 'POST',
                 body: requestData,
@@ -399,6 +400,7 @@
         let requestData = new FormData();
         requestData.append('id_route', id_route);
         requestData.append('status',status);
+        requestData = addAuthData(requestData);
         fetch(`${back_url}api/admin/route/change_status.php`, {
                 method: 'POST',
                 body: requestData,
@@ -437,6 +439,13 @@
 
     function isLastDelivery(index) {
         return index === deliveries.length - 1;
+    }
+
+    function addAuthData(requestData){
+        requestData.append('token', dataSession.token);
+        requestData.append('id_user_over', dataSession.id_user);
+
+        return requestData;
     }
 
 

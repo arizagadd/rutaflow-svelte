@@ -27,9 +27,10 @@
     let comments="";
     let concept="";
     let isLoading = false;
+    let dataSession = new Object();
 
     onMount(() => {
-       
+        dataSession = JSON.parse(localStorage.getItem('userSession'));
     });
 
     const showAlert = async (customHeader, customMessage) => {
@@ -53,8 +54,9 @@
         const compressed_file = await compressImage(file);
 
         if (compressed_file) {
-            const formData = new FormData();
+            let formData = new FormData();
             formData.append('fileToUpload', compressed_file);
+            formData = addAuthData(formData);
             try {
                 const response = await fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
                     method: 'POST',
@@ -141,10 +143,13 @@
         lv.concept = concept.value; 
         lv.status = "done";
         lv.id_expense = id_expense?id_expense:'null';
-        const requestData = new FormData();
+
+        let requestData = new FormData();
         for (const key in lv) {
             requestData.append(key, lv[key]);
         }
+        requestData = addAuthData(requestData);
+
         if(!img_id || !selectedImage || !comments.value || !expenseAmount.value || !concept.value){
             showAlert("Datos incompletos","Llena los datos requeridos para completar el registro");
         }else{
@@ -161,6 +166,13 @@
             });
         }
     };
+
+    function addAuthData(requestData){
+        requestData.append('token', dataSession.token);
+        requestData.append('id_user_over', dataSession.id_user);
+
+        return requestData;
+    }
 
 
 </script>

@@ -44,22 +44,24 @@
     let motive = '';
     let showModal = false;
     let currentImage = null;
+    let dataSession = new Object();
 
 
     onMount(() => {
+        dataSession = JSON.parse(localStorage.getItem('userSession'));
         checkSettings();
         setCheckButtons();
     });
 
     async function getJson(apiUrl="", callback, variables = {}) {
-        const formData = new FormData();
+        let formData = new FormData();
         isLoading = true; // Show spinner
 
         // Append variables to FormData
         for (const [key, value] of Object.entries(variables)) {
             formData.append(key, value);
         }
-
+        formData = addAuthData(formData);
         try {
             const response = await fetch(apiUrl, {
                 method: 'POST',
@@ -160,6 +162,8 @@
                 img_id = img_ids.join(',');
                 var lv = new Object(); 
                 lv.fileToUpload = compressed_file;
+                lv.token = dataSession.token,
+                lv.id_user_over = dataSession.id_user
 
                 getJson(`${back_url}api/admin/manager/upload_img_driver.php`,function(result){
                     selectedImages = selectedImages ? `${selectedImages},${result.img}`:result.img;
@@ -263,15 +267,17 @@
                 // Create an object to store evidence details
                 const lv = {
                     id_route: delivery.id_route,
-                    id_event: delivery.id_event,
-                    comments: driverComments.value,
+                    ...(OriDesFlag && isLast == false && {id_event: delivery.id_event}),
+                    ...(OriDesFlag && isLast == false && {comments: driverComments.value}),
                     img: selectedImages,
                     img_id: img_id,
                     lat: locationData.latitude,
                     lon: locationData.longitude,
                     ...(stopsApproval === "0" && { approve: "0" }),
                     ...(isLast && { isLast: true }),
-                    ...(OriDesFlag && isLast == true && {destiny: true})
+                    ...(OriDesFlag && isLast == true && {destiny: true}),
+                    token: dataSession.token,
+                    id_user_over: dataSession.id_user
                 };
                 
                 if(lv.img && lv.img_id){
@@ -338,11 +344,12 @@
         // Stop the click event from propagating to the ion-item
         event.stopPropagation();
         // Create FormData from the object
-        const formData = new FormData();
+        let formData = new FormData();
         formData.append('client_phone', phoneNumber);
         formData.append('client_name', delivery.title);
         formData.append('delivery_phone', delivery.client_phone);
         formData.append('enterprise_name', delivery.enterprise_name);
+        formData = addAuthData(formData);
         try {
             // Send the evidence data
             const response = await fetch(`${back_url}api/admin/message_central/send_sms.php`, {
@@ -367,8 +374,9 @@
         
 
         if (delivery.id_enterprise) {
-            const formData = new FormData();
+            let formData = new FormData();
             formData.append('id_enterprise', delivery.id_enterprise);
+            formData = addAuthData(formData);
             try {
                 const response = await fetch(`${back_url}api/admin/enterprise/enterprise_settings.php`, {
                     method: 'POST',
@@ -420,9 +428,10 @@
 
     async function sendCheckInCheckOut(id_event,type) {
         if (type) {
-            const formData = new FormData();
+            let formData = new FormData();
             formData.append('type', type);
             formData.append('id_event', id_event);
+            formData = addAuthData(formData);
             try {
                 const response = await fetch(`${back_url}api/admin/route/record_check_date.php`, {
                     method: 'POST',
@@ -463,6 +472,13 @@
         showModal = false;
         currentImage = null;
     };
+
+    function addAuthData(requestData){
+        requestData.append('token', dataSession.token);
+        requestData.append('id_user_over', dataSession.id_user);
+
+        return requestData;
+    }
 
 
 </script>
