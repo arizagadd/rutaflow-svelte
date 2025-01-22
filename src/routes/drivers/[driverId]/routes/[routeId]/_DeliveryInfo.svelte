@@ -1,7 +1,7 @@
 <script>
     //export let class = '';
     import { alertController } from '@ionic/core';
-    import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, trash} from "ionicons/icons"; 
+    import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, trash, checkbox} from "ionicons/icons"; 
     import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline, listOutline, closeSharp} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
@@ -21,6 +21,7 @@
     let isLast = overlayElement.componentProps.isLast || false;
     let OriDesFlag = overlayElement.componentProps.flag || false;
     let driverComments = delivery.driver_comments?delivery.driver_comments:'';
+    let dStatus = delivery.deliver_status?delivery.deliver_status:'';
     let selectedImages = delivery.img?delivery.img:'';
     let img_id = delivery.img_id?delivery.img_id:'';
     let files = selectedImages ? getImgsArray(selectedImages) : new Array();
@@ -45,6 +46,7 @@
     let showModal = false;
     let currentImage = null;
     let dataSession = new Object();
+    let deliverStatus = "";
 
 
     onMount(() => {
@@ -132,7 +134,7 @@
                 text: 'No',
                 role: 'cancel', // Indicates a cancel action
                 handler: () => {
-                    console.log('User selected "No"');
+                    //console.log('User selected "No"');
                 }
             },
             {
@@ -162,8 +164,6 @@
                 img_id = img_ids.join(',');
                 var lv = new Object(); 
                 lv.fileToUpload = compressed_file;
-                lv.token = dataSession.token,
-                lv.id_user_over = dataSession.id_user
 
                 getJson(`${back_url}api/admin/manager/upload_img_driver.php`,function(result){
                     selectedImages = selectedImages ? `${selectedImages},${result.img}`:result.img;
@@ -264,38 +264,43 @@
             const flag = await getLocation();
 
             if (flag) {
-                // Create an object to store evidence details
-                const lv = {
-                    id_route: delivery.id_route,
-                    ...(!OriDesFlag && !isLast && {id_event: delivery.id_event}),
-                    ...(!OriDesFlag && !isLast && {comments: driverComments.value}),
-                    img: selectedImages,
-                    img_id: img_id,
-                    lat: locationData.latitude,
-                    lon: locationData.longitude,
-                    ...(stopsApproval === "0" && { approve: "0" }),
-                    ...(isLast && { isLast: true }),
-                    ...(OriDesFlag && isLast && {destiny: true}),
-                };
-                
-                if(lv.img && lv.img_id){
-                    // Send the evidence data
-                    getJson(`${back_url}api/admin/evidence/send_evidence.php`,function(result){
-                        if(result.success == true){
-                        const routeId = lv.id_route;
-                        //Close delivery modal
-                        closeModal();
-                        // Show final km and gas inputs if it is the last
-                        if (isLast) {
-                            showKmGasModal("", "", routeId, isLast);
-                        }
-                        }else{
-                            showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
-                        }
-                    },lv);
+                if(deliverStatus.value=="delivered" || (deliverStatus.value!=="delivered" && driverComments.value)){
+                    // Create an object to store evidence details
+                    const lv = {
+                        id_route: delivery.id_route,
+                        ...(!OriDesFlag && !isLast && {id_event: delivery.id_event}),
+                        ...(!OriDesFlag && !isLast && {comments: driverComments.value}),
+                        ...(!OriDesFlag && !isLast && {deliver_status: deliverStatus.value}),
+                        img: selectedImages,
+                        img_id: img_id,
+                        lat: locationData.latitude,
+                        lon: locationData.longitude,
+                        ...(stopsApproval === "0" && { approve: "0" }),
+                        ...(isLast && { isLast: true }),
+                        ...(OriDesFlag && isLast && {destiny: true})
+                    };
+                    
+                    if(lv.img && lv.img_id){
+                        // Send the evidence data
+                        getJson(`${back_url}api/admin/evidence/send_evidence.php`,function(result){
+                            if(result.success == true){
+                            const routeId = lv.id_route;
+                            //Close delivery modal
+                            closeModal();
+                            // Show final km and gas inputs if it is the last
+                            if (isLast) {
+                                showKmGasModal("", "", routeId, isLast);
+                            }
+                            }else{
+                                showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
+                            }
+                        },lv);
 
+                    }else{
+                        showAlert('Información incompleta','Cargar evidencia fotográfica faltante para completar parada.');
+                    }
                 }else{
-                    showAlert('Información incompleta','Cargar evidencia fotográfica faltante para completar parada.');
+                    showAlert("Motivo de status de entrega","Favor de ingresar en notas el motivo por el que la entrega no fue entregada correctamente");
                 }
 
             } else {
@@ -607,6 +612,15 @@
             <ion-item>
                 <ion-icon icon={createOutline} slot="start"></ion-icon>
                 <ion-textarea bind:this={driverComments} label="Notas" placeholder="Escribe aquí..."></ion-textarea>
+            </ion-item>
+            <ion-item>
+                <ion-icon icon={checkbox} slot="start"></ion-icon>
+                <ion-select bind:this={deliverStatus} value={dStatus?dStatus:'delivered'}>
+                  <div slot="label">Estado de entrega</div>
+                  <ion-select-option value="delivered">Entregado</ion-select-option>
+                  <ion-select-option value="notdelivered">No Entregado</ion-select-option>
+                  <ion-select-option value="partialdeliver">Entrega Parcial</ion-select-option>
+                </ion-select>
             </ion-item>
             <!-- Check-In and Check-Out Buttons -->
             <section style="display: flex; gap: 8px; padding: 16px 16px 6px;">

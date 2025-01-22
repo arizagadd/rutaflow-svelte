@@ -26,12 +26,15 @@
  * ```
  */
 declare module '$env/static/private' {
+	export const DB_HOST: string;
 	export const TERM_PROGRAM: string;
 	export const NODE: string;
+	export const DB_NAME: string;
 	export const INIT_CWD: string;
 	export const SHELL: string;
 	export const TERM: string;
 	export const TMPDIR: string;
+	export const DB_PORT: string;
 	export const npm_config_global_prefix: string;
 	export const TERM_PROGRAM_VERSION: string;
 	export const MallocNanoZone: string;
@@ -52,6 +55,7 @@ declare module '$env/static/private' {
 	export const npm_config_init_module: string;
 	export const npm_command: string;
 	export const PWD: string;
+	export const DB_PASSWORD: string;
 	export const npm_lifecycle_event: string;
 	export const EDITOR: string;
 	export const npm_package_name: string;
@@ -68,6 +72,7 @@ declare module '$env/static/private' {
 	export const npm_config_cache: string;
 	export const LOGNAME: string;
 	export const npm_lifecycle_script: string;
+	export const DB_USER: string;
 	export const VSCODE_GIT_IPC_HANDLE: string;
 	export const npm_config_user_agent: string;
 	export const GIT_ASKPASS: string;
@@ -107,12 +112,15 @@ declare module '$env/static/public' {
  */
 declare module '$env/dynamic/private' {
 	export const env: {
+		DB_HOST: string;
 		TERM_PROGRAM: string;
 		NODE: string;
+		DB_NAME: string;
 		INIT_CWD: string;
 		SHELL: string;
 		TERM: string;
 		TMPDIR: string;
+		DB_PORT: string;
 		npm_config_global_prefix: string;
 		TERM_PROGRAM_VERSION: string;
 		MallocNanoZone: string;
@@ -133,6 +141,7 @@ declare module '$env/dynamic/private' {
 		npm_config_init_module: string;
 		npm_command: string;
 		PWD: string;
+		DB_PASSWORD: string;
 		npm_lifecycle_event: string;
 		EDITOR: string;
 		npm_package_name: string;
@@ -149,6 +158,7 @@ declare module '$env/dynamic/private' {
 		npm_config_cache: string;
 		LOGNAME: string;
 		npm_lifecycle_script: string;
+		DB_USER: string;
 		VSCODE_GIT_IPC_HANDLE: string;
 		npm_config_user_agent: string;
 		GIT_ASKPASS: string;
