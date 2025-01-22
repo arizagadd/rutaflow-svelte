@@ -1,7 +1,7 @@
 <script>
     //export let class = '';
     import { alertController } from '@ionic/core';
-    import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, trash, checkbox} from "ionicons/icons"; 
+    import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, trash, carOutline} from "ionicons/icons"; 
     import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline, listOutline, closeSharp} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
@@ -610,17 +610,17 @@
         {/if}
         {#if !OriDesFlag}
             <ion-item>
-                <ion-icon icon={createOutline} slot="start"></ion-icon>
-                <ion-textarea bind:this={driverComments} label="Notas" placeholder="Escribe aquí..."></ion-textarea>
+                <ion-icon icon={carOutline} slot="start"></ion-icon>
+                <ion-select bind:this={deliverStatus} value={dStatus?dStatus:'delivered'}>
+                <div slot="label">Estado de entrega</div>
+                <ion-select-option value="delivered">Entregado</ion-select-option>
+                <ion-select-option value="notdelivered">No Entregado</ion-select-option>
+                <ion-select-option value="partialdeliver">Entrega Parcial</ion-select-option>
+                </ion-select>
             </ion-item>
             <ion-item>
-                <ion-icon icon={checkbox} slot="start"></ion-icon>
-                <ion-select bind:this={deliverStatus} value={dStatus?dStatus:'delivered'}>
-                  <div slot="label">Estado de entrega</div>
-                  <ion-select-option value="delivered">Entregado</ion-select-option>
-                  <ion-select-option value="notdelivered">No Entregado</ion-select-option>
-                  <ion-select-option value="partialdeliver">Entrega Parcial</ion-select-option>
-                </ion-select>
+                <ion-icon icon={createOutline} slot="start"></ion-icon>
+                <ion-textarea bind:this={driverComments} label="Notas" placeholder="Escribe aquí..."></ion-textarea>
             </ion-item>
             <!-- Check-In and Check-Out Buttons -->
             <section style="display: flex; gap: 8px; padding: 16px 16px 6px;">
