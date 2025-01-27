@@ -27,9 +27,8 @@
     let files = selectedImages ? getImgsArray(selectedImages) : new Array();
     let img_ids = img_id ? getImgsArray(img_id): new Array();
     let locationData = { latitude: null, longitude: null };
-    let settings = new Object();
-    let stopsApproval = '';
-    let smsActive = '';
+    let stopsApproval = delivery.stopsApproval;
+    let smsActive = delivery.smsActive;
     let isLoading = false;
     // Regular expression to match a phone number after "Teléfono:"
     const phoneRegex = /Teléfono:\s*(\d{10,})/;
@@ -44,14 +43,13 @@
     let showMotiveInput = false;
     let motive = '';
     let showModal = false;
-    let currentImage = null;
+    let currentImage = "";
     let dataSession = new Object();
     let deliverStatus = "";
 
 
     onMount(() => {
         dataSession = JSON.parse(localStorage.getItem('userSession'));
-        checkSettings();
         setCheckButtons();
     });
 
@@ -264,7 +262,7 @@
             const flag = await getLocation();
 
             if (flag) {
-                if(deliverStatus.value=="delivered" || (deliverStatus.value!=="delivered" && driverComments.value)){
+                if(deliverStatus.value=="delivered" || (deliverStatus.value!=="delivered" && (driverComments.value || delivery.driver_comments)) || OriDesFlag && isLast){
                     // Create an object to store evidence details
                     const lv = {
                         id_route: delivery.id_route,
@@ -280,7 +278,7 @@
                         ...(OriDesFlag && isLast && {destiny: true})
                     };
                     
-                    if(lv.img && lv.img_id){
+                    if((lv.img && lv.img_id) || (selectedImages)){
                         // Send the evidence data
                         getJson(`${back_url}api/admin/evidence/send_evidence.php`,function(result){
                             if(result.success == true){
@@ -371,48 +369,6 @@
             } catch (error) {
                 console.error('Error during file upload:', error);
             }
-    }
-
-    const checkSettings = async () => {
-        
-
-        if (delivery.id_enterprise) {
-            let formData = new FormData();
-            formData.append('id_enterprise', delivery.id_enterprise);
-            formData = addAuthData(formData);
-            try {
-                const response = await fetch(`${back_url}api/admin/enterprise/enterprise_settings.php`, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (response.ok) {
-                    // File uploaded successfully, handle any additional logic
-                    const result = await response.json();
-                    settings = result.nodos;
-
-                    // Get specific settings
-                    stopsApproval = getSettingVal("stops_wait_approval", settings);
-                    smsActive = getSettingVal("sms_active", settings);
-                    
-                } else {
-                    // Handle error response
-                    console.error('File upload failed:', response.statusText);
-                }
-            } catch (error) {
-                console.error('Error during file upload:', error);
-            }
-        }
-
-    };
-
-    function getSettingVal(alias, settings) {
-        for (let i = 0; i < settings.length; i++) {
-            if (settings[i].alias === alias) {
-                return settings[i].val;
-            }
-        }
-        return ""; // Default value if no match found
     }
 
     // Function to handle check-in

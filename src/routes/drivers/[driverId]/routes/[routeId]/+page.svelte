@@ -28,6 +28,9 @@
     let isModalOpen = false;
     let segmentValue = "list"; // Controls the tab selection
     let mapElement;
+    let stopsApproval ="";
+    let smsActive = "";
+    let settings = new Object();
 
     const refresh = async () => {
         await loadRoute(routeId);
@@ -35,6 +38,7 @@
     }
 
     onMount(async () => {
+        checkSettings();
 		await loadRoute(routeId);
 	});
 
@@ -303,7 +307,8 @@
     const showDeliveryInfoModal = (delivery,isLast) => {
         refresh_event_info(delivery)
             .then((evidence_data) => {
-            //delivery.client_name = stats.client_name;
+            delivery.stopsApproval = stopsApproval;
+            delivery.smsActive = smsActive;
             if (evidence_data) {
                 //update these two fields that could change when user charge info
                 delivery.img = evidence_data.img;
@@ -323,7 +328,7 @@
 
     const showOrigenDestinyModal = (stats,isLast) => {
         var delivery = new Object();
-        
+
         if(isLast){
             delivery = {
                 title: stats.destination,
@@ -338,6 +343,8 @@
         delivery.client_name = stats.client_name;
         delivery.client_phone = stats.tel;
         delivery.id_route = stats.id_route;
+        delivery.stopsApproval = stopsApproval;
+        delivery.smsActive = smsActive;
         var flag = true; //Flag to know is origen or destiny
         IonicShowModal("modal-delivery-info", DeliveryInfo, {
                 delivery,isLast,flag
@@ -437,15 +444,53 @@
         await alert.present();
     };
 
-    function isLastDelivery(index) {
-        return index === deliveries.length - 1;
-    }
-
     function addAuthData(requestData){
         requestData.append('token', dataSession.token);
         requestData.append('id_user_over', dataSession.id_user);
 
         return requestData;
+    }
+
+    const checkSettings = async () => {
+        
+
+        if (dataSession.id_enterprise) {
+            let formData = new FormData();
+            formData.append('id_enterprise', dataSession.id_enterprise);
+            formData = addAuthData(formData);
+            try {
+                const response = await fetch(`${back_url}api/admin/enterprise/enterprise_settings.php`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (response.ok) {
+                    // File uploaded successfully, handle any additional logic
+                    const result = await response.json();
+                    settings = result.nodos;
+
+                    // Get specific settings
+                    stopsApproval = getSettingVal("stops_wait_approval", settings);
+                    smsActive = getSettingVal("sms_active", settings);
+                    
+                } else {
+                    // Handle error response
+                    console.error('File upload failed:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error during file upload:', error);
+            }
+        }
+
+    };
+
+    function getSettingVal(alias, settings) {
+        for (let i = 0; i < settings.length; i++) {
+            if (settings[i].alias === alias) {
+                return settings[i].val;
+            }
+        }
+        return ""; // Default value if no match found
     }
 
 
@@ -576,7 +621,6 @@
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
                                         }
                                     }}>
-                                    <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
                                         <ion-text color="#2e2e2e">
                                             <h3>
                                                 {delivery.title}
@@ -602,7 +646,6 @@
                                     </div>
                                 </ion-avatar>
                                 <ion-label button on:click={() => {showOrigenDestinyModal(stats, true)}}>
-                                <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
                                     <ion-text color="#2e2e2e">
                                         <h3>
                                             {stats.destination}
@@ -677,7 +720,6 @@
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
                                         }
                                     }}>
-                                    <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
                                         <ion-text color="#2e2e2e">
                                             <h3>
                                                 {delivery.title}
@@ -703,7 +745,7 @@
                                     </div>
                                 </ion-avatar>
                                 <ion-label button on:click={() => {showOrigenDestinyModal(stats, true)}}>
-                                <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
+
                                     <ion-text color="#2e2e2e">
                                         <h3>
                                             {stats.destination}
@@ -803,7 +845,6 @@
                                     </div>
                                 </ion-avatar>
                                 <ion-label button on:click={() => {showOrigenDestinyModal(stats, true)}}>
-                                <!-- <ion-label button on:click={() => showDeliveryInfoModal(delivery, isLastDelivery(index))}> -->
                                     <ion-text color="#2e2e2e">
                                         <h3>
                                             {stats.destination}
