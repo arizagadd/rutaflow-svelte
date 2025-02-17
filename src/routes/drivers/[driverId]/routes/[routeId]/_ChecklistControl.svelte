@@ -546,7 +546,7 @@
                                         {imagesName[check.id_checklist_event] ? imagesName[check.id_checklist_event] : 'Cargar evidencia'}
                                     </label>
                                 {/if}
-                                <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
+                                <input style="display:none;" id="chklist-{check.id_checklist_event}" name="fileToUpload" type="file" bind:this={evidenceChecklist} accept="image/*" capture="environment" on:change={(e) => handleFileChange(e, check.id_checklist_event)}>
                             </div>
                         </ion-button>
                     </ion-item>

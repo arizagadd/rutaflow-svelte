@@ -254,6 +254,7 @@
 
     const sendEvidence = async () => {
         try {
+            isLoading = true;
             selectedImages = files.join(',');
             img_id = img_ids.join(',');
             //To record checkOut date
@@ -282,13 +283,14 @@
                         // Send the evidence data
                         getJson(`${back_url}api/admin/evidence/send_evidence.php`,function(result){
                             if(result.success == true){
-                            const routeId = lv.id_route;
-                            //Close delivery modal
-                            closeModal();
-                            // Show final km and gas inputs if it is the last
-                            if (isLast) {
-                                showKmGasModal("", "", routeId, isLast);
-                            }
+                                const routeId = lv.id_route;
+                                //Close delivery modal
+                                closeModal();
+                                // Show final km and gas inputs if it is the last
+                                if (isLast) {
+                                    showKmGasModal("", "", routeId, isLast);
+                                }
+                                isLoading = false;
                             }else{
                                 showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
                             }
@@ -612,15 +614,10 @@
                         <label for="eventEvidence">
                             Subir Evidencia
                         </label>
-                        <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" multiple accept="image/*" on:change={handleFileChange} on:click={handleCheckIn}>
+                        <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" multiple accept="image/*" capture="environment" on:change={handleFileChange} on:click={handleCheckIn}>
                     </ion-button>
                 <!-- </label> -->
             </section>
-        {/if}
-        {#if isLoading}
-        <section style="text-align:center;">
-            <ion-spinner name="dots"></ion-spinner>
-        </section>
         {/if}
         {#if selectedImages}
         <section>
@@ -645,7 +642,20 @@
 
     </ion-list>
 </ion-content>
-
+{#if isLoading}
+    <div class="overlay" style="position: fixed;
+                                top: 0;
+                                left: 0;
+                                width: 100vw;
+                                height: 100vh;
+                                background: rgba(0, 0, 0, 0.5);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                z-index: 9999;">
+        <ion-spinner name="dots" style="color:white;"></ion-spinner>
+    </div>
+{/if}
 {#if showModal}
     <div class="modal-overlay" on:click={closeImgModal} 
         style="position: fixed;top: 0;left: 0;width: 100vw;height: 100vh; background: rgba(0, 0, 0, 0.8);display: flex;justify-content: center;align-items: center;z-index: 1000;">

@@ -218,13 +218,10 @@
                         <ion-icon icon={duplicateOutline} slot="start"></ion-icon>
                         Subir Evidencia
                     </label>
-                    <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" accept="image/*" on:change={handleFileChange}>
+                    <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" accept="image/*" capture="environment" on:change={handleFileChange}>
                 </ion-button>
             </label>
         </section>
-        {#if isLoading}
-            <ion-spinner name="dots"></ion-spinner>
-        {/if}
         {#if selectedImage}
         <section>
             <ion-img
@@ -243,3 +240,17 @@
         </ion-button>
     </ion-toolbar>
 </ion-footer>
+{#if isLoading}
+    <div class="overlay" style="position: fixed;
+                                top: 0;
+                                left: 0;
+                                width: 100vw;
+                                height: 100vh;
+                                background: rgba(0, 0, 0, 0.5);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                z-index: 9999;">
+        <ion-spinner name="dots" style="color:white;"></ion-spinner>
+    </div>
+{/if}
