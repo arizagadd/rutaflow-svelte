@@ -85,20 +85,15 @@
 
     const compressImage = async (file) => {
         return new Promise((resolve) => {
-        const reader = new FileReader();
-
-        reader.onload = (event) => {
             const img = new Image();
-            img.src = event.target.result;
+            img.src = URL.createObjectURL(file); // More memory efficient
 
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
 
-                // Set the canvas size to a reasonable value
                 const maxWidth = 800;
                 const maxHeight = 600;
-
                 let width = img.width;
                 let height = img.height;
 
@@ -114,17 +109,16 @@
 
                 canvas.width = width;
                 canvas.height = height;
-
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Get the compressed data as a Blob
+                // Convert to Blob and cleanup
                 canvas.toBlob((blob) => {
-                            resolve(blob);
-                }, 'image/jpeg', 0.7); // Adjust the quality as needed
+                    resolve(blob);
+                    // Clean up memory
+                    URL.revokeObjectURL(img.src);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }, 'image/jpeg', 0.7);
             };
-        };
-
-        reader.readAsDataURL(file);
         });
     };
 
@@ -183,9 +177,9 @@
           <ion-button color="medium" on:click={closeModal}>Cancelar</ion-button>
         </ion-buttons>
         <ion-title title="">AGREGAR GASTO</ion-title>
-        <!-- <ion-buttons slot="end">
+        <ion-buttons slot="end">
           <ion-button on:click={sendExpense} strong>Confirmar</ion-button>
-        </ion-buttons> -->
+        </ion-buttons>
     </ion-toolbar>
 </ion-header>
 <ion-content fullscreen>
@@ -233,13 +227,13 @@
         {/if}
     </ion-list>
 </ion-content>
-<ion-footer>
+<!-- <ion-footer>
     <ion-toolbar>
         <ion-button fill="outline" color="tertiary" on:click={sendExpense} strong style="width: 99%; height: auto;">
             Confirmar
         </ion-button>
     </ion-toolbar>
-</ion-footer>
+</ion-footer> -->
 {#if isLoading}
     <div class="overlay" style="position: fixed;
                                 top: 0;
