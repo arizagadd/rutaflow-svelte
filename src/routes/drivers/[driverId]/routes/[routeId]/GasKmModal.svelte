@@ -12,7 +12,6 @@
 
   let overlayElement = document.querySelector("ion-modal");
   let type = overlayElement.componentProps.data_type;
-  let isLast = overlayElement.componentProps.isLast;
   let type_txt;
 
   flagStore.subscribe((result) => {

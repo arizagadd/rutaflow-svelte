@@ -296,6 +296,9 @@
                                 // Show final km and gas inputs if it is the last
                                 if (isLast) {
                                     showKmGasModal("", "", routeId, isLast);
+                                    if(stopsApproval == "0"){
+                                        changeRouteStatus(routeId,'completed');
+                                    }
                                 }
                             }else{
                                 showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
@@ -447,6 +450,24 @@
         requestData.append('id_user_over', dataSession.id_user);
 
         return requestData;
+    }
+
+    function changeRouteStatus(id_route,status){
+        let requestData = new FormData();
+        requestData.append('id_route', id_route);
+        requestData.append('status',status);
+        requestData = addAuthData(requestData);
+        fetch(`${back_url}api/admin/route/change_status.php`, {
+                method: 'POST',
+                body: requestData,
+            })
+            .then(response => response.json())
+            .then(data => {
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+        return "";
     }
 
 </script>
