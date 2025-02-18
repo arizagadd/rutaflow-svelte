@@ -9,8 +9,7 @@
 
   let overlayElement = document.querySelector("ion-modal");
   let type = overlayElement.componentProps.data_type;
-  let isLast = overlayElement.componentProps.isLast;
-  let type_txt;
+  let type_txt = "";
 
   flagStore.subscribe((result) => {
     type = result.flag[0];
@@ -73,7 +72,3 @@
       <ion-input class="fin-km" inputmode="numeric" pattern="[0-9]*" type="number" placeholder="Ingresa {type_txt} actual"  on:input={e => inputValue = e.target.value} value={inputValue}  required>
     </ion-item>
   </ion-content>
-
-<style>
-  
-</style>

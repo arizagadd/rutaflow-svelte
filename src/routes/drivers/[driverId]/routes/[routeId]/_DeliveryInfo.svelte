@@ -82,12 +82,6 @@
         }
     }
 
-    // Function to handle status selection
-    function handleStatusChange(event) {
-        status = event.detail.value;
-        showMotiveInput = (status === "No entregado" || status === "Entrega Parcial");
-    }
-
     function setCheckButtons(){
         if(!delivery.date_service){
             checkInActive = true;
@@ -148,31 +142,49 @@
     };
 
     const handleFileChange = async (event) => {
-        if(files.length == 5){
-            showAlert("Límite de evidencias","Solo se permite subir 5 fotos por parada");
-        }else if(OriDesFlag && isLast && files.length == 1){
-            showAlert("Límite de evidencias","Para el final de la ruta solo se permite subir 1 foto");
-        }else{
-            const fileInput = event.target;
-            const file = fileInput.files[0];
-            const compressed_file = await compressImage(file);
-
-            if (compressed_file) {
-                selectedImages = files.join(',');
-                img_id = img_ids.join(',');
-                var lv = new Object(); 
-                lv.fileToUpload = compressed_file;
-
-                getJson(`${back_url}api/admin/manager/upload_img_driver.php`,function(result){
-                    selectedImages = selectedImages ? `${selectedImages},${result.img}`:result.img;
-                    img_id = img_id ? `${img_id},${result.img_id}` :result.img_id;
-                    files = getImgsArray(selectedImages);
-                    img_ids = getImgsArray(img_id);
-                },lv);
-
-            }
+        if (files.length >= 5) {
+            showAlert("Límite de evidencias", "Solo se permite subir 5 fotos por parada");
+            return;
         }
 
+        if (OriDesFlag && isLast && files.length >= 1) {
+            showAlert("Límite de evidencias", "Para el final de la ruta solo se permite subir 1 foto");
+            return;
+        }
+
+        const fileInput = event.target;
+        const file = fileInput.files[0];
+
+        if (!file) return;
+
+        try {
+            isLoading = true;
+            const compressedFile = await compressImage(file);
+
+            if (compressedFile) {
+                // Prepare form data
+                const formData = new FormData();
+                formData.append("fileToUpload", compressedFile);
+
+                // Async Upload to avoid UI blocking
+                fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
+                    method: "POST",
+                    body: formData,
+                })
+                .then(response => response.json())
+                .then(result => {
+                    selectedImages = selectedImages ? `${selectedImages},${result.img}` : result.img;
+                    img_id = img_id ? `${img_id},${result.img_id}` : result.img_id;
+                    files = getImgsArray(selectedImages);
+                    img_ids = getImgsArray(img_id);
+                })
+                .catch(error => console.error("Upload error:", error));
+            }
+        } catch (error) {
+            console.error("Compression error:", error);
+        } finally {
+            isLoading = false;
+        }
     };
 
     function handleCheckIn(event){
@@ -201,20 +213,15 @@
 
     const compressImage = async (file) => {
         return new Promise((resolve) => {
-        const reader = new FileReader();
-
-        reader.onload = (event) => {
             const img = new Image();
-            img.src = event.target.result;
+            img.src = URL.createObjectURL(file); // More memory efficient
 
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
 
-                // Set the canvas size to a reasonable value
                 const maxWidth = 800;
                 const maxHeight = 600;
-
                 let width = img.width;
                 let height = img.height;
 
@@ -230,19 +237,19 @@
 
                 canvas.width = width;
                 canvas.height = height;
-
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Get the compressed data as a Blob
+                // Convert to Blob and cleanup
                 canvas.toBlob((blob) => {
-                            resolve(blob);
-                }, 'image/jpeg', 0.7); // Adjust the quality as needed
+                    resolve(blob);
+                    // Clean up memory
+                    URL.revokeObjectURL(img.src);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }, 'image/jpeg', 0.7);
             };
-        };
-
-        reader.readAsDataURL(file);
         });
     };
+
 
     const closeModal = () => {
         overlayElement.dismiss({ data: Date.now() });
@@ -289,8 +296,10 @@
                                 // Show final km and gas inputs if it is the last
                                 if (isLast) {
                                     showKmGasModal("", "", routeId, isLast);
+                                    if(stopsApproval == "0"){
+                                        changeRouteStatus(routeId,'completed');
+                                    }
                                 }
-                                isLoading = false;
                             }else{
                                 showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
                             }
@@ -308,6 +317,8 @@
             }
         } catch (error) {
             console.error('Error fetching data:', error);
+        } finally {
+            isLoading = false; // Hide spinner
         }
     };
 
@@ -431,7 +442,7 @@
 
     const closeImgModal = () => {
         showModal = false;
-        currentImage = null;
+        currentImage = "";
     };
 
     function addAuthData(requestData){
@@ -441,6 +452,23 @@
         return requestData;
     }
 
+    function changeRouteStatus(id_route,status){
+        let requestData = new FormData();
+        requestData.append('id_route', id_route);
+        requestData.append('status',status);
+        requestData = addAuthData(requestData);
+        fetch(`${back_url}api/admin/route/change_status.php`, {
+                method: 'POST',
+                body: requestData,
+            })
+            .then(response => response.json())
+            .then(data => {
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+        return "";
+    }
 
 </script>
 
