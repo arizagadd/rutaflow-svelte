@@ -177,12 +177,13 @@
                     img_id = img_id ? `${img_id},${result.img_id}` : result.img_id;
                     files = getImgsArray(selectedImages);
                     img_ids = getImgsArray(img_id);
-                    isLoading = false;
                 })
                 .catch(error => console.error("Upload error:", error));
             }
         } catch (error) {
             console.error("Compression error:", error);
+        } finally {
+            isLoading = false;
         }
     };
 
@@ -296,7 +297,6 @@
                                 if (isLast) {
                                     showKmGasModal("", "", routeId, isLast);
                                 }
-                                isLoading = false;
                             }else{
                                 showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
                             }
@@ -314,6 +314,8 @@
             }
         } catch (error) {
             console.error('Error fetching data:', error);
+        } finally {
+            isLoading = false; // Hide spinner
         }
     };
 
