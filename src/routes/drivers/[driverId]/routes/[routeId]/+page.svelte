@@ -30,6 +30,7 @@
     let mapElement;
     let stopsApproval ="";
     let smsActive = "";
+    let orderRestriction = "0";
     let settings = new Object();
 
     const refresh = async () => {
@@ -472,7 +473,7 @@
                     // Get specific settings
                     stopsApproval = getSettingVal("stops_wait_approval", settings);
                     smsActive = getSettingVal("sms_active", settings);
-                    
+                    orderRestriction = getSettingVal("stops_order_restriction", settings);
                 } else {
                     // Handle error response
                     console.error('File upload failed:', response.statusText);
@@ -615,7 +616,7 @@
                                         
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
-                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage) || orderRestriction=="1") {
                                             showDeliveryInfoModal(delivery, false);
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
@@ -714,7 +715,7 @@
                                         
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
-                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage) || orderRestriction=="1") {
                                             showDeliveryInfoModal(delivery, false);
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
@@ -818,7 +819,7 @@
                                         
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
-                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage) || orderRestriction=="1") {
                                             showDeliveryInfoModal(delivery, false);
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");

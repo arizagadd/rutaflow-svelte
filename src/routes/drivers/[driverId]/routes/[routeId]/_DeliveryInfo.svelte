@@ -479,6 +479,16 @@
           <ion-button color="medium" on:click={closeModal}>Cerrar</ion-button>
         </ion-buttons>
         <ion-title style="text-align: center;" title="{delivery.title}">{delivery.title}</ion-title>
+        <div class="stop-tag" style="background-color:{delivery.tag_color?delivery.tag_color:""};color: white;
+                                    text-align: center;
+                                    width: 45%;
+                                    border-radius: 20px;
+                                    left: 50%;
+                                    position: relative;
+                                    transform: translateX(-50%);
+                                    white-space: normal;">
+            {delivery.tag?delivery.tag:""}
+        </div>
         {#if (!isLast && !OriDesFlag) || (isLast && OriDesFlag)}
             <ion-buttons slot="end">
                 <ion-button on:click={sendEvidence} strong>Confirmar</ion-button>
