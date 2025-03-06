@@ -2,7 +2,7 @@
     //export let class = '';
     import { alertController } from '@ionic/core';
     import {documentTextOutline, personOutline, paperPlaneOutline,logInOutline, trash, carOutline} from "ionicons/icons"; 
-    import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline, listOutline, closeSharp} from "ionicons/icons"; 
+    import {calendarClearOutline,phonePortraitOutline, callOutline,logOutOutline, pricetagOutline, closeSharp} from "ionicons/icons"; 
     import {createOutline} from "ionicons/icons"; 
     import {storefrontOutline} from "ionicons/icons";
     import {duplicateOutline} from "ionicons/icons"; 
@@ -40,7 +40,6 @@
     let remainingText = delivery.comments_ext;
     //Deliver status
     let status = '';
-    let showMotiveInput = false;
     let motive = '';
     let showModal = false;
     let currentImage = "";
@@ -479,16 +478,6 @@
           <ion-button color="medium" on:click={closeModal}>Cerrar</ion-button>
         </ion-buttons>
         <ion-title style="text-align: center;" title="{delivery.title}">{delivery.title}</ion-title>
-        <div class="stop-tag" style="background-color:{delivery.tag_color?delivery.tag_color:""};color: white;
-                                    text-align: center;
-                                    width: 45%;
-                                    border-radius: 20px;
-                                    left: 50%;
-                                    position: relative;
-                                    transform: translateX(-50%);
-                                    white-space: normal;">
-            {delivery.tag?delivery.tag:""}
-        </div>
         {#if (!isLast && !OriDesFlag) || (isLast && OriDesFlag)}
             <ion-buttons slot="end">
                 <ion-button on:click={sendEvidence} strong>Confirmar</ion-button>
@@ -598,10 +587,21 @@
             {/if}
         {/if}
         
-        {#if showMotiveInput}
+        {#if delivery.tag && delivery.tag_color}
             <ion-item>
-                <ion-icon icon={listOutline} slot="start"></ion-icon>
-                <ion-textarea bind:this={motive} placeholder="Escribe el motivo..."></ion-textarea>
+                <ion-icon icon={pricetagOutline} slot="start"></ion-icon>
+                <ion-label class="ion-text-wrap">
+                    <p>Tag de Parada</p>
+                </ion-label>
+                <div class="stop-tag" style="background-color:{delivery.tag_color?delivery.tag_color:""};color: white;
+                                    text-align: center;
+                                    width: 50%;
+                                    border-radius: 20px;
+                                    position: relative;
+                                    white-space: normal;
+                                    font-size:14px;">
+                    {delivery.tag?delivery.tag:""}
+                </div>
             </ion-item>
         {/if}
         {#if !OriDesFlag}
