@@ -599,7 +599,8 @@
                                     border-radius: 20px;
                                     position: relative;
                                     white-space: normal;
-                                    font-size:14px;">
+                                    font-size:14px;
+                                    padding: 5px 0;">
                     {delivery.tag?delivery.tag:""}
                 </div>
             </ion-item>
