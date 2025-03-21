@@ -12,6 +12,7 @@
     import ChecklistControl from './_ChecklistControl.svelte';
     import {onMount} from 'svelte';
     import {DATABASE_URL} from '../../../../../hooks';
+    import { hexToRGBA } from '$lib';
 
     /*Back URL*/
     let back_url = DATABASE_URL;
@@ -45,7 +46,8 @@
     let currentImage = "";
     let dataSession = new Object();
     let deliverStatus = "";
-
+    let bg_color = hexToRGBA(delivery.tag_color, 0.2);
+    let border_color = hexToRGBA(delivery.tag_color, 0.3);
 
     onMount(() => {
         dataSession = JSON.parse(localStorage.getItem('userSession'));
@@ -471,7 +473,6 @@
 
 </script>
 
-
 <ion-header translucent>
     <ion-toolbar>
         <ion-buttons slot="start">
@@ -487,13 +488,23 @@
 </ion-header>
 <ion-content fullscreen>
     <ion-list>
-        <ion-item>
-            <ion-icon icon={personOutline} slot="start"></ion-icon>
-            <ion-label>
-                <p>Negocio</p>
-                <h2>{delivery.client_name}</h2>
-            </ion-label>
-        </ion-item>
+        {#if delivery.client_name != null}
+            <ion-item>
+                <ion-icon icon={personOutline} slot="start"></ion-icon>
+                <ion-label>
+                    <p>Negocio</p>
+                    <h2>{delivery.client_name}</h2>
+                </ion-label>
+            </ion-item>
+        {:else}
+            <ion-item>
+                <ion-icon icon={personOutline} slot="start"></ion-icon>
+                <ion-label>
+                    <p>Empresa</p>
+                    <h2>{delivery.enterprise_name}</h2>
+                </ion-label>
+            </ion-item>
+        {/if}
         {#if delivery.client_phone && delivery.client_phone.trim().length}
             <ion-item href="tel:{delivery.client_phone}">
                 <ion-icon icon={phonePortraitOutline} slot="start"></ion-icon>
@@ -591,17 +602,20 @@
             <ion-item>
                 <ion-icon icon={pricetagOutline} slot="start"></ion-icon>
                 <ion-label class="ion-text-wrap">
-                    <p>Tag de Parada</p>
+                    <p>Etiqueta</p>
                 </ion-label>
-                <div class="stop-tag" style="background-color:{delivery.tag_color?delivery.tag_color:""};color: white;
-                                    text-align: center;
-                                    width: 50%;
-                                    border-radius: 20px;
-                                    position: relative;
-                                    white-space: normal;
-                                    font-size:14px;
-                                    padding: 5px 0;">
-                    {delivery.tag?delivery.tag:""}
+                <div class="stop-tag" style="background-color:{bg_color};
+                                             border: 1px solid {border_color}; 
+                                             color: {delivery.tag_color};
+                                             font-size: 14px;
+                                            text-align: center;
+                                            align-content: center;
+                                            border-radius: 20px;
+                                            white-space: normal;
+                                            padding: 4px 8px;
+                                            width: auto !important;
+                                            display: inline-block;">
+                    {delivery.tag ? delivery.tag : ""}
                 </div>
             </ion-item>
         {/if}
@@ -648,12 +662,12 @@
         {#if (isLast && OriDesFlag) || (!isLast && !OriDesFlag)}
             <section style="display: flex; gap: 8px; padding: 0px 16px;">
                 <!-- <label for="eventEvidence" style="display: block; width: 100%;"> -->
-                    <ion-button fill="outline" class="loadEvidence" style="flex: 1;" >
-                        <ion-icon icon={duplicateOutline} slot="start"></ion-icon>
-                        <label for="eventEvidence">
-                            Subir Evidencia
+                    <ion-button fill="outline" class="loadEvidence" style="flex:1;display: flex; align-items: center; gap: 8px;" >
+                        <label for="eventEvidence" style="width:100%; height:100%;">
+                            <ion-icon icon={duplicateOutline} slot="start" style="vertical-align:middle;"></ion-icon>
+                                Subir Evidencia
+                            <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" multiple accept="image/*" capture="environment" on:change={handleFileChange} on:click={handleCheckIn}>
                         </label>
-                        <input style="display:none;" id="eventEvidence" name="fileToUpload" type="file" multiple accept="image/*" capture="environment" on:change={handleFileChange} on:click={handleCheckIn}>
                     </ion-button>
                 <!-- </label> -->
             </section>

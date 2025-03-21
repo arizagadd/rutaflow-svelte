@@ -94,6 +94,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   function loadRoutes(driverId2) {
     var actualDate = getActualFormattedDate();
     const requestData = new FormData();
+    requestData.append("id_enterprise", dataSession.id_enterprise);
     requestData.append("actual_date", actualDate);
     requestData.append("token", dataSession.token);
     requestData.append("id_user_over", dataSession.id_user);

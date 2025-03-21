@@ -1,6 +1,6 @@
-import { c as create_ssr_component, s as setContext, v as validate_component, m as missing_component } from './chunks/ssr-CNVVjtts.js';
+import { c as create_ssr_component, s as setContext, v as validate_component, m as missing_component } from './chunks/ssr-Ba6f9FPv.js';
 import { d as decode_pathname, h as has_data_suffix, s as strip_data_suffix, a as decode_params, n as normalize_path, b as disable_search, c as add_data_suffix, m as make_trackable, r as resolve } from './chunks/exports-DuWZopOC.js';
-import { w as writable, r as readable } from './chunks/index-CARJoyFE.js';
+import { w as writable, r as readable } from './chunks/index-DFQmzJno.js';
 
 let base = "";
 let assets = base;
@@ -209,11 +209,11 @@ const options = {
 		<div class="error">
 			<span class="status">` + status + '</span>\n			<div class="message">\n				<h1>' + message + "</h1>\n			</div>\n		</div>\n	</body>\n</html>\n"
   },
-  version_hash: "52nypj"
+  version_hash: "1jpcs48"
 };
 async function get_hooks() {
   return {
-    ...await import('./chunks/hooks-Cla16f7Y.js')
+    ...await import('./chunks/hooks-BDETGFlU.js')
   };
 }
 
@@ -1333,7 +1333,7 @@ function requireSetCookie () {
 
 var setCookieExports = requireSetCookie();
 
-const DEV = false;
+const BROWSER = false;
 const SVELTE_KIT_ASSETS = "/_svelte_kit_assets";
 const ENDPOINT_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"];
 const PAGE_METHODS = ["GET", "POST", "HEAD"];
@@ -3940,13 +3940,13 @@ async function respond(request, options2, manifest, state) {
         trailing_slash = "always";
       } else if (route.page) {
         const nodes = await load_page_nodes(route.page, manifest);
-        if (DEV)
+        if (BROWSER)
           ;
         trailing_slash = get_option(nodes, "trailingSlash");
       } else if (route.endpoint) {
         const node = await route.endpoint();
         trailing_slash = node.trailingSlash;
-        if (DEV)
+        if (BROWSER)
           ;
       }
       if (!is_data_request) {

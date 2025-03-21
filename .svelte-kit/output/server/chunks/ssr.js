@@ -44,7 +44,7 @@ function getContext(key) {
 function ensure_array_like(array_like_or_iterator) {
   return array_like_or_iterator?.length !== void 0 ? array_like_or_iterator : Array.from(array_like_or_iterator);
 }
-const ATTR_REGEX = /[&"]/g;
+const ATTR_REGEX = /[&"<]/g;
 const CONTENT_REGEX = /[&<]/g;
 function escape(value, is_attr = false) {
   const str = String(value);

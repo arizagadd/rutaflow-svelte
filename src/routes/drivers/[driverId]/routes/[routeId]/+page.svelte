@@ -14,6 +14,7 @@
     import {locationOutline,cashOutline, homeSharp,flagSharp} from "ionicons/icons"; 
     import {arrowBack} from "ionicons/icons";
     import {DATABASE_URL} from '../../../../../hooks';
+    import { hexToRGBA } from '$lib';
     /*Back URL*/
     let back_url = DATABASE_URL;
 
@@ -157,6 +158,7 @@
 				});
 
                 bounds.extend(marker.getPosition());
+
             });
 
             // Adjust map to fit all markers
@@ -215,6 +217,7 @@
         let requestData = new FormData();
         requestData.append('id_route', routeId);
         requestData = addAuthData(requestData);
+        requestData.append('id_enterprise',dataSession.id_enterprise);
         try {
             const response = await fetch(`${back_url}api/admin/report/seguimiento_list.php`, {
                 method: 'POST',
@@ -229,6 +232,7 @@
                 showChecklist = (stats.km_inicial=='0' && stats.gas_inicial=='0');
             }
             loading = false; // Data loading complete
+            
         }catch(error) {
             loading = false; // Data loading complete
             console.error('Error fetching data:', error);
@@ -635,7 +639,20 @@
 
                                         </div>
                                     </ion-label>
-                                    <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                                    <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
+                                             border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
+                                             color: {delivery.tag_color};
+                                             font-size: 10px;
+                                            text-align: center;
+                                            align-content: center;
+                                            border-radius: 20px;
+                                            white-space: normal;
+                                            padding: 3px 6px;
+                                            width: auto !important;
+                                            display: inline-block;
+                                            font-weight: 500;">
+                                    {delivery.tag ? delivery.tag : ""}
+                                    </div>
                                 </ion-item>
                             {/each}
                             <ion-item>
@@ -734,7 +751,20 @@
 
                                         </div>
                                     </ion-label>
-                                    <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                                    <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
+                                             border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
+                                             color: {delivery.tag_color};
+                                             font-size: 10px;
+                                            text-align: center;
+                                            align-content: center;
+                                            border-radius: 20px;
+                                            white-space: normal;
+                                            padding: 3px 6px;
+                                            width: auto !important;
+                                            display: inline-block;
+                                            font-weight: 500;">
+                                    {delivery.tag ? delivery.tag : ""}
+                                    </div>
                                 </ion-item>
                             {/each}
                             <ion-item>
@@ -834,7 +864,20 @@
                                             </h3>
                                         </ion-text>
                                     </ion-label>
-                                    <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
+                                    <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
+                                             border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
+                                             color: {delivery.tag_color};
+                                             font-size: 10px;
+                                            text-align: center;
+                                            align-content: center;
+                                            border-radius: 20px;
+                                            white-space: normal;
+                                            padding: 3px 6px;
+                                            width: auto !important;
+                                            display: inline-block;
+                                            font-weight: 500;">
+                                    {delivery.tag ? delivery.tag : ""}
+                                    </div>
                                 </ion-item>
                             {/each}
                             <ion-item>

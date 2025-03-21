@@ -4,7 +4,7 @@ import * as devalue from "devalue";
 import { r as readable, w as writable } from "./chunks/index.js";
 import { parse, serialize } from "cookie";
 import * as set_cookie_parser from "set-cookie-parser";
-const DEV = false;
+const BROWSER = false;
 const SVELTE_KIT_ASSETS = "/_svelte_kit_assets";
 const ENDPOINT_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"];
 const PAGE_METHODS = ["GET", "POST", "HEAD"];
@@ -2619,13 +2619,13 @@ async function respond(request, options2, manifest, state) {
         trailing_slash = "always";
       } else if (route.page) {
         const nodes = await load_page_nodes(route.page, manifest);
-        if (DEV)
+        if (BROWSER)
           ;
         trailing_slash = get_option(nodes, "trailingSlash");
       } else if (route.endpoint) {
         const node = await route.endpoint();
         trailing_slash = node.trailingSlash;
-        if (DEV)
+        if (BROWSER)
           ;
       }
       if (!is_data_request) {
