@@ -1,6 +1,5 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { writable } from 'svelte/store';
   import { gasKmStore } from '../../../../../stores/gasKmStore';
   import { flagStore } from '../../../../../stores/flagStore';
 

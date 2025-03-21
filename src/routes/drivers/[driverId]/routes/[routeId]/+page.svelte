@@ -14,6 +14,7 @@
     import {locationOutline,cashOutline, homeSharp,flagSharp} from "ionicons/icons"; 
     import {arrowBack} from "ionicons/icons";
     import {DATABASE_URL} from '../../../../../hooks';
+    import { hexToRGBA } from '$lib';
     /*Back URL*/
     let back_url = DATABASE_URL;
 
@@ -30,6 +31,7 @@
     let mapElement;
     let stopsApproval ="";
     let smsActive = "";
+    let orderRestriction = "0";
     let settings = new Object();
 
     const refresh = async () => {
@@ -156,6 +158,7 @@
 				});
 
                 bounds.extend(marker.getPosition());
+
             });
 
             // Adjust map to fit all markers
@@ -214,6 +217,7 @@
         let requestData = new FormData();
         requestData.append('id_route', routeId);
         requestData = addAuthData(requestData);
+        requestData.append('id_enterprise',dataSession.id_enterprise);
         try {
             const response = await fetch(`${back_url}api/admin/report/seguimiento_list.php`, {
                 method: 'POST',
@@ -228,6 +232,7 @@
                 showChecklist = (stats.km_inicial=='0' && stats.gas_inicial=='0');
             }
             loading = false; // Data loading complete
+            
         }catch(error) {
             loading = false; // Data loading complete
             console.error('Error fetching data:', error);
@@ -472,7 +477,7 @@
                     // Get specific settings
                     stopsApproval = getSettingVal("stops_wait_approval", settings);
                     smsActive = getSettingVal("sms_active", settings);
-                    
+                    orderRestriction = getSettingVal("stops_order_restriction", settings);
                 } else {
                     // Handle error response
                     console.error('File upload failed:', response.statusText);
@@ -615,7 +620,7 @@
                                         
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
-                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage) || orderRestriction=="1") {
                                             showDeliveryInfoModal(delivery, false);
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
@@ -634,7 +639,24 @@
 
                                         </div>
                                     </ion-label>
-                                    <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                                    {#if delivery.tag_color && delivery.tag}
+                                        <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
+                                                border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
+                                                color: {delivery.tag_color};
+                                                font-size: 10px;
+                                                text-align: center;
+                                                align-content: center;
+                                                border-radius: 20px;
+                                                white-space: normal;
+                                                padding: 3px 6px;
+                                                width: auto !important;
+                                                display: inline-block;
+                                                font-weight: 500;">
+                                        {delivery.tag ? delivery.tag : ""}
+                                        </div>
+                                    {:else}
+                                        <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
+                                    {/if}
                                 </ion-item>
                             {/each}
                             <ion-item>
@@ -714,7 +736,7 @@
                                         
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
-                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage) || orderRestriction=="1") {
                                             showDeliveryInfoModal(delivery, false);
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
@@ -733,7 +755,24 @@
 
                                         </div>
                                     </ion-label>
-                                    <ion-icon icon={locationOutline} slot="end"></ion-icon>
+                                    {#if delivery.tag_color && delivery.tag}
+                                        <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
+                                                border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
+                                                color: {delivery.tag_color};
+                                                font-size: 10px;
+                                                text-align: center;
+                                                align-content: center;
+                                                border-radius: 20px;
+                                                white-space: normal;
+                                                padding: 3px 6px;
+                                                width: auto !important;
+                                                display: inline-block;
+                                                font-weight: 500;">
+                                        {delivery.tag ? delivery.tag : ""}
+                                        </div>
+                                    {:else}
+                                        <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
+                                    {/if}
                                 </ion-item>
                             {/each}
                             <ion-item>
@@ -818,7 +857,7 @@
                                         
                                         // Allow showing the modal only if the current delivery has an image
                                         // or if it's the first delivery and the current delivery does not have an image
-                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage)) {
+                                        if (previousDeliveryHasImage || (isFirstDelivery && !currentDeliveryHasImage) || orderRestriction=="1") {
                                             showDeliveryInfoModal(delivery, false);
                                         } else {
                                             showAlert("Información incompleta", "No puedes visualizar otras paradas hasta cargar evidencia del destino pasado");
@@ -833,7 +872,24 @@
                                             </h3>
                                         </ion-text>
                                     </ion-label>
-                                    <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
+                                    {#if delivery.tag_color && delivery.tag}
+                                        <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
+                                                border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
+                                                color: {delivery.tag_color};
+                                                font-size: 10px;
+                                                text-align: center;
+                                                align-content: center;
+                                                border-radius: 20px;
+                                                white-space: normal;
+                                                padding: 3px 6px;
+                                                width: auto !important;
+                                                display: inline-block;
+                                                font-weight: 500;">
+                                        {delivery.tag ? delivery.tag : ""}
+                                        </div>
+                                    {:else}
+                                        <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
+                                    {/if}
                                 </ion-item>
                             {/each}
                             <ion-item>
