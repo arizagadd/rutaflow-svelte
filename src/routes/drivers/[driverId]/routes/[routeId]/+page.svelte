@@ -345,6 +345,7 @@
                 line1: stats.origin_address
             }
         }
+        delivery.enterprise_name = stats.enterprise_name;
         delivery.client_name = stats.client_name;
         delivery.client_phone = stats.tel;
         delivery.id_route = stats.id_route;

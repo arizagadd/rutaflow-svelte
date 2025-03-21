@@ -46,10 +46,11 @@
     let currentImage = "";
     let dataSession = new Object();
     let deliverStatus = "";
-    let bg_color = hexToRGBA(delivery.tag_color, 0.2);
-    let border_color = hexToRGBA(delivery.tag_color, 0.3);
+    let bg_color = delivery.tag_color?hexToRGBA(delivery.tag_color, 0.2):"";
+    let border_color = delivery.tag_color?hexToRGBA(delivery.tag_color, 0.3):"";
 
     onMount(() => {
+        console.log(delivery);
         dataSession = JSON.parse(localStorage.getItem('userSession'));
         setCheckButtons();
     });
