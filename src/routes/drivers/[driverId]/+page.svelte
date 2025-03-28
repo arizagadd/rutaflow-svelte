@@ -7,6 +7,7 @@
     import { onMount } from 'svelte';
     import IonPage from 'ionic-svelte/components/IonPage.svelte';
     import {DATABASE_URL} from '../../../hooks';
+    import {getJson} from '$lib';
 
     /*Back URL*/
     let back_url = DATABASE_URL;
@@ -17,9 +18,10 @@
     let flag = false;
     let dataSession = new Object();
     let refresher;
+    let selectedFilter = 'routes-of-day';
 
     const refresh = async () => {
-       await loadRoutes(driverId);
+       await loadRoutes();
        refresher.complete();
     }
 
@@ -33,7 +35,7 @@
             if(driverId=='me' && dataSession.id_user){
                 if(dataSession.type=='admin' || dataSession.type == 'super'){
                     goto(`/drivers/me`);
-                    loadRoutes(driverId);
+                    loadRoutes();
                     flag = true;
                 }else{
                     showAlert('Usuario no autorizado','Este usuario no tiene acceso a la app de Rutaflow, entrar en contacto con soporte');
@@ -41,7 +43,7 @@
                 }
             }else if(dataSession && driverId){
                 goto(`/drivers/${dataSession.id_driver}`);
-                loadRoutes(driverId);
+                loadRoutes();
             }
         }else{
             showAlert('Sesión cerrada','Será redireccionado para volver a ingresar');
@@ -50,34 +52,56 @@
 
     //const encodeEmoji = (emoji) => unescape(encodeURIComponent(emoji));
 
-    const decodeEmoji = (text) => {
+    /*const decodeEmoji = (text) => {
       try {
         return decodeURIComponent(escape(text));
       } catch (e) {
         // return unescape(text);
       }
-    }
+    }*/
 
-    function loadRoutes(driverId) {
+    /*function loadRoutes() {
+        console.log(selectedFilter);
         var actualDate = getActualFormattedDate();
-        const requestData = new FormData();
-        requestData.append('id_enterprise',dataSession.id_enterprise);
-        requestData.append('actual_date', actualDate);
-        requestData.append('token', dataSession.token);
-        requestData.append('id_user_over', dataSession.id_user);
-        fetch(`${back_url}api/admin/report/seguimiento_list.php`, {
-                method: 'POST',
-                body: requestData,
-            })
-            .then(response => response.json())
-            .then(data => {
-                const seguimiento_info = data;
-                routes = seguimiento_info.data.seguimiento_list;
-                events = seguimiento_info.data.event_list;
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
+        
+        getJson(`${back_url}api/admin/report/seguimiento_list.php`, function(data){
+            const seguimiento_info = data;
+            routes = seguimiento_info.data.seguimiento_list;
+            events = seguimiento_info.data.event_list;
+        },{id_enterprise: dataSession.id_enterprise, actual_date: actualDate, token: dataSession.token, id_user_over: dataSession.id_user});
+    }*/
+    function loadRoutes() {
+        var lv = new Object();
+        lv.id_enterprise = dataSession.id_enterprise?dataSession.id_enterprise:'null';
+        lv.id_user_over = dataSession.id_user;
+        lv.token = dataSession.token;
+        var filterVal = !selectedFilter.value? selectedFilter : selectedFilter.value;
+        console.log("Selected Filter:", filterVal);
+        let today = getTodayDate();
+        if (filterVal === "enroute") {
+            lv.status = "enroute";
+        } else if (filterVal === "routes-of-day") {
+            lv.actual_date = today.today;
+        } else if (filterVal === "yesterday-routes") {
+            let yesterday = new Date(today.date);
+            yesterday.setDate(yesterday.getDate() - 1);
+            let yesterdayFormatted = yesterday.toISOString().split("T")[0];
+            lv.actual_date = yesterdayFormatted;
+        } else if (filterVal === "week-routes") {
+            let dayOfWeek = today.date.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+            let difference = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust to start week on Monday
+            let monday = new Date(today.date);
+            monday.setDate(today.date.getDate() - difference);
+            let mondayFormatted = monday.toISOString().split("T")[0];
+            lv.actual_date = mondayFormatted;
+            lv.actual_date2 = today.today;
+        }
+
+        getJson(`${back_url}api/admin/report/seguimiento_list.php`, function(data){
+            const seguimiento_info = data;
+            routes = seguimiento_info.data.seguimiento_list;
+            events = seguimiento_info.data.event_list;
+        },lv);
     }
 
     function openRoute(routeId,status) {
@@ -220,7 +244,15 @@
 
         return today;
     }
+    function getTodayDate(){
+        var date = new Date();
+        var day = date.getDate();
+        var month = date.getMonth()+1;
+        var year = date.getFullYear();
+        var today = year+"-"+month+"-"+day;
 
+        return {today:today,year:year,month:month,date:date,day:day};
+    }
     const logout = () => {
         // Redirect to login page or homepage
         goto('/');
@@ -228,6 +260,43 @@
         // Remove user session from localStorage
         localStorage.removeItem('userSession');
     }
+
+    /*
+    function updateComboSeguimientoDate(obj,type="",extra=""){
+        //Aqui mandar a seguimiento_list.php si queremos ver las rutas del día seleccionado
+        var lv = new Object();
+        lv.id_enterprise = user_obj.id_enterprise?user_obj.id_enterprise:'null';
+        type=="date"? lv.actual_date = obj : "";
+        type=="status"? lv.status = obj : "";
+        type=="string_parameter"? lv.string_parameter = obj : "";
+
+        if(type=="dates"){
+            lv.actual_date = obj;
+            lv.actual_date2 = extra;
+        }
+
+        listado_seguimiento = $("#seguimiento-listado");
+                
+        getJson(back_url+"report/seguimiento_list.php",function(data){
+            var obj = data.data.seguimiento_list;
+            var event_list = data.data.event_list;
+            var check_list = data.data.check_list?data.data.check_list:"";
+            listado_seguimiento.find(".list-group").empty();
+            for (var i = 0; i < obj.length; i++) {
+                if(user_obj.id_enterprise){
+                    if(user_obj.id_enterprise==obj[i].id_enterprise){
+                        $(showSeguimientoListado(obj[i],event_list,check_list)).appendTo("#seguimiento-listado .list-group");
+                        renderRoutes(obj[i],event_list);
+                    }
+                }else{
+                    $(showSeguimientoListado(obj[i],event_list,check_list)).appendTo("#seguimiento-listado .list-group");
+                    renderRoutes(obj[i],event_list);
+                }
+            } 
+            
+        },lv);
+
+    }*/
 
 
 </script>
@@ -283,17 +352,27 @@
     <IonPage>
         <ion-header translucent>
             <ion-toolbar>
-                <ion-buttons slot="secondary">
+              <ion-buttons slot="start">
                 <ion-button>{dataSession.name}</ion-button>
-                </ion-buttons>
-        
-                <ion-title>RUTAS DEL DÍA</ion-title>
-        
-                <ion-buttons slot="primary">
-                <ion-button title="Salir" alt="Salir" on:click={logout}><ion-icon icon={logOut}></ion-icon></ion-button>
-                </ion-buttons>
+              </ion-buttons>
+          
+              <!-- Centered Select Dropdown -->
+              <ion-title>
+                <ion-select bind:this={selectedFilter} id="quick-filter" interface="action-sheet" value="routes-of-day" on:ionChange={loadRoutes}>
+                  <ion-select-option value="enroute">Rutas en curso</ion-select-option>
+                  <ion-select-option value="routes-of-day">Rutas del día</ion-select-option>
+                  <ion-select-option value="yesterday-routes">Rutas de ayer</ion-select-option>
+                  <ion-select-option value="week-routes">Rutas de la semana</ion-select-option>
+                </ion-select>
+              </ion-title>
+          
+              <ion-buttons slot="end">
+                <ion-button title="Salir" alt="Salir" on:click={logout}>
+                  <ion-icon icon={logOut}></ion-icon>
+                </ion-button>
+              </ion-buttons>
             </ion-toolbar>
-        </ion-header>
+        </ion-header>          
         
         <ion-content>
             <ion-refresher slot="fixed" bind:this={refresher} on:ionRefresh={refresh}>
@@ -304,8 +383,8 @@
             </ion-refresher>
             <ion-list>
                 {#if driverId=='me' && flag}
-                    {#each routes as route (route.id_route)}
-                        {#if compareDates(route.date_start)}
+                    {#if routes.length != 0}
+                        {#each routes as route (route.id_route)}
                             {changePendingState("true")}
                             {#if route.status != 'completed' && route.status != 'cancelled' && route.status != 'finished'}
                                 <ion-item button on:click={openRoute(route.id_route,route.status)}>
@@ -325,14 +404,14 @@
                             {:else}
                                 {changePendingState("false")}
                             {/if}
-                        {:else}
-                            {changePendingState("false")}
-                        {/if}
-                    {/each}
+                        {/each}
+                    {:else}
+                        {changePendingState("false")}
+                    {/if}
                 {:else}
                     <!--Filter by driverId & date-->
-                    {#each routes.filter(route => route.id_driver === driverId) as route (route.id_route)}
-                        {#if compareDates(route.date_start)}
+                    {#if routes.length != 0}
+                        {#each routes.filter(route => route.id_driver === driverId) as route (route.id_route)}
                             {changePendingState("true")}
                             {#if route.status != 'completed' && route.status != 'cancelled' && route.status != 'finished'}
                                 <ion-item button on:click={openRoute(route.id_route,route.status)}>
@@ -352,10 +431,10 @@
                             {:else}
                                 {changePendingState("false")}
                             {/if}
-                        {:else}
-                            {changePendingState("false")}
-                        {/if}
-                    {/each}
+                        {/each}
+                    {:else}
+                        {changePendingState("false")}
+                    {/if}
                 {/if}
                 {#if !hasPendingRoutes}
                     <ion-grid class="ion-text-center h-full">

@@ -63,6 +63,7 @@ declare module '$env/static/private' {
 	export const npm_package_name: string;
 	export const LANG: string;
 	export const npm_config_npm_version: string;
+	export const VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
 	export const XPC_FLAGS: string;
 	export const npm_config_node_gyp: string;
 	export const npm_package_version: string;
@@ -70,11 +71,15 @@ declare module '$env/static/private' {
 	export const VSCODE_INJECTION: string;
 	export const SHLVL: string;
 	export const HOME: string;
+	export const VSCODE_GIT_ASKPASS_MAIN: string;
 	export const npm_config_cache: string;
 	export const LOGNAME: string;
 	export const npm_lifecycle_script: string;
+	export const VSCODE_GIT_IPC_HANDLE: string;
 	export const NVM_BIN: string;
 	export const npm_config_user_agent: string;
+	export const VSCODE_GIT_ASKPASS_NODE: string;
+	export const GIT_ASKPASS: string;
 	export const npm_node_execpath: string;
 	export const npm_config_prefix: string;
 	export const COLORTERM: string;
@@ -147,6 +152,7 @@ declare module '$env/dynamic/private' {
 		npm_package_name: string;
 		LANG: string;
 		npm_config_npm_version: string;
+		VSCODE_GIT_ASKPASS_EXTRA_ARGS: string;
 		XPC_FLAGS: string;
 		npm_config_node_gyp: string;
 		npm_package_version: string;
@@ -154,11 +160,15 @@ declare module '$env/dynamic/private' {
 		VSCODE_INJECTION: string;
 		SHLVL: string;
 		HOME: string;
+		VSCODE_GIT_ASKPASS_MAIN: string;
 		npm_config_cache: string;
 		LOGNAME: string;
 		npm_lifecycle_script: string;
+		VSCODE_GIT_IPC_HANDLE: string;
 		NVM_BIN: string;
 		npm_config_user_agent: string;
+		VSCODE_GIT_ASKPASS_NODE: string;
+		GIT_ASKPASS: string;
 		npm_node_execpath: string;
 		npm_config_prefix: string;
 		COLORTERM: string;

@@ -37,6 +37,14 @@
       "_ssr.js"
     ]
   },
+  "_index2.js": {
+    "file": "chunks/index2.js",
+    "name": "index",
+    "imports": [
+      "_ssr.js",
+      "_client.js"
+    ]
+  },
   "_internal.js": {
     "file": "chunks/internal.js",
     "name": "internal",
@@ -50,14 +58,6 @@
   "_ssr.js": {
     "file": "chunks/ssr.js",
     "name": "ssr"
-  },
-  "_stores.js": {
-    "file": "chunks/stores.js",
-    "name": "stores",
-    "imports": [
-      "_ssr.js",
-      "_client.js"
-    ]
   },
   "node_modules/@sveltejs/kit/src/runtime/server/index.js": {
     "file": "index.js",
@@ -157,7 +157,7 @@
     "isEntry": true,
     "imports": [
       "_ssr.js",
-      "_stores.js",
+      "_index2.js",
       "_client.js",
       "_IonPage.js",
       "src/hooks.js"
@@ -181,8 +181,8 @@
       "_ssr.js",
       "_client.js",
       "src/hooks.js",
-      "_IonPage.js",
-      "_stores.js"
+      "_index2.js",
+      "_IonPage.js"
     ],
     "css": [
       "_app/immutable/assets/_page.DsL4-INs.css"

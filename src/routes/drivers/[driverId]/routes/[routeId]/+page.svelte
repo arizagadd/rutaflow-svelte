@@ -345,6 +345,7 @@
                 line1: stats.origin_address
             }
         }
+        delivery.enterprise_name = stats.enterprise_name;
         delivery.client_name = stats.client_name;
         delivery.client_phone = stats.tel;
         delivery.id_route = stats.id_route;
@@ -639,20 +640,24 @@
 
                                         </div>
                                     </ion-label>
-                                    <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
-                                             border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
-                                             color: {delivery.tag_color};
-                                             font-size: 10px;
-                                            text-align: center;
-                                            align-content: center;
-                                            border-radius: 20px;
-                                            white-space: normal;
-                                            padding: 3px 6px;
-                                            width: auto !important;
-                                            display: inline-block;
-                                            font-weight: 500;">
-                                    {delivery.tag ? delivery.tag : ""}
-                                    </div>
+                                    {#if delivery.tag_color && delivery.tag}
+                                        <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
+                                                border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
+                                                color: {delivery.tag_color};
+                                                font-size: 10px;
+                                                text-align: center;
+                                                align-content: center;
+                                                border-radius: 20px;
+                                                white-space: normal;
+                                                padding: 3px 6px;
+                                                width: auto !important;
+                                                display: inline-block;
+                                                font-weight: 500;">
+                                        {delivery.tag ? delivery.tag : ""}
+                                        </div>
+                                    {:else}
+                                        <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
+                                    {/if}
                                 </ion-item>
                             {/each}
                             <ion-item>
@@ -751,20 +756,24 @@
 
                                         </div>
                                     </ion-label>
-                                    <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
-                                             border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
-                                             color: {delivery.tag_color};
-                                             font-size: 10px;
-                                            text-align: center;
-                                            align-content: center;
-                                            border-radius: 20px;
-                                            white-space: normal;
-                                            padding: 3px 6px;
-                                            width: auto !important;
-                                            display: inline-block;
-                                            font-weight: 500;">
-                                    {delivery.tag ? delivery.tag : ""}
-                                    </div>
+                                    {#if delivery.tag_color && delivery.tag}
+                                        <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
+                                                border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
+                                                color: {delivery.tag_color};
+                                                font-size: 10px;
+                                                text-align: center;
+                                                align-content: center;
+                                                border-radius: 20px;
+                                                white-space: normal;
+                                                padding: 3px 6px;
+                                                width: auto !important;
+                                                display: inline-block;
+                                                font-weight: 500;">
+                                        {delivery.tag ? delivery.tag : ""}
+                                        </div>
+                                    {:else}
+                                        <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
+                                    {/if}
                                 </ion-item>
                             {/each}
                             <ion-item>
@@ -864,20 +873,24 @@
                                             </h3>
                                         </ion-text>
                                     </ion-label>
-                                    <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
-                                             border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
-                                             color: {delivery.tag_color};
-                                             font-size: 10px;
-                                            text-align: center;
-                                            align-content: center;
-                                            border-radius: 20px;
-                                            white-space: normal;
-                                            padding: 3px 6px;
-                                            width: auto !important;
-                                            display: inline-block;
-                                            font-weight: 500;">
-                                    {delivery.tag ? delivery.tag : ""}
-                                    </div>
+                                    {#if delivery.tag_color && delivery.tag}
+                                        <div class="stop-tag" slot="end" style="background-color:{hexToRGBA(delivery.tag_color, 0.3)};
+                                                border: 1px solid {hexToRGBA(delivery.tag_color, 0.4)}; 
+                                                color: {delivery.tag_color};
+                                                font-size: 10px;
+                                                text-align: center;
+                                                align-content: center;
+                                                border-radius: 20px;
+                                                white-space: normal;
+                                                padding: 3px 6px;
+                                                width: auto !important;
+                                                display: inline-block;
+                                                font-weight: 500;">
+                                        {delivery.tag ? delivery.tag : ""}
+                                        </div>
+                                    {:else}
+                                        <ion-icon icon={locationOutline} slot="end" style="color: {getDeliveryColor(delivery.status,delivery.date_service)}"></ion-icon>
+                                    {/if}
                                 </ion-item>
                             {/each}
                             <ion-item>

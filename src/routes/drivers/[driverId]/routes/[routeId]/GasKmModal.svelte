@@ -1,9 +1,5 @@
 <script>
-  //import { createEventDispatcher } from 'svelte';
-  //const type = overlayElement.componentProps.r;
-  //console.log(type);
   import { createEventDispatcher } from 'svelte';
-  import { writable } from 'svelte/store';
   import { gasKmStore } from '../../../../../stores/gasKmStore';
   import { flagStore } from '../../../../../stores/flagStore';
 
@@ -12,14 +8,13 @@
 
   let overlayElement = document.querySelector("ion-modal");
   let type = overlayElement.componentProps.data_type;
-  let type_txt;
+  let type_txt = "";
 
   flagStore.subscribe((result) => {
     type = result.flag[0];
     type == "km_final" || type == "km_inicial" ? type_txt="kilometraje":type_txt="litros de gasolina";
   });
 
-  //const dispatch = createEventDispatcher();
   let inputValue = 0;
 
   function closeModalKmGas(){
@@ -76,7 +71,3 @@
       <ion-input class="fin-km" inputmode="numeric" pattern="[0-9]*" type="number" placeholder="Ingresa {type_txt} actual"  on:input={e => inputValue = e.target.value} value={inputValue}  required>
     </ion-item>
   </ion-content>
-
-<style>
-  /* Style your modal here */
-</style>

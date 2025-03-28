@@ -9,6 +9,7 @@
     import { gasKmStore } from '../../../../../stores/gasKmStore';
     import { flagStore } from '../../../../../stores/flagStore';
     import {DATABASE_URL} from '../../../../../hooks';
+    import { getJson } from '$lib';
 
     /*Back URL*/
     let back_url = DATABASE_URL;
@@ -79,6 +80,20 @@
 		await alert.present();
 	};
 
+    const showAlert = async (customHeader, customMessage) => {
+        const alert = await alertController.create({
+            header: customHeader || 'Error', // Use customHeader or default value
+            message: customMessage || 'Vuelva a intentar', // Use customMessage or default value
+            buttons: [
+                {
+                    text: 'Cerrar'
+                }
+            ]
+        });
+
+        await alert.present();
+    }
+
     const alertInitialValues = async (u) => {
 		const alert = await alertController.create({
 			header: 'Datos inválidos',
@@ -138,26 +153,22 @@
         if(isLast){
             var fin_km = transformFormatValue(km_final,"km");
             var fin_gas = transformFormatValue(gas_final,"gas");
-            let formData = new FormData();
-            formData.append(`km_final`,fin_km);
-            formData.append(`gas_final`,fin_gas);
-            formData.append(`id_route`,routeId);
-            formData = addAuthData(formData);
+            let lv = new Object();
+            lv.km_final = fin_km;
+            lv.gas_final = fin_gas;
+            lv.id_route = routeId;
+            lv.id_user_over = dataSession.id_user;
+            lv.token = dataSession.token;
             if(fin_km && fin_gas){
                 //cerrar modal
                 closeOverlay();
-                
-                fetch(`${back_url}api/admin/checklist/add_evidence.php`, {
-                    method: 'POST',
-                    body: formData,
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        alertDataSent();
-                    })
-                    .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
+                getJson(`${back_url}api/admin/checklist/add_evidence.php`,function(result){
+                    if(result.success){
+                        showAlert("Datos capturados","El kilometraje y gasolina final fueron registrados correctamente, espere aprobación para finalizar ruta");
+                    }else{
+                        showAlert("Error","Vuelva a intentar capturar los datos solicitados");
+                    }
+                },lv);
             }else{
                 alertIncompleteChecklist();
             }

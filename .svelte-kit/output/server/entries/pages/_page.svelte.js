@@ -52,7 +52,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
           $$result,
           {
             type: "text",
-            placeholder: "Correo o Usuario",
+            placeholder: "Correo o Teléfono",
             name: "email",
             required: true,
             value: data.email

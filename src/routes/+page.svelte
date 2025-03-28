@@ -29,17 +29,15 @@
     // This will clear all localStorage when the page loads
     onMount(() => {
         localStorage.clear();
-        console.log("Cleared all sessions from localStorage");
     });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        console.log('submit', data);
 
 		const showAlert = async () => {
 			const alert = await alertController.create({
 				header: 'Datos inválidos',
-				message: 'El correo o la contraseña son incorrectos, vuelva a intentar',
+				message: 'El correo/teléfono o la contraseña son incorrectos, vuelva a intentar',
 				buttons: [
 				{
 					text: 'Cerrar'
@@ -83,7 +81,7 @@
                                 userData
                             }
                         });
-                        console.log(userData);
+                        
                         if(userData.id_driver){
                             goto(`/drivers/${userData.id_driver}`);
                         }else{
@@ -144,7 +142,7 @@
                         <ion-list>
 
                             <ion-item>
-                                <IonInput bind:value={data.email} type="text" placeholder="Correo o Usuario" name="email"
+                                <IonInput bind:value={data.email} type="text" placeholder="Correo o Teléfono" name="email"
                                         required></IonInput>
                             </ion-item>
 

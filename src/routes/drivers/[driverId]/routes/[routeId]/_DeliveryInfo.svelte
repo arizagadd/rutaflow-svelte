@@ -12,7 +12,7 @@
     import ChecklistControl from './_ChecklistControl.svelte';
     import {onMount} from 'svelte';
     import {DATABASE_URL} from '../../../../../hooks';
-    import { hexToRGBA } from '$lib';
+    import { hexToRGBA, getJson, getImgsArray } from '$lib';
 
     /*Back URL*/
     let back_url = DATABASE_URL;
@@ -46,42 +46,13 @@
     let currentImage = "";
     let dataSession = new Object();
     let deliverStatus = "";
-    let bg_color = hexToRGBA(delivery.tag_color, 0.2);
-    let border_color = hexToRGBA(delivery.tag_color, 0.3);
+    let bg_color = delivery.tag_color?hexToRGBA(delivery.tag_color, 0.2):"";
+    let border_color = delivery.tag_color?hexToRGBA(delivery.tag_color, 0.3):"";
 
     onMount(() => {
         dataSession = JSON.parse(localStorage.getItem('userSession'));
         setCheckButtons();
     });
-
-    async function getJson(apiUrl="", callback, variables = {}) {
-        let formData = new FormData();
-        isLoading = true; // Show spinner
-
-        // Append variables to FormData
-        for (const [key, value] of Object.entries(variables)) {
-            formData.append(key, value);
-        }
-        formData = addAuthData(formData);
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                // Pass the JSON result to the provided callback function
-                callback(result);
-            } else {
-                console.error('Request failed:', response.statusText);
-            }
-        } catch (error) {
-            console.error('Error during file upload:', error);
-        } finally {
-            isLoading = false; // Hide spinner
-        }
-    }
 
     function setCheckButtons(){
         if(!delivery.date_service){
@@ -133,7 +104,11 @@
             {
                 text: 'Sí',
                 handler: () => {
-                    getJson(url,func,lv);
+                    isLoading = true;
+                    getJson(url,function(result={}){
+                        isLoading=false;
+                        func(result);
+                    },lv);
                 }
             }
         ]
@@ -163,23 +138,16 @@
             const compressedFile = await compressImage(file);
 
             if (compressedFile) {
-                // Prepare form data
-                const formData = new FormData();
-                formData.append("fileToUpload", compressedFile);
-
-                // Async Upload to avoid UI blocking
-                fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
-                    method: "POST",
-                    body: formData,
-                })
-                .then(response => response.json())
-                .then(result => {
-                    selectedImages = selectedImages ? `${selectedImages},${result.img}` : result.img;
-                    img_id = img_id ? `${img_id},${result.img_id}` : result.img_id;
-                    files = getImgsArray(selectedImages);
-                    img_ids = getImgsArray(img_id);
-                })
-                .catch(error => console.error("Upload error:", error));
+                getJson(`${back_url}api/admin/manager/upload_img_driver.php`,function(result){
+                    if(result.success){
+                        selectedImages = selectedImages ? `${selectedImages},${result.img}` : result.img;
+                        img_id = img_id ? `${img_id},${result.img_id}` : result.img_id;
+                        files = getImgsArray(selectedImages);
+                        img_ids = getImgsArray(img_id);
+                    }else{
+                        showAlert("Carga fallida","Actualiza la página y vuelve a intentar. Si el problema persiste, contacta a soporte.");
+                    }
+                },{fileToUpload:compressedFile});
             }
         } catch (error) {
             console.error("Compression error:", error);
@@ -284,10 +252,13 @@
                         lon: locationData.longitude,
                         ...(stopsApproval === "0" && { approve: "0" }),
                         ...(isLast && { isLast: true }),
-                        ...(OriDesFlag && isLast && {destiny: true})
+                        ...(OriDesFlag && isLast && {destiny: true}),
+                        id_user_over: dataSession.id_user,
+                        token: dataSession.token
                     };
                     
                     if((lv.img && lv.img_id) || (selectedImages)){
+                        isLoading=true;
                         // Send the evidence data
                         getJson(`${back_url}api/admin/evidence/send_evidence.php`,function(result){
                             if(result.success == true){
@@ -301,7 +272,9 @@
                                         changeRouteStatus(routeId,'completed');
                                     }
                                 }
+                                isLoading=false;
                             }else{
+                                isLoading=false;
                                 showAlert("Carga fallida","Actualiza la página y vuelve a intentar cargar la información!");
                             }
                         },lv);
@@ -359,30 +332,26 @@
         // Stop the click event from propagating to the ion-item
         event.stopPropagation();
         // Create FormData from the object
-        let formData = new FormData();
-        formData.append('client_phone', phoneNumber);
-        formData.append('client_name', delivery.title);
-        formData.append('delivery_phone', delivery.client_phone);
-        formData.append('enterprise_name', delivery.enterprise_name);
-        formData = addAuthData(formData);
+        let lv = new Object();
+        lv.client_phone = phoneNumber;
+        lv.client_name = delivery.title;
+        lv.delivery_phone = delivery.client_phone;
+        lv.enterprise_name = delivery.enterprise_name;
+        lv.id_user_over = dataSession.id_user;
+        lv.token = dataSession.token;
         try {
-            // Send the evidence data
-            const response = await fetch(`${back_url}api/admin/message_central/send_sms.php`, {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (response.ok) {
-                // File uploaded successfully, handle any additional logic
-                const result = await response.json();
-               
-                showAlert('SMS enviado','Se envío correctamente un SMS a '+delivery.title+' con número de teléfono: '+phoneNumber);
-            } else {
-                showAlert('SMS no enviado','Hubo un error al enviar SMS a '+delivery.title+' con número de teléfono: '+phoneNumber0+'. Por favor contacte a soporte.');
-            }
-            } catch (error) {
-                console.error('Error during file upload:', error);
-            }
+
+            getJson(`${back_url}api/admin/message_central/send_sms.php`,function(result){
+                if(result.success){
+                    showAlert('SMS enviado','Se envío correctamente un SMS a '+delivery.title+' con número de teléfono: '+phoneNumber);
+                }else{
+                    showAlert('SMS no enviado','Hubo un error al enviar SMS a '+delivery.title+' con número de teléfono: '+phoneNumber+'. Por favor contacte a soporte.');
+                }
+            },lv);
+
+        } catch (error) {
+            console.error('Error during file upload:', error);
+        }
     }
 
     // Function to handle check-in
@@ -401,26 +370,17 @@
 
     async function sendCheckInCheckOut(id_event,type) {
         if (type) {
-            let formData = new FormData();
-            formData.append('type', type);
-            formData.append('id_event', id_event);
-            formData = addAuthData(formData);
+            let lv = new Object();
+            lv.type = type;
+            lv.id_event = id_event;
+            lv.id_user_over = dataSession.id_user;
+            lv.token = dataSession.token;
             try {
-                const response = await fetch(`${back_url}api/admin/route/record_check_date.php`, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (response.ok) {
-                    // File uploaded successfully, handle any additional logic
-                    const result = await response.json();
+                getJson(`${back_url}api/admin/route/record_check_date.php`,function(result){
                     if(result.minutes){
                         showAlert('Tiempo por parada','Completaste la parada en '+result.minutes+' minutos.');
                     }
-                } else {
-                    // Handle error response
-                    console.error('File upload failed:', response.statusText);
-                }
+                },lv);
             } catch (error) {
                 console.error('Error during file upload:', error);
             } finally {
@@ -429,12 +389,6 @@
         }
 
     };
-
-    function getImgsArray(stringImg='') {
-        // Split the input string by commas and trim any extra whitespace from each URL
-        const imgArray = stringImg.split(',').map(url => url.trim());
-        return imgArray;
-    }
 
     const openImage = (image) => {
         currentImage = image;
@@ -446,28 +400,13 @@
         currentImage = "";
     };
 
-    function addAuthData(requestData){
-        requestData.append('token', dataSession.token);
-        requestData.append('id_user_over', dataSession.id_user);
-
-        return requestData;
-    }
-
     function changeRouteStatus(id_route,status){
-        let requestData = new FormData();
-        requestData.append('id_route', id_route);
-        requestData.append('status',status);
-        requestData = addAuthData(requestData);
-        fetch(`${back_url}api/admin/route/change_status.php`, {
-                method: 'POST',
-                body: requestData,
-            })
-            .then(response => response.json())
-            .then(data => {
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
+        let lv = new Object();
+        lv.id_route = id_route;
+        lv.status =status;
+        lv.id_user_over = dataSession.id_user;
+        lv.token = dataSession.token;
+        getJson(`${back_url}api/admin/route/change_status.php`,function(){},lv);
         return "";
     }
 
@@ -673,24 +612,24 @@
             </section>
         {/if}
         {#if selectedImages}
-        <section>
-            <div class="image-grid" style="display: grid;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));gap: 10px;padding: 0px 10px;">
+            <section>
+                <div class="image-grid" style="display: grid;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));gap: 10px;padding: 0px 10px;">
                     {#each files as file, index}
-                    <div class="image-container" style="position: relative;">
-                        <ion-img
-                            src="{file}"
-                            alt="Evidencia fotográfica"
-                            style="width: 100%;height: 100px; object-fit:cover;cursor: pointer;border: 1px solid #ccc;border-radius: 4px;margin-top: 16px;"
-                            on:click={() => openImage(file)}
-                        ></ion-img>
-                        <button class="remove-button" on:click={() => removeFile(index)} 
-                            style="position: absolute;top: 5px;right: 5px;border:none;cursor: pointer;font-size: 18px;background: white;border-radius: 50%;padding: 3px 4px 0px;box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);color: #0000008f;">
-                            <ion-icon icon={trash}></ion-icon>
-                        </button>
-                        </div>
+                        <div class="image-container" style="position: relative;">
+                            <ion-img
+                                src="{file}"
+                                alt="Evidencia fotográfica"
+                                style="width: 100%;height: 100px; object-fit:cover;cursor: pointer;border: 1px solid #ccc;border-radius: 4px;margin-top: 16px;"
+                                on:click={() => openImage(file)}
+                            ></ion-img>
+                            <button class="remove-button" on:click={() => removeFile(index)} 
+                                style="position: absolute;top: 5px;right: 5px;border:none;cursor: pointer;font-size: 18px;background: white;border-radius: 50%;padding: 3px 4px 0px;box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);color: #0000008f;">
+                                <ion-icon icon={trash}></ion-icon>
+                            </button>
+                            </div>
                     {/each}
-            </div>
-        </section>
+                </div>
+            </section>
         {/if}
 
     </ion-list>
