@@ -1,15 +1,11 @@
 <script>
-    import {page} from '$app/stores';
-    import { goto } from '$app/navigation';
-    import {documentTextOutline, personOutline, personRemoveOutline} from "ionicons/icons"; 
-    import {createOutline} from "ionicons/icons"; 
-    import {duplicateOutline} from "ionicons/icons"; 
-    import {cardOutline} from "ionicons/icons"; 
     import {alertController } from '@ionic/core';
-    import {informationCircleOutline} from "ionicons/icons";
     import { onMount } from 'svelte';
     import { modalController } from '@ionic/core';
     import {DATABASE_URL} from '../../../../../hooks';
+    import {getImgsArray, getJson} from '$lib';
+    import {documentTextOutline,createOutline,duplicateOutline,cardOutline, trash,closeSharp} from "ionicons/icons"; 
+    import {IonicShowModal} from "../../../../../services/IonicControllers";
 
     /*Back URL*/
     let back_url = DATABASE_URL;
@@ -21,6 +17,7 @@
     let det_type = overlayElement.componentProps.ex_type;
     let id_expense = overlayElement.componentProps.id_expense;
     let selectedImage = "";
+    let selectedImageArray = new Array();
     let img_id = "";
     let paymentType="";
     let expenseAmount=0;
@@ -28,6 +25,8 @@
     let concept="";
     let isLoading = false;
     let dataSession = new Object();
+    let showModal = false;
+    let currentImage = "";
 
     onMount(() => {
         dataSession = JSON.parse(localStorage.getItem('userSession'));
@@ -54,11 +53,24 @@
         const compressed_file = await compressImage(file);
 
         if (compressed_file) {
-            let formData = new FormData();
-            formData.append('fileToUpload', compressed_file);
-            formData = addAuthData(formData);
+            var lv = new Object();
+            lv.fileToUpload = compressed_file;
+            lv.id_user_over = dataSession.id_user;
+            lv.token = dataSession.token;
+
             try {
-                const response = await fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
+
+                getJson(`${back_url}api/admin/manager/upload_img_driver.php`, function(data){
+                    if(data.success){
+                        selectedImage = data.img;
+                        selectedImageArray = getImgsArray(selectedImage);
+                        img_id = data.img_id;
+                    }else{
+                        showAlert("Error","No se pudo subir la imagen");
+                    }
+                    isLoading = false;
+                },lv);
+                /*const response = await fetch(`${back_url}api/admin/manager/upload_img_driver.php`, {
                     method: 'POST',
                     body: formData,
                 });
@@ -67,13 +79,13 @@
                     // File uploaded successfully, handle any additional logic
                     const result = await response.json();
                     selectedImage = result.img;
+                    selectedImageArray = getImgsArray(selectedImage);
                     img_id = result.img_id;
                     
-                    //console.log(selectedImage);
                 } else {
                     // Handle error response
                     console.error('File upload failed:', response.statusText);
-                }
+                }*/
             } catch (error) {
                 console.error('Error during file upload:', error);
             } finally {
@@ -137,37 +149,27 @@
         lv.concept = concept.value; 
         lv.status = "done";
         lv.id_expense = id_expense?id_expense:'null';
-
-        let requestData = new FormData();
-        for (const key in lv) {
-            requestData.append(key, lv[key]);
-        }
-        requestData = addAuthData(requestData);
-
-        if(!img_id || !selectedImage || !comments.value || !expenseAmount.value || !concept.value){
+        lv.id_user_over = dataSession.id_user;
+        lv.token = dataSession.token;
+        
+        if(!img_id || !selectedImage || !expenseAmount.value || !concept.value){
             showAlert("Datos incompletos","Llena los datos requeridos para completar el registro");
         }else{
-            fetch(`${back_url}api/admin/expenses/add_expense.php`, {
-                method: 'POST',
-                body: requestData,
-            })
-            .then(response => response.json())
-            .then(data => {
+            getJson(`${back_url}api/admin/expenses/add_expense.php`, function(data){
                 closeModal();
-            })
-            .catch(error => {
-                console.error('Error fetching data:', error);
-            });
+            },lv);
         }
     };
 
-    function addAuthData(requestData){
-        requestData.append('token', dataSession.token);
-        requestData.append('id_user_over', dataSession.id_user);
+    const openImage = (image) => {
+        currentImage = image;
+        showModal = true;
+    };
 
-        return requestData;
-    }
-
+    const closeImgModal = () => {
+        showModal = false;
+        currentImage = "";
+    };
 
 </script>
 
@@ -190,7 +192,7 @@
         </ion-item>
         <ion-item>
             <ion-icon icon={createOutline} slot="start"></ion-icon>
-            <ion-input label="Cantidad" bind:this={expenseAmount} type="number" value="{det_amount?det_amount:''}"></ion-input>
+            <ion-input label="Monto $" bind:this={expenseAmount} type="number" value="{det_amount?det_amount:''}"></ion-input>
         </ion-item>
         <ion-item>
             <ion-icon icon={cardOutline} slot="start"></ion-icon>
@@ -218,11 +220,22 @@
         </section>
         {#if selectedImage}
         <section>
-            <ion-img
-                src="{selectedImage}"
-                alt="Evidencia fotográfica"
-                style="max-width: 100%; margin-top: 16px;"
-            ></ion-img>
+            <div class="image-grid" style="display: grid;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));gap: 10px;padding: 0px 10px;">
+                {#each selectedImageArray as file, index}
+                    <div class="image-container" style="position: relative;">
+                        <ion-img
+                            src="{file}"
+                            alt="Evidencia fotográfica"
+                            style="width: 100%;height: 100px; object-fit:cover;cursor: pointer;border: 1px solid #ccc;border-radius: 4px;margin-top: 16px;"
+                            on:click={() => openImage(file)}
+                        ></ion-img>
+                        <button class="remove-button" on:click={() => removeFile(index)} 
+                            style="position: absolute;top: 5px;right: 5px;border:none;cursor: pointer;font-size: 18px;background: white;border-radius: 50%;padding: 3px 4px 0px;box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);color: #0000008f;">
+                            <ion-icon icon={trash}></ion-icon>
+                        </button>
+                        </div>
+                {/each}
+            </div>
         </section>
         {/if}
     </ion-list>
@@ -246,5 +259,18 @@
                                 justify-content: center;
                                 z-index: 9999;">
         <ion-spinner name="dots" style="color:white;"></ion-spinner>
+    </div>
+{/if}
+
+{#if showModal}
+    <div class="modal-overlay" on:click={closeImgModal} 
+        style="position: fixed;top: 0;left: 0;width: 100vw;height: 100vh; background: rgba(0, 0, 0, 0.8);display: flex;justify-content: center;align-items: center;z-index: 1000;">
+        <div class="modal-content" on:click|stopPropagation
+            style="position: relative;background: white;padding: 20px;border-radius: 8px;max-width: 90vw;max-height: 90vh;overflow: auto;">
+            <ion-img src="{currentImage}" alt="Evidencia fotográfica" style="width:100%; height:auto;"></ion-img>
+            <button class="close-button" on:click={closeImgModal} style="position: absolute;top: 5px;right: 5px;background: white;color: #444444d1;border: none;cursor: pointer;padding: 2px 2px 0px 6px;border-radius: 50%;font-size: 20px;">
+                <ion-icon icon={closeSharp}></ion-icon>
+            </button>
+        </div>
     </div>
 {/if}
