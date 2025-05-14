@@ -89,7 +89,8 @@
         await alert.present();
     }
 
-    const showYNAlert = async (customHeader="", customMessage="", url="",func,lv={}) => {
+    const showYNAlert = async (customHeader="", customMessage="", url="",func=function(r={}){},lv={}) => {
+        console.log(lv);
         const alert = await alertController.create({
             header: customHeader || 'Error', // Use customHeader or default value
             message: customMessage || 'Vuelva a intentar', // Use customMessage or default value

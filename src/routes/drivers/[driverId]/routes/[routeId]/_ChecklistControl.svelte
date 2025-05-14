@@ -185,7 +185,7 @@
                     store.checkedIndices.includes(mandatoryItem)
                 );
                 if (allMandatoryChecked && ini_km && ini_gas) {
-                    closeOverlay();
+                    
                     let formData = new FormData();
                     formData = addAuthData(formData);
                     formData.append(`km_inicial`,ini_km);
@@ -204,20 +204,21 @@
                     fetch(`${back_url}api/admin/checklist/add_evidence.php`, {
                         method: 'POST',
                         body: formData,
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (mandatoryVal && mandatoryVal.some(val => val === '1')) {
-                                changeRouteStatus(routeId, 'checklist-pending');
-                            } else {
-                                changeRouteStatus(routeId, 'enroute');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching data:', error);
-                        });
-                    //goto(`/drivers/${driverId}/routes/${routeId}`);
-                    //window.location.reload();
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (mandatoryVal && mandatoryVal.some(val => val === '1')) {
+                            changeRouteStatus(routeId, 'checklist-pending');
+                        } else {
+                            changeRouteStatus(routeId, 'enroute');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                    }).finally(() => {
+                        closeOverlay();
+                    });
+                    
                 }else if(!mandatoryVal && ini_km && ini_gas){
                     let formData = new FormData();
                     formData.append(`km_inicial`,ini_km);
