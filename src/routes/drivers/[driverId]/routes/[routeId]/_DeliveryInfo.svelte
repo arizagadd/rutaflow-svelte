@@ -171,6 +171,8 @@
             var lv = new Object();
             lv.id_event = delivery.id_event;
             lv.type = "checkout";
+            lv.id_user_over = dataSession.id_user;
+            lv.token = dataSession.token;
             showYNAlert("Registrar Salida","¿Completaste tu entrega?",back_url+"api/admin/route/record_check_date.php",function(result){
                 if(result.minutes){
                     showAlert('Tiempo por parada','Completaste la parada en '+result.minutes+' minutos.');
