@@ -103,8 +103,6 @@
         //Here i need to get the actual status of the route going again to the database to get the actual status
         if(status=="checklist-pending"){
             showAlert('Checklist Pendiente de Autorizar','La lista de requerimientos de ruta está en revisión, podrás inciar la ruta una vez autorizado el checklist.');
-        }else if(status=="checklist"){
-            showAlert('Ruta en Estado de Checklist','Una vez completado el checklist podrás continuar con la ruta.');
         }else{
             goto(`/drivers/${driverId}/routes/${routeId}`);
         }
