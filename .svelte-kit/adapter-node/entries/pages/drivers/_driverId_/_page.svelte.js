@@ -76,20 +76,22 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let { driverId } = $$props;
   let back_url = DATABASE_URL;
   let routes = [];
-  let events = new Object();
+  let events = [];
+  let filteredRoutes = [];
+  let pendingRoutes = [];
   let hasPendingRoutes = false;
   let flag = false;
   let dataSession = new Object();
   let refresher;
   let selectedFilter = "routes-of-day";
   function loadRoutes() {
-    var lv = new Object();
-    lv.id_enterprise = dataSession.id_enterprise ? dataSession.id_enterprise : "null";
-    lv.id_user_over = dataSession.id_user;
-    lv.token = dataSession.token;
-    var filterVal = !selectedFilter.value ? selectedFilter : selectedFilter.value;
-    console.log("Selected Filter:", filterVal);
-    let today = getTodayDate();
+    const lv = {
+      id_enterprise: dataSession.id_enterprise || "null",
+      id_user_over: dataSession.id_user,
+      token: dataSession.token
+    };
+    const filterVal = selectedFilter?.value || selectedFilter;
+    const today = getTodayDate();
     if (filterVal === "enroute") {
       lv.status = "enroute";
     } else if (filterVal === "routes-of-day") {
@@ -97,30 +99,29 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     } else if (filterVal === "yesterday-routes") {
       let yesterday = new Date(today.date);
       yesterday.setDate(yesterday.getDate() - 1);
-      let yesterdayFormatted = yesterday.toISOString().split("T")[0];
-      lv.actual_date = yesterdayFormatted;
+      lv.actual_date = yesterday.toISOString().split("T")[0];
     } else if (filterVal === "week-routes") {
-      let dayOfWeek = today.date.getDay();
-      let difference = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
       let monday = new Date(today.date);
-      monday.setDate(today.date.getDate() - difference);
-      let mondayFormatted = monday.toISOString().split("T")[0];
-      lv.actual_date = mondayFormatted;
+      let diff = today.date.getDay() === 0 ? 6 : today.date.getDay() - 1;
+      monday.setDate(today.date.getDate() - diff);
+      lv.actual_date = monday.toISOString().split("T")[0];
       lv.actual_date2 = today.today;
     }
     getJson(
       `${back_url}api/admin/report/seguimiento_list.php`,
       function(data) {
-        const seguimiento_info = data;
-        routes = seguimiento_info.data.seguimiento_list;
-        events = seguimiento_info.data.event_list;
+        routes = data.data.seguimiento_list;
+        events = data.data.event_list;
+        if (driverId === "me" && flag) {
+          filteredRoutes = routes;
+        } else {
+          filteredRoutes = routes.filter((route) => route.id_driver === driverId);
+        }
+        pendingRoutes = filteredRoutes.filter((route) => route.status !== "completed" && route.status !== "cancelled" && route.status !== "finished");
+        hasPendingRoutes = pendingRoutes.length > 0;
       },
       lv
     );
-  }
-  function changePendingState(status) {
-    status == "true" ? hasPendingRoutes = true : hasPendingRoutes = false;
-    return "";
   }
   const capitalizeFirstLetter = (str) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -155,6 +156,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
         } else if (dataSession && driverId) {
           goto(`/drivers/${dataSession.id_driver}`);
           loadRoutes();
+          console.log("Volví a entrar 2");
         }
       } else {
         showAlert("Sesión cerrada", "Será redireccionado para volver a ingresar");
@@ -165,11 +167,9 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   $$unsubscribe_page();
   return `${$$result.head += `<!-- HEAD_svelte-qavk4j_START -->${$$result.title = `<title>Rutas - Rutaflow</title>`, ""}<!-- HEAD_svelte-qavk4j_END -->`, ""} ${dataSession ? `${validate_component(IonPage, "IonPage").$$render($$result, {}, {}, {
     default: () => {
-      return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button>${escape(dataSession.name)}</ion-button></ion-buttons>  <ion-title><ion-select id="quick-filter" interface="action-sheet" value="routes-of-day"${add_attribute("this", selectedFilter, 0)} data-svelte-h="svelte-znqezo"><ion-select-option value="enroute">Rutas en curso</ion-select-option> <ion-select-option value="routes-of-day">Rutas del día</ion-select-option> <ion-select-option value="yesterday-routes">Rutas de ayer</ion-select-option> <ion-select-option value="week-routes">Rutas de la semana</ion-select-option></ion-select></ion-title> <ion-buttons slot="end"><ion-button title="Salir" alt="Salir" data-svelte-h="svelte-83ekyc"><ion-icon${add_attribute("icon", logOut, 0)}></ion-icon></ion-button></ion-buttons></ion-toolbar></ion-header> <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1wkherr"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Jale para actualizar" refreshing-spinner="circles" refreshing-text="Actualizando..."></ion-refresher-content></ion-refresher> <ion-list>${driverId == "me" && flag ? `${routes.length != 0 ? `${each(routes, (route) => {
-        return `${escape(changePendingState("true"))} ${route.status != "completed" && route.status != "cancelled" && route.status != "finished" ? `<ion-item button><ion-avatar slot="start"><div class="route-color svelte-1xh3ip" style="${"background-color:" + escape(getDeliveryColor(route.status), true) + ";color: " + escape(getContrast(getDeliveryColor(route.status)), true)}"${add_attribute("title", setTitleStatus(route.status), 0)}><div class="route-symbol svelte-1xh3ip" style="">${escape(capitalizeFirstLetter(route.name.charAt(0)))}</div> </div></ion-avatar> <ion-label><h2>${escape(route.name ? route.name.toUpperCase() : "")}</h2> <h3 class="text-muted svelte-1xh3ip">Inicio: ${escape(route.date_start)}</h3></ion-label> <div slot="end"></div> </ion-item>` : `${escape(changePendingState("false"))}`}`;
-      })}` : `${escape(changePendingState("false"))}`}` : ` ${routes.length != 0 ? `${each(routes.filter((route) => route.id_driver === driverId), (route) => {
-        return `${escape(changePendingState("true"))} ${route.status != "completed" && route.status != "cancelled" && route.status != "finished" ? `<ion-item button><ion-avatar slot="start"><div class="route-color svelte-1xh3ip" style="${"background-color:" + escape(getDeliveryColor(route.status), true) + ";color: " + escape(getContrast(getDeliveryColor(route.status)), true)}"${add_attribute("title", setTitleStatus(route.status), 0)}><div class="route-symbol svelte-1xh3ip" style="">${escape(capitalizeFirstLetter(route.name.charAt(0)))}</div> </div></ion-avatar> <ion-label><h2>${escape(route.name)}</h2> <h3 class="text-muted svelte-1xh3ip">Inicio: ${escape(route.date_start)}</h3></ion-label> <div slot="end"></div> </ion-item>` : `${escape(changePendingState("false"))}`}`;
-      })}` : `${escape(changePendingState("false"))}`}`} ${!hasPendingRoutes ? `<ion-grid class="ion-text-center h-full" data-svelte-h="svelte-3d9uou"><ion-row class="h-full items-center"><ion-col class="text-center"><h2 class="text-3xl text-muted mb-4 svelte-1xh3ip">No hay rutas pendientes para hoy</h2> <p class="text-muted svelte-1xh3ip">Espere indicaciones de su supervisor</p></ion-col></ion-row></ion-grid>` : ``}</ion-list></ion-content>`;
+      return `<ion-header translucent><ion-toolbar><ion-buttons slot="start"><ion-button>${escape(dataSession.name)}</ion-button></ion-buttons>  <ion-title><ion-select id="quick-filter" interface="action-sheet" value="routes-of-day"${add_attribute("this", selectedFilter, 0)} data-svelte-h="svelte-znqezo"><ion-select-option value="enroute">Rutas en curso</ion-select-option> <ion-select-option value="routes-of-day">Rutas del día</ion-select-option> <ion-select-option value="yesterday-routes">Rutas de ayer</ion-select-option> <ion-select-option value="week-routes">Rutas de la semana</ion-select-option></ion-select></ion-title> <ion-buttons slot="end"><ion-button title="Salir" alt="Salir" data-svelte-h="svelte-83ekyc"><ion-icon${add_attribute("icon", logOut, 0)}></ion-icon></ion-button></ion-buttons></ion-toolbar></ion-header> <ion-content><ion-refresher slot="fixed"${add_attribute("this", refresher, 0)} data-svelte-h="svelte-1wkherr"><ion-refresher-content pulling-icon="arrow-dropdown" pulling-text="Jale para actualizar" refreshing-spinner="circles" refreshing-text="Actualizando..."></ion-refresher-content></ion-refresher> <ion-list>${hasPendingRoutes ? `${each(pendingRoutes, (route) => {
+        return `<ion-item button><ion-avatar slot="start"><div class="route-color svelte-1xh3ip" style="${"background-color:" + escape(getDeliveryColor(route.status), true) + ";color:" + escape(getContrast(getDeliveryColor(route.status)), true)}"${add_attribute("title", setTitleStatus(route.status), 0)}><div class="route-symbol svelte-1xh3ip">${escape(capitalizeFirstLetter(route.name?.charAt(0)))}</div> </div></ion-avatar> <ion-label><h2>${escape(route.name?.toUpperCase())}</h2> <h3 class="text-muted svelte-1xh3ip">Inicio: ${escape(route.date_start)}</h3></ion-label> </ion-item>`;
+      })}` : `<ion-grid class="ion-text-center h-full" data-svelte-h="svelte-3d9uou"><ion-row class="h-full items-center"><ion-col class="text-center"><h2 class="text-3xl text-muted mb-4 svelte-1xh3ip">No hay rutas pendientes para hoy</h2> <p class="text-muted svelte-1xh3ip">Espere indicaciones de su supervisor</p></ion-col></ion-row></ion-grid>`}</ion-list></ion-content>`;
     }
   })}` : ``}`;
 });
