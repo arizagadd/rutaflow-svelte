@@ -243,7 +243,9 @@
         <ion-header translucent>
             <ion-toolbar>
                 <ion-buttons slot="start">
-                    <ion-button>{dataSession.name}</ion-button>
+                    <ion-button class="name-btn" title={dataSession.name}>
+                        <span class="name-span">{dataSession.name}</span>
+                    </ion-button>
                 </ion-buttons>
 
                 <!-- Centered Select Dropdown -->
@@ -343,6 +345,18 @@
 {/if}
 
 <style>
+    .name-btn {
+        --max-width: 5rem;
+        width: 5rem;
+    }
+    .name-span {
+        display: block;
+        --max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        --white-space: nowrap;
+        --text-align: center;
+    }
     .route-color {
         width: 100%;
         height: 100%;
