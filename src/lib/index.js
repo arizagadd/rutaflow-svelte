@@ -1,5 +1,5 @@
 // place files you want to import through the `$lib` alias in this folder.
-export function hexToRGBA(hex="", alpha=0.0) {
+export function hexToRGBA(hex = "", alpha = 0.0) {
     // Remove "#" if present
     hex = hex.replace(/^#/, '');
 
@@ -16,7 +16,7 @@ export function hexToRGBA(hex="", alpha=0.0) {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-export async function getJson(apiUrl="", callback=function(obj={}){}, variables = {}) {
+export async function getJson(apiUrl = "", callback = function (obj = {}) { }, variables = {}) {
     let formData = new FormData();
 
     // Append variables to FormData
@@ -41,8 +41,26 @@ export async function getJson(apiUrl="", callback=function(obj={}){}, variables 
         console.error('Error during file upload:', error);
     }
 }
-export function getImgsArray(stringImg='') {
+export function getImgsArray(stringImg = '') {
     // Split the input string by commas and trim any extra whitespace from each URL
     const imgArray = stringImg.split(',').map(url => url.trim());
     return imgArray;
+}
+
+export function removeFile(index = 0, files = [""], img_ids = [""], selectedImages = '') {
+    /* Quitar el elemento en todos los arrays relacionados      */
+    files.splice(index, 1);
+    files = [...files];
+
+    img_ids.splice(index, 1);
+    img_ids = [...img_ids];
+
+    /* Volver a construir la cadena que enviarás al backend    */
+    selectedImages = files.join(",");
+
+    return {
+        files: files,
+        img_ids: img_ids,
+        selectedImages: selectedImages
+    };
 }

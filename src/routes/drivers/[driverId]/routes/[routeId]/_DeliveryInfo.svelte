@@ -26,7 +26,7 @@
     import ChecklistControl from "./_ChecklistControl.svelte";
     import { onMount } from "svelte";
     import { DATABASE_URL, WP_TOKEN, WP_URL } from "../../../../../hooks";
-    import { hexToRGBA, getJson, getImgsArray } from "$lib";
+    import { hexToRGBA, getJson, getImgsArray, removeFile } from "$lib";
 
     /*Back URL*/
     let back_url = DATABASE_URL;
@@ -309,10 +309,6 @@
         overlayElement.dismiss({ data: Date.now() });
     };
 
-    function removeFile(index) {
-        files = files.filter((_, i) => i !== index);
-    }
-
     const sendEvidence = async () => {
         try {
             isLoading = true;
@@ -462,7 +458,7 @@
         /* ----------  Envío WhatsApp  (fetch + headers)  ---------- */
         try {
             var delivery_string = delivery.client_phone
-                ? `\nDudas contáctanos en https://wa.me/${delivery.client_phone}.`
+                ? `\nSi deseas contactarnos, entra al siguiente link: https://wa.me/${delivery.client_phone}.`
                 : `.`;
             payload.text = `*Rutaflow*\n\nEl repartidor va en camino a tu domicilio ${delivery.title}${delivery_string}\n\nEnviado por _${delivery.enterprise_name}_`;
             payload.phone = phoneNumber;
@@ -571,6 +567,13 @@
             lv
         );
         return "";
+    }
+
+    function toRemoveFiles(index = 0) {
+        var response = removeFile(index, files, img_ids, selectedImages);
+        files = response.files;
+        img_ids = response.img_ids;
+        selectedImages = response.selectedImages;
     }
 </script>
 
@@ -839,7 +842,7 @@
                             />
                             <button
                                 class="remove-button"
-                                on:click={() => removeFile(index)}
+                                on:click={() => toRemoveFiles(index)}
                                 style="position: absolute;top: 5px;right: 5px;border:none;cursor: pointer;font-size: 18px;background: white;border-radius: 50%;padding: 3px 4px 0px;box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);color: #0000008f;"
                             >
                                 <ion-icon icon={trash} />
