@@ -9,11 +9,6 @@
     duplicateOutline,
     trash,
     closeSharp,
-    warningOutline,
-    medicalOutline,
-    waterOutline,
-    restaurantOutline,
-    carOutline,
   } from "ionicons/icons";
 
   /*Back URL*/
@@ -34,11 +29,11 @@
   let gMap, gMarker;
 
   const motives = [
-    { id: "car_accident", icon: warningOutline, label: "Accidente" },
+    { id: "car_accident", icon: "/car-accident.svg", label: "Accidente" },
     { id: "hospital", icon: "/hospital.svg", label: "Hospital" },
     { id: "wc", icon: "/toilet.svg", label: "Baño" },
-    { id: "restaurant", icon: restaurantOutline, label: "Restaurante" },
-    { id: "parking", icon: carOutline, label: "Parking" },
+    { id: "restaurant", icon: "/restaurant.svg", label: "Restaurant" },
+    { id: "parking", icon: "/parking.svg", label: "Parking" },
   ];
 
   onMount(() => {
@@ -60,7 +55,6 @@
   };
 
   const handleFileChange = async (event) => {
-    console.log(files);
     if (files.length >= 5) {
       showAlert(
         "Límite de evidencias",
@@ -87,7 +81,6 @@
               selectedImages = selectedImages
                 ? `${selectedImages},${data.img}`
                 : data.img;
-              console.log(selectedImages);
               files = getImgsArray(selectedImages);
             } else {
               showAlert("Error", "No se pudo subir la imagen");
@@ -249,13 +242,13 @@
     pinDiv.style.cssText = `
       display:flex;align-items:center;justify-content:center;
       width:38px;height:38px;border-radius:50%;
-      background:#ffffff;border:2px solid #428cff;
+      background:#ffffff;border:2px solid #d13434;
       box-shadow:0 0 4px rgba(0,0,0,.3);
   `;
 
     const ion = document.createElement("ion-icon");
     ion.setAttribute("icon", motiveObj.icon); // p.e. "warning-outline"
-    ion.style.cssText = "font-size:24px;color:#428cff;";
+    ion.style.cssText = "font-size:24px;color:#d13434;";
     pinDiv.appendChild(ion);
 
     /* ⬇️ 5. Pin en el mapa */
@@ -292,7 +285,7 @@
     <ion-item
       lines="none"
       class="motive-item"
-      style="display: grid; justify-content: center;"
+      style="display: grid; justify-content: center; margin-bottom:15px;"
     >
       <!-- Grid de botones -->
       <div

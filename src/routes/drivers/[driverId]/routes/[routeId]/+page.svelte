@@ -27,6 +27,7 @@
     let loading = true;
     let showChecklist = false;
     let deliveries = [];
+    let incidences = [];
     let stats = {};
     let checklist = [];
     let expenses = [];
@@ -38,6 +39,14 @@
     let smsActive = "";
     let orderRestriction = "0";
     let settings = new Object();
+
+    const motiveIconName = {
+        car_accident: "/car-accident.svg",
+        restaurant: "/restaurant.svg",
+        parking: "/parking.svg",
+        hospital: "/hospital.svg", // svg externo
+        wc: "/toilet.svg", // svg externo
+    };
 
     const refresh = async () => {
         await loadRoute(routeId);
@@ -182,7 +191,7 @@
                 );
             }
 
-            // Example of adding markers for stops/events
+            // Adding markers for stops/events
             deliveries.forEach((delivery, index) => {
                 const lat = parseFloat(delivery.lat);
                 const lon = parseFloat(delivery.lon);
@@ -223,6 +232,48 @@
                 });
 
                 bounds.extend(marker.getPosition());
+            });
+
+            incidences.forEach((inc) => {
+                const lat = +inc.lat,
+                    lng = +inc.lng;
+                if (isNaN(lat) || isNaN(lng)) return;
+
+                const iconName = motiveIconName[inc.type] || "alert-sharp";
+
+                /* contenedor para el pin */
+                const wrapper = document.createElement("div");
+                wrapper.style.cssText =
+                    "display:flex;align-items:center;justify-content:center;" +
+                    "transform:scale(.85);";
+
+                const ion = document.createElement("ion-icon");
+
+                /* Ionicon integrado o svg externo */
+                if (iconName.startsWith("/")) {
+                    ion.setAttribute("src", iconName); // hospital.svg, toilet.svg
+                } else {
+                    ion.setAttribute("icon", iconName); // warning-sharp, etc.
+                }
+                ion.style.cssText = "font-size:20px;color:#d13434;";
+                wrapper.appendChild(ion);
+
+                /* Pin rojo para incidencias */
+                const pin = new PinElement({
+                    background: "#fff",
+                    borderColor: "#000",
+                    glyph: wrapper,
+                });
+
+                const marker = new AdvancedMarkerElement({
+                    map,
+                    position: { lat, lng: lng },
+                    content: pin.element,
+                    title: inc.motive || inc.type,
+                });
+
+                //marker.addListener("click", () => checklistEvidenceModal(inc));
+                bounds.extend(marker.position);
             });
 
             // Adjust map to fit all markers
@@ -302,6 +353,7 @@
             deliveries = data.data.event_list;
             checklist = data.data.checklist;
             expenses = data.data.expenses;
+            incidences = data.data.incidence_list;
             if (stats) {
                 showChecklist =
                     stats.km_inicial == "0" && stats.gas_inicial == "0";
