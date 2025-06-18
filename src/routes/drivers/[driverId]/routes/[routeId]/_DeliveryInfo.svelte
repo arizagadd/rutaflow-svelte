@@ -112,7 +112,6 @@
         func = function (r = {}) {},
         lv = {}
     ) => {
-        console.log(lv);
         const alert = await alertController.create({
             header: customHeader || "Error", // Use customHeader or default value
             message: customMessage || "Vuelva a intentar", // Use customMessage or default value
@@ -587,7 +586,12 @@
         >
         {#if (!isLast && !OriDesFlag) || (isLast && OriDesFlag)}
             <ion-buttons slot="end">
-                <ion-button on:click={sendEvidence} strong>Confirmar</ion-button
+                <ion-button
+                    on:click={sendEvidence}
+                    strong
+                    disabled={delivery.status == "completed"}
+                >
+                    Confirmar</ion-button
                 >
             </ion-buttons>
         {/if}
@@ -799,6 +803,7 @@
                     fill="outline"
                     class="loadEvidence"
                     style="flex:1;display: flex; align-items: center; gap: 8px;"
+                    disabled={delivery.status == "completed"}
                 >
                     <label for="eventEvidence" style="width:100%; height:100%;">
                         <ion-icon

@@ -156,7 +156,6 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
         } else if (dataSession && driverId) {
           goto(`/drivers/${dataSession.id_driver}`);
           loadRoutes();
-          console.log("Volví a entrar 2");
         }
       } else {
         showAlert("Sesión cerrada", "Será redireccionado para volver a ingresar");
