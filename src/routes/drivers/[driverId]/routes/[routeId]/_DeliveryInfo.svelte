@@ -1,6 +1,7 @@
 <script>
     //export let class = '';
     import { alertController } from "@ionic/core";
+    import { modalController } from "@ionic/core";
     import {
         documentTextOutline,
         personOutline,
@@ -304,13 +305,24 @@
         });
     };
 
-    const closeModal = () => {
-        overlayElement.dismiss({ data: Date.now() });
-    };
+    export async function closeModal() {
+        try {
+            if (overlayElement?.isConnected) {
+                await overlayElement.dismiss({ data: Date.now() });
+                return;
+            }
+            const top = await modalController.getTop();
+            if (top) await top.dismiss({ data: Date.now() });
+        } catch (e) {
+            console.warn("Close Modal Safe: modal ya cerrado o inexistente");
+        }
+    }
 
     const sendEvidence = async () => {
+        if (isLoading) return;
+        isLoading = true;
+
         try {
-            isLoading = true;
             selectedImages = files.join(",");
             img_id = img_ids.join(",");
             //To record checkOut date
@@ -346,15 +358,16 @@
                     };
 
                     if ((lv.img && lv.img_id) || selectedImages) {
-                        isLoading = true;
                         // Send the evidence data
                         getJson(
                             `${back_url}api/admin/evidence/send_evidence.php`,
                             function (result) {
                                 if (result.success == true) {
-                                    const routeId = lv.id_route;
                                     //Close delivery modal
                                     closeModal();
+
+                                    const routeId = lv.id_route;
+
                                     // Show final km and gas inputs if it is the last
                                     if (isLast) {
                                         showKmGasModal("", "", routeId, isLast);
@@ -365,7 +378,6 @@
                                             );
                                         }
                                     }
-                                    isLoading = false;
                                 } else {
                                     isLoading = false;
                                     showAlert(
@@ -845,13 +857,15 @@
                                 style="width: 100%;height: 100px; object-fit:cover;cursor: pointer;border: 1px solid #ccc;border-radius: 4px;margin-top: 16px;"
                                 on:click={() => openImage(file)}
                             />
-                            <button
-                                class="remove-button"
-                                on:click={() => toRemoveFiles(index)}
-                                style="position: absolute;top: 5px;right: 5px;border:none;cursor: pointer;font-size: 18px;background: white;border-radius: 50%;padding: 3px 4px 0px;box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);color: #0000008f;"
-                            >
-                                <ion-icon icon={trash} />
-                            </button>
+                            {#if delivery.status !== "completed"}
+                                <button
+                                    class="remove-button"
+                                    on:click={() => toRemoveFiles(index)}
+                                    style="position: absolute;top: 5px;right: 5px;border:none;cursor: pointer;font-size: 18px;background: white;border-radius: 50%;padding: 3px 4px 0px;box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);color: #0000008f;"
+                                >
+                                    <ion-icon icon={trash} />
+                                </button>
+                            {/if}
                         </div>
                     {/each}
                 </div>
