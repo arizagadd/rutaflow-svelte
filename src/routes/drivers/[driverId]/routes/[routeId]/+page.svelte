@@ -39,6 +39,7 @@
     let smsActive = "";
     let orderRestriction = "0";
     let settings = new Object();
+    let deliveryInfoModalPromise = null;
 
     const motiveIconName = {
         car_accident: "/car-accident.svg",
@@ -435,29 +436,43 @@
         });
     };
 
-    const showDeliveryInfoModal = (delivery, isLast) => {
-        refresh_event_info(delivery).then((evidence_data) => {
-            delivery.stopsApproval = stopsApproval;
-            delivery.smsActive = smsActive;
-            if (evidence_data) {
-                //update these two fields that could change when user charge info
-                delivery.img = evidence_data.img;
-                delivery.driver_comments = evidence_data.driver_comments;
-                delivery.comments = evidence_data.comments;
+    function showDeliveryInfoModal(delivery, isLast) {
+        // Hay otro modal en curso → devolver la misma promesa
+        if (deliveryInfoModalPromise) return deliveryInfoModalPromise;
+
+        // Se crea la promesa y guardo en la variable global
+        deliveryInfoModalPromise = (async () => {
+            // Refresca evidencia antes de mostrar
+            let evidenceData = null;
+            try {
+                evidenceData = await refresh_event_info(delivery);
+            } catch (_) {
+                /* si falla, evidenceData queda null y sólo se muestra el modal */
             }
-            IonicShowModal("modal-delivery-info", DeliveryInfo, {
-                delivery,
-                isLast,
-            })
-                .then((result) => {
-                    //console.log(result);
-                })
-                .finally(() => {
-                    // Modal is closed, now call loadRoute and refresh
-                    loadRoute(routeId);
+
+            // Payload final
+            const payload = {
+                ...delivery,
+                stopsApproval,
+                smsActive,
+                ...(evidenceData || {}),
+            };
+
+            try {
+                /* Mostrar modal exactamente una vez */
+                await IonicShowModal("modal-delivery-info", DeliveryInfo, {
+                    delivery: payload,
+                    isLast,
                 });
-        });
-    };
+            } finally {
+                /* Limpiar y refrescar */
+                deliveryInfoModalPromise = null; // libera el candado
+                loadRoute(routeId);
+            }
+        })();
+
+        return deliveryInfoModalPromise;
+    }
 
     const showOrigenDestinyModal = (stats, isLast) => {
         var delivery = new Object();
