@@ -10,13 +10,13 @@ return {
 	assets: new Set([".DS_Store","car-accident.svg","favicon.png","hospital.svg","parking.svg","restaurant.svg","rutaflow.png","toilet.svg"]),
 	mimeTypes: {".svg":"image/svg+xml",".png":"image/png"},
 	_: {
-		client: {"start":"_app/immutable/entry/start.CCvvw4iW.js","app":"_app/immutable/entry/app.CJqb3EPm.js","imports":["_app/immutable/entry/start.CCvvw4iW.js","_app/immutable/chunks/entry.DD_5a_We.js","_app/immutable/chunks/index.CdEBkEwf.js","_app/immutable/entry/app.CJqb3EPm.js","_app/immutable/chunks/preload-helper.D6kgxu3v.js","_app/immutable/chunks/entry.DD_5a_We.js","_app/immutable/chunks/index.CdEBkEwf.js","_app/immutable/chunks/index.Dw8w8a4z.js"],"stylesheets":[],"fonts":[],"uses_env_dynamic_public":false},
+		client: {"start":"_app/immutable/entry/start.DIu4eS1b.js","app":"_app/immutable/entry/app.DpWCuIMM.js","imports":["_app/immutable/entry/start.DIu4eS1b.js","_app/immutable/chunks/entry.CUCICTwA.js","_app/immutable/chunks/index.CdEBkEwf.js","_app/immutable/entry/app.DpWCuIMM.js","_app/immutable/chunks/preload-helper.D6kgxu3v.js","_app/immutable/chunks/entry.CUCICTwA.js","_app/immutable/chunks/index.CdEBkEwf.js","_app/immutable/chunks/index.Dw8w8a4z.js"],"stylesheets":[],"fonts":[],"uses_env_dynamic_public":false},
 		nodes: [
 			__memo(() => import('./chunks/0-BUtDZsu9.js')),
 			__memo(() => import('./chunks/1-CC_IDcfK.js')),
-			__memo(() => import('./chunks/2-FHG-pXv7.js')),
-			__memo(() => import('./chunks/4-CysThYDa.js')),
-			__memo(() => import('./chunks/5-BWHAzzQU.js'))
+			__memo(() => import('./chunks/2-B82ogIYx.js')),
+			__memo(() => import('./chunks/4-Dpuu2-Vs.js')),
+			__memo(() => import('./chunks/5-Bk9eK62Q.js'))
 		],
 		routes: [
 			{

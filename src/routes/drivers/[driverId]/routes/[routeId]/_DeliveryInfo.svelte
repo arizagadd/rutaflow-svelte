@@ -640,6 +640,8 @@
         {#if delivery.line1 && delivery.line1.trim().length}
             <ion-item
                 href="https://www.google.com/maps/search/?api=1&query={delivery.line1}"
+                target="_blank"
+                rel="noopener noreferrer"
             >
                 <ion-icon icon={storefrontOutline} slot="start" />
                 <ion-label class="ion-text-wrap">
@@ -651,6 +653,8 @@
             {#if delivery.line2 && delivery.line2.trim().length}
                 <ion-item
                     href="https://www.google.com/maps/search/?api=1&query={delivery.line2}"
+                    target="_blank"
+                    rel="noopener noreferrer"
                 >
                     <ion-icon icon={storefrontOutline} slot="start" />
                     <ion-label class="ion-text-wrap">
@@ -663,6 +667,8 @@
         {:else if delivery.line2 && delivery.line2.trim().length}
             <ion-item
                 href="https://www.google.com/maps/searhc/?api=1&query={delivery.line2}"
+                target="_blank"
+                rel="noopener noreferrer"
             >
                 <ion-icon icon={storefrontOutline} slot="start" />
                 <ion-label class="ion-text-wrap">
@@ -677,7 +683,14 @@
                 <ion-icon icon={callOutline} slot="start" />
                 <ion-label class="ion-text-wrap">
                     <p>Contacto del Cliente</p>
-                    <h2>{phoneNumber}</h2>
+                    <h2>
+                        <a
+                            href={`tel:${phoneNumber}`}
+                            style={"text-decoration: none; color: inherit;"}
+                        >
+                            {phoneNumber}
+                        </a>
+                    </h2>
                 </ion-label>
                 <!-- Button to send SMS, preventing ion-item href action -->
                 {#if smsActive && smsActive === "1"}
