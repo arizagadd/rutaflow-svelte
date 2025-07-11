@@ -155,6 +155,7 @@
     lv.img = selectedImages;
     lv.id_user_over = dataSession.id_user;
     lv.token = dataSession.token;
+    lv.id_driver = dataSession.id_driver;
 
     if (!selectedMotive || !selectedImages || !lv.comments || !lv.img) {
       showAlert(

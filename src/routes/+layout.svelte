@@ -1,39 +1,41 @@
 <script context="module">
-	import { setupIonicBase } from 'ionic-svelte';
+	import { setupIonicBase } from "ionic-svelte";
 
 	export function url(page, path) {
-      const pathname = page.url.pathname;
+		const pathname = page.url.pathname;
 
-      if (path == null) {
-          return path;
-      } else if (path.match(/^\.\.?\//)) {
-          // Relative path (starts with `./` or `../`)
-          const [, breadcrumbs, relativePath] = path.match(/^([./]+)(.*)/) || [];
-          let dir = pathname.replace(/\/$/, '');
-          const traverse = (breadcrumbs && breadcrumbs.match(/\.\.\//g)) || [];
-          // if this is a page, we want to traverse one step back to its folder
-          traverse.forEach(() => (dir = dir.replace(/\/[^/]+\/?$/, '')));
-          path = `${dir}/${relativePath}`.replace(/\/$/, '');
-          path = path || '/'; // empty means root
-      } else if (path.match(/^\//)) {
-          // Absolute path (starts with `/`)
-          return path;
-      } else {
-          // Unknown (no named path)
-          return path;
-      }
+		if (path == null) {
+			return path;
+		} else if (path.match(/^\.\.?\//)) {
+			// Relative path (starts with `./` or `../`)
+			const [, breadcrumbs, relativePath] =
+				path.match(/^([./]+)(.*)/) || [];
+			let dir = pathname.replace(/\/$/, "");
+			const traverse =
+				(breadcrumbs && breadcrumbs.match(/\.\.\//g)) || [];
+			// if this is a page, we want to traverse one step back to its folder
+			traverse.forEach(() => (dir = dir.replace(/\/[^/]+\/?$/, "")));
+			path = `${dir}/${relativePath}`.replace(/\/$/, "");
+			path = path || "/"; // empty means root
+		} else if (path.match(/^\//)) {
+			// Absolute path (starts with `/`)
+			return path;
+		} else {
+			// Unknown (no named path)
+			return path;
+		}
 
-      return path;
-    }
-	
+		return path;
+	}
+
 	/* Call Ionic's setup routine */
 	setupIonicBase();
 
 	/* Import all components - or do partial loading - see below */
-	import 'ionic-svelte/components/all';
+	import "ionic-svelte/components/all";
 
 	/* Theme variables */
-	import '../theme/variables.css';
+	import "../theme/variables.css";
 
 	/*
 		This part - import 'ionic-svelte/components/all'; -  loads all components at once.

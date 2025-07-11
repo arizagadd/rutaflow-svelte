@@ -5,6 +5,6 @@ let component_cache;
 export const component = async () => component_cache ??= (await import('../entries/pages/drivers/_driverId_/_page.svelte.js')).default;
 export { server };
 export const server_id = "src/routes/drivers/[driverId]/+page.server.js";
-export const imports = ["_app/immutable/nodes/4.B4WCGUBc.js","_app/immutable/chunks/index.CdEBkEwf.js","_app/immutable/chunks/index.Dw8w8a4z.js","_app/immutable/chunks/index.CG2AN3qo.js","_app/immutable/chunks/entry.CUCICTwA.js","_app/immutable/chunks/index-6e05b96e.C_9q9BoX.js","_app/immutable/chunks/IonPage.Bsb7kWMj.js"];
+export const imports = ["_app/immutable/nodes/4.DRys-vzj.js","_app/immutable/chunks/index.CdEBkEwf.js","_app/immutable/chunks/index.Dw8w8a4z.js","_app/immutable/chunks/index.BnwvsoLn.js","_app/immutable/chunks/entry.CmW7zduL.js","_app/immutable/chunks/index-6e05b96e.C_9q9BoX.js","_app/immutable/chunks/overlays-b874c3c3.By5XMS8m.js"];
 export const stylesheets = ["_app/immutable/assets/4.xYEJXkLy.css"];
 export const fonts = [];

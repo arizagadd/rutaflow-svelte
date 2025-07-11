@@ -5,8 +5,7 @@ import { defineCustomElement } from "@ionic/core/components/ion-modal.js";
 import { initialize } from "@ionic/core/components/index.js";
 import { g as goto } from "../../../../../../chunks/client.js";
 import { DATABASE_URL } from "../../../../../../chunks/hooks.js";
-import { p as page, h as hexToRGBA } from "../../../../../../chunks/index2.js";
-import { I as IonPage } from "../../../../../../chunks/IonPage.js";
+import { p as page, I as IonPage, h as hexToRGBA } from "../../../../../../chunks/index2.js";
 const registerCustomElement = (tagName, component) => {
   if (!customElements.get(tagName)) {
     class SvelteElement extends HTMLElement {
