@@ -8,13 +8,6 @@
       "_internal.js"
     ]
   },
-  "_IonPage.js": {
-    "file": "chunks/IonPage.js",
-    "name": "IonPage",
-    "imports": [
-      "_ssr.js"
-    ]
-  },
   "_authStore.js": {
     "file": "chunks/authStore.js",
     "name": "authStore"
@@ -109,7 +102,7 @@
       "_index.js"
     ],
     "css": [
-      "_app/immutable/assets/_layout.D_LIpb5I.css"
+      "_app/immutable/assets/_layout.CAr9TaiA.css"
     ]
   },
   "src/routes/+page.server.js": {
@@ -125,12 +118,11 @@
     "isEntry": true,
     "imports": [
       "_ssr.js",
-      "_IonPage.js",
       "_authStore.js",
       "_client.js"
     ],
     "css": [
-      "_app/immutable/assets/_page.CUWd1099.css"
+      "_app/immutable/assets/_page.DMpVZ_XN.css"
     ]
   },
   "src/routes/drivers/[driverId]/+layout.svelte": {
@@ -159,7 +151,6 @@
       "_ssr.js",
       "_index2.js",
       "_client.js",
-      "_IonPage.js",
       "src/hooks.js"
     ],
     "css": [
@@ -181,8 +172,7 @@
       "_ssr.js",
       "_client.js",
       "src/hooks.js",
-      "_index2.js",
-      "_IonPage.js"
+      "_index2.js"
     ],
     "css": [
       "_app/immutable/assets/_page.DtBE3a7s.css"

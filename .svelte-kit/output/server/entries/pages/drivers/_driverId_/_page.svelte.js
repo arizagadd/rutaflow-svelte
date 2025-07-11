@@ -1,9 +1,8 @@
 import { c as create_ssr_component, d as subscribe, v as validate_component, a as add_attribute, e as escape, f as each } from "../../../../chunks/ssr.js";
-import { p as page, g as getJson } from "../../../../chunks/index2.js";
+import { p as page, g as getJson, I as IonPage } from "../../../../chunks/index2.js";
 import { alertController } from "@ionic/core";
 import { logOut } from "ionicons/icons/index.mjs";
 import { g as goto } from "../../../../chunks/client.js";
-import { I as IonPage } from "../../../../chunks/IonPage.js";
 import { DATABASE_URL } from "../../../../chunks/hooks.js";
 const css = {
   code: ".name-btn.svelte-13map4f{--max-width:5rem;width:5rem}.name-span.svelte-13map4f{display:block;--max-width:100%;overflow:hidden;text-overflow:ellipsis;--white-space:nowrap;--text-align:center}.route-color.svelte-13map4f{width:100%;height:100%;border-radius:50%;display:flex;justify-content:center}.route-symbol.svelte-13map4f{text-align:center;align-self:center;font-size:30px}h3.svelte-13map4f{font-size:13px}.text-muted.svelte-13map4f{color:#8e8e8e}",
