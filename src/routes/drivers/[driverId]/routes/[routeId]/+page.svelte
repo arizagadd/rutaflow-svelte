@@ -37,6 +37,7 @@
     let mapElement;
     let stopsApproval = "";
     let smsActive = "";
+    let signatureActive = "";
     let orderRestriction = "0";
     let settings = new Object();
     let deliveryInfoModalPromise = null;
@@ -455,6 +456,7 @@
                 ...delivery,
                 stopsApproval,
                 smsActive,
+                signatureActive,
                 ...(evidenceData || {}),
             };
 
@@ -635,6 +637,10 @@
                     smsActive = getSettingVal("sms_active", settings);
                     orderRestriction = getSettingVal(
                         "stops_order_restriction",
+                        settings
+                    );
+                    signatureActive = getSettingVal(
+                        "signature_active",
                         settings
                     );
                 } else {

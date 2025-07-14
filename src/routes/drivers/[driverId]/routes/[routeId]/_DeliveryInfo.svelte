@@ -17,6 +17,7 @@
         logOutOutline,
         pricetagOutline,
         closeSharp,
+        saveOutline,
     } from "ionicons/icons";
     import { createOutline } from "ionicons/icons";
     import { storefrontOutline } from "ionicons/icons";
@@ -28,6 +29,7 @@
     import { onMount } from "svelte";
     import { DATABASE_URL, WP_TOKEN, WP_URL } from "../../../../../hooks";
     import { hexToRGBA, getJson, getImgsArray, removeFile } from "$lib";
+    import SignaturePad from "./_SignaturePad.svelte";
 
     /*Back URL*/
     let back_url = DATABASE_URL;
@@ -47,6 +49,7 @@
     let locationData = { latitude: null, longitude: null };
     let stopsApproval = delivery.stopsApproval;
     let smsActive = delivery.smsActive;
+    let signatureActive = delivery.signatureActive;
     let isLoading = false;
     // State variables to track button status and times
     let checkInActive = true;
@@ -65,6 +68,8 @@
     let border_color = delivery.tag_color
         ? hexToRGBA(delivery.tag_color, 0.3)
         : "";
+    let pad;
+    let buttonsDisabled = false;
 
     onMount(() => {
         dataSession = JSON.parse(localStorage.getItem("userSession"));
@@ -304,6 +309,21 @@
             };
         });
     };
+
+    function dataURLtoBlob(dataURL) {
+        // Split into “metadata” and “data” sections
+        const [meta, b64] = dataURL.split(",");
+        // Get MIME type from “data:image/png;base64”
+        const mime = meta.match(/:(.*?);/)[1];
+        // Decode base64 to raw binary
+        const binary = atob(b64);
+        const len = binary.length;
+        const u8arr = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            u8arr[i] = binary.charCodeAt(i);
+        }
+        return new Blob([u8arr], { type: mime });
+    }
 
     export async function closeModal() {
         try {
@@ -586,6 +606,40 @@
         img_ids = response.img_ids;
         selectedImages = response.selectedImages;
     }
+
+    async function handleSave() {
+        const dataUrl = await pad.save(); // ← call the instance method
+        if (dataUrl) {
+            // disable both buttons immediately
+            buttonsDisabled = true;
+            let convertedImg = dataURLtoBlob(dataUrl);
+            getJson(
+                `${back_url}api/admin/manager/upload_img_driver.php`,
+                function (result) {
+                    if (result.success) {
+                        selectedImages = selectedImages
+                            ? `${selectedImages},${result.img}`
+                            : result.img;
+                        img_id = img_id
+                            ? `${img_id},${result.img_id}`
+                            : result.img_id;
+                        files = getImgsArray(selectedImages);
+                        img_ids = getImgsArray(img_id);
+                    } else {
+                        showAlert(
+                            "Carga fallida",
+                            "Actualiza la página y vuelve a intentar. Si el problema persiste, contacta a soporte."
+                        );
+                    }
+                },
+                { fileToUpload: convertedImg }
+            );
+        }
+    }
+
+    function handleClear() {
+        pad.clear();
+    }
 </script>
 
 <ion-header translucent>
@@ -640,8 +694,6 @@
         {#if delivery.line1 && delivery.line1.trim().length}
             <ion-item
                 href="https://www.google.com/maps/search/?api=1&query={delivery.line1}"
-                target="_blank"
-                rel="noopener noreferrer"
             >
                 <ion-icon icon={storefrontOutline} slot="start" />
                 <ion-label class="ion-text-wrap">
@@ -653,8 +705,6 @@
             {#if delivery.line2 && delivery.line2.trim().length}
                 <ion-item
                     href="https://www.google.com/maps/search/?api=1&query={delivery.line2}"
-                    target="_blank"
-                    rel="noopener noreferrer"
                 >
                     <ion-icon icon={storefrontOutline} slot="start" />
                     <ion-label class="ion-text-wrap">
@@ -667,8 +717,6 @@
         {:else if delivery.line2 && delivery.line2.trim().length}
             <ion-item
                 href="https://www.google.com/maps/searhc/?api=1&query={delivery.line2}"
-                target="_blank"
-                rel="noopener noreferrer"
             >
                 <ion-icon icon={storefrontOutline} slot="start" />
                 <ion-label class="ion-text-wrap">
@@ -683,14 +731,7 @@
                 <ion-icon icon={callOutline} slot="start" />
                 <ion-label class="ion-text-wrap">
                     <p>Contacto del Cliente</p>
-                    <h2>
-                        <a
-                            href={`tel:${phoneNumber}`}
-                            style={"text-decoration: none; color: inherit;"}
-                        >
-                            {phoneNumber}
-                        </a>
-                    </h2>
+                    <h2>{phoneNumber}</h2>
                 </ion-label>
                 <!-- Button to send SMS, preventing ion-item href action -->
                 {#if smsActive && smsActive === "1"}
@@ -771,11 +812,13 @@
         {#if !OriDesFlag}
             <ion-item>
                 <ion-icon icon={carOutline} slot="start" />
+                <ion-label class="ion-text-wrap">
+                    <p>Estado de entrega</p>
+                </ion-label>
                 <ion-select
                     bind:this={deliverStatus}
                     value={dStatus ? dStatus : "delivered"}
                 >
-                    <div slot="label">Estado de entrega</div>
                     <ion-select-option value="delivered"
                         >Entregado</ion-select-option
                     >
@@ -789,12 +832,48 @@
             </ion-item>
             <ion-item>
                 <ion-icon icon={createOutline} slot="start" />
+                <ion-label class="ion-text-wrap">
+                    <p>Notas</p>
+                </ion-label>
                 <ion-textarea
                     bind:this={driverComments}
-                    label="Notas"
                     placeholder="Escribe aquí..."
                 />
             </ion-item>
+            {#if delivery.status !== "completed" && signatureActive === "1"}
+                <section
+                    style="display: flex; flex-direction: column; align-items: center; padding: 0px 16px 16px;"
+                >
+                    <ion-label class="ion-text-wrap" style="padding: 10px 0px;">
+                        <p>Firma de entregado</p>
+                    </ion-label>
+                    <br />
+                    {#key delivery.id_event}
+                        <SignaturePad bind:this={pad} />
+                    {/key}
+                </section>
+                <section style="display: flex; gap: 8px; padding: 0px 16px;">
+                    <ion-button
+                        style="flex: 1;"
+                        on:click={handleClear}
+                        fill="outline"
+                        disabled={buttonsDisabled ||
+                            delivery.status == "completed"}
+                    >
+                        <ion-icon icon={trash} slot="start" />
+                        Borrar
+                    </ion-button>
+                    <ion-button
+                        style="flex: 1;"
+                        on:click={handleSave}
+                        disabled={buttonsDisabled ||
+                            delivery.status == "completed"}
+                    >
+                        <ion-icon icon={saveOutline} slot="start" />
+                        Guardar
+                    </ion-button>
+                </section>
+            {/if}
             <!-- Check-In and Check-Out Buttons -->
             <section style="display: flex; gap: 8px; padding: 16px 16px 6px;">
                 {#if checkInActive === true}
@@ -823,7 +902,6 @@
         {/if}
         {#if (isLast && OriDesFlag) || (!isLast && !OriDesFlag)}
             <section style="display: flex; gap: 8px; padding: 0px 16px;">
-                <!-- <label for="eventEvidence" style="display: block; width: 100%;"> -->
                 <ion-button
                     fill="outline"
                     class="loadEvidence"
@@ -850,7 +928,6 @@
                         />
                     </label>
                 </ion-button>
-                <!-- </label> -->
             </section>
         {/if}
         {#if selectedImages}

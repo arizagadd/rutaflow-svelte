@@ -38,6 +38,7 @@
 		"@macfja/svelte-persistent-store": "^2.4.1",
 		"ionic-svelte": "^0.5.82",
 		"ionicons": "^7.2.1",
-		"polka": "^0.5.2"
+		"polka": "^0.5.2",
+		"signature_pad": "^5.0.10"
 	}
 }
