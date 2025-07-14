@@ -6,6 +6,7 @@ import { initialize } from "@ionic/core/components/index.js";
 import { g as goto } from "../../../../../../chunks/client.js";
 import { DATABASE_URL } from "../../../../../../chunks/hooks.js";
 import { p as page, I as IonPage, h as hexToRGBA } from "../../../../../../chunks/index2.js";
+import "signature_pad";
 const registerCustomElement = (tagName, component) => {
   if (!customElements.get(tagName)) {
     class SvelteElement extends HTMLElement {
