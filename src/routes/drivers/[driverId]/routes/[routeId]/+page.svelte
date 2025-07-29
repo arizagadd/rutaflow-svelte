@@ -40,7 +40,8 @@
     let signatureActive = "";
     let orderRestriction = "0";
     let settings = new Object();
-    let deliveryInfoModalPromise = null;
+    let deliveryInfoModalPromise = "";
+    let isLoading = false;
 
     const motiveIconName = {
         car_accident: "/car-accident.svg",
@@ -506,6 +507,7 @@
 
     const showChecklistModal = (checklist, driverId, routeId) => {
         var isLast = false;
+        isLoading = true;
         if (!isModalOpen) {
             isModalOpen = true;
             IonicShowModal("modal-checklist", ChecklistControl, {
@@ -514,6 +516,7 @@
                 routeId,
                 isLast,
             }).then((result) => {
+                isLoading = false;
                 isModalOpen = false;
             });
             changeRouteStatus(routeId, "checklist");
@@ -522,26 +525,33 @@
     };
 
     const showExpenseModal = async (routeId) => {
+        isLoading = true;
         await loadRoute(routeId);
         if (expenses.length > 0) {
             IonicShowModal("modal-expense-detail", ExpenseDetails, {
                 routeId,
                 expenses,
-            }).then((result) => {});
+            }).then((result) => {
+                isLoading = false;
+            });
         } else {
             IonicShowModal("modal-expense", AddExpense, {
                 routeId,
-            }).then((result) => {});
+            }).then((result) => {
+                isLoading = false;
+            });
         }
-        //changeRouteStatus(routeId,'checklist');
         return "";
     };
 
     const showIncidenceModal = async (routeId) => {
+        isLoading = true;
         await loadRoute(routeId);
         IonicShowModal("modal-incidence", AddIncidence, {
             routeId,
-        }).then((result) => {});
+        }).then((result) => {
+            isLoading = false;
+        });
         //changeRouteStatus(routeId,'checklist');
         return "";
     };
@@ -1303,6 +1313,23 @@
             </ion-content>
         {/if}
     </IonPage>
+{/if}
+{#if isLoading}
+    <div
+        class="overlay"
+        style="position: fixed;
+                                top: 0;
+                                left: 0;
+                                width: 100vw;
+                                height: 100vh;
+                                background: rgba(0, 0, 0, 0.5);
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                z-index: 9999;"
+    >
+        <ion-spinner name="dots" style="color:white;" />
+    </div>
 {/if}
 
 <style>

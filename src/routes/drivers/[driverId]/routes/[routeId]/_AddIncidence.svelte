@@ -55,45 +55,54 @@
   };
 
   const handleFileChange = async (event) => {
-    if (files.length >= 5) {
-      showAlert(
-        "Límite de evidencias",
-        "Solo se permite subir 5 fotos por parada"
-      );
-      return;
-    }
-    isLoading = true; // Show spinner
-    const fileInput = event.target;
-    const file = fileInput.files[0];
-    const compressed_file = await compressImage(file);
+    isLoading = true;
 
-    if (compressed_file) {
-      var lv = new Object();
-      lv.fileToUpload = compressed_file;
-      lv.id_user_over = dataSession.id_user;
-      lv.token = dataSession.token;
+    try {
+      if (files.length >= 5) {
+        showAlert(
+          "Límite de evidencias",
+          "Solo se permite subir 5 fotos por parada"
+        );
+        return;
+      }
 
-      try {
+      const fileInput = event.target;
+      const file = fileInput.files[0];
+      const compressed_file = await compressImage(file);
+
+      if (!compressed_file) {
+        showAlert("Error", "No se pudo comprimir la imagen");
+        return;
+      }
+
+      const lv = {
+        fileToUpload: compressed_file,
+        id_user_over: dataSession.id_user,
+        token: dataSession.token,
+      };
+
+      // Wrap getJson in a Promise so you can await it
+      const uploadResponse = await new Promise((resolve, reject) => {
         getJson(
           `${back_url}api/admin/manager/upload_img_driver.php`,
-          function (data) {
-            if (data.success) {
-              selectedImages = selectedImages
-                ? `${selectedImages},${data.img}`
-                : data.img;
-              files = getImgsArray(selectedImages);
-            } else {
-              showAlert("Error", "No se pudo subir la imagen");
-            }
-            isLoading = false;
-          },
+          (data) => resolve(data),
           lv
         );
-      } catch (error) {
-        console.error("Error during file upload:", error);
-      } finally {
-        isLoading = false; // Hide spinner
+      });
+
+      if (uploadResponse.success) {
+        selectedImages = selectedImages
+          ? `${selectedImages},${uploadResponse.img}`
+          : uploadResponse.img;
+        files = getImgsArray(selectedImages);
+      } else {
+        showAlert("Error", "No se pudo subir la imagen");
       }
+    } catch (error) {
+      console.error("Error during file upload:", error);
+      showAlert("Error", "Algo salió mal al subir la imagen.");
+    } finally {
+      isLoading = false; // Always turn off spinner
     }
   };
 
@@ -145,6 +154,7 @@
   };
 
   const sendIncidence = () => {
+    isLoading = true; // Show spinner
     var lv = new Object();
     selectedImages = files.join(",");
     lv.id_route = routeId;
@@ -158,11 +168,13 @@
     lv.id_driver = dataSession.id_driver;
 
     if (!selectedMotive || !selectedImages || !lv.comments || !lv.img) {
+      isLoading = false; // Hide spinner
       showAlert(
         "Datos incompletos",
         "Llena los datos requeridos para completar el registro"
       );
     } else if (!lv.lat || !lv.lng) {
+      isLoading = false; // Hide spinner
       showAlert(
         "Ubicación no disponible",
         "Por favor, asegúrate de que la ubicación está activada en tu dispositivo."
@@ -172,8 +184,10 @@
         `${back_url}api/admin/incidence/add_incidence.php`,
         function (data) {
           if (data) {
+            isLoading = false; // Hide spinner
             showAlert("Éxito", "Incidencia registrada correctamente");
           } else {
+            isLoading = false; // Hide spinner
             showAlert(
               "Error",
               "No se pudo registrar la incidencia. Por favor, inténtalo de nuevo."
@@ -390,24 +404,6 @@
     {/if}
   </ion-list>
 </ion-content>
-{#if isLoading}
-  <div
-    class="overlay"
-    style="position: fixed;
-                              top: 0;
-                              left: 0;
-                              width: 100vw;
-                              height: 100vh;
-                              background: rgba(0, 0, 0, 0.5);
-                              display: flex;
-                              align-items: center;
-                              justify-content: center;
-                              z-index: 9999;"
-  >
-    <ion-spinner name="dots" style="color:white;" />
-  </div>
-{/if}
-
 {#if showModal}
   <div
     class="modal-overlay"
@@ -432,5 +428,22 @@
         <ion-icon icon={closeSharp} />
       </button>
     </div>
+  </div>
+{/if}
+{#if isLoading}
+  <div
+    class="overlay"
+    style="position: fixed;
+                              top: 0;
+                              left: 0;
+                              width: 100vw;
+                              height: 100vh;
+                              background: rgba(0, 0, 0, 0.5);
+                              display: flex;
+                              align-items: center;
+                              justify-content: center;
+                              z-index: 9999;"
+  >
+    <ion-spinner name="dots" style="color:white;" />
   </div>
 {/if}

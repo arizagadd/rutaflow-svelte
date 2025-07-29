@@ -144,6 +144,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   let expenses = [];
   let refresher;
   let isModalOpen = false;
+  let isLoading = false;
   function loadRoute(routeId2) {
     return __awaiter(this, void 0, void 0, function* () {
       let requestData = new FormData();
@@ -170,9 +171,11 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   }
   const showChecklistModal = (checklist2, driverId2, routeId2) => {
     var isLast = false;
+    isLoading = true;
     if (!isModalOpen) {
       isModalOpen = true;
       IonicShowModal("modal-checklist", ChecklistControl, { checklist: checklist2, driverId: driverId2, routeId: routeId2, isLast }).then((result) => {
+        isLoading = false;
         isModalOpen = false;
       });
       changeRouteStatus(routeId2, "checklist");
@@ -243,7 +246,7 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
         return `<ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-1ita8l7"${add_attribute("title", getStatusTitle(delivery.status), 0)} style="${"background-color: " + escape(getDeliveryColor(delivery.status, delivery.date_service), true) + "; color: " + escape(getContrast(getDeliveryColor(delivery.status)), true)}"><div class="order svelte-1ita8l7">${escape(parseInt(delivery.pos) + 1)}</div> </div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(delivery.title)} ${delivery.support_list && delivery.support_list.length || mustCharge(delivery) ? `<span class="notes svelte-1ita8l7"></span>` : ``}</h3> </ion-text></ion-label> ${delivery.tag_color && delivery.tag ? `<div class="stop-tag" slot="end" style="${"background-color:" + escape(hexToRGBA(delivery.tag_color, 0.3), true) + "; border: 1px solid " + escape(hexToRGBA(delivery.tag_color, 0.4), true) + "; color: " + escape(delivery.tag_color, true) + "; font-size: 10px; text-align: center; align-content: center; border-radius: 20px; white-space: normal; padding: 3px 6px; width: auto !important; display: inline-block; font-weight: 500;"}">${escape(delivery.tag ? delivery.tag : "")} </div>` : `<ion-icon${add_attribute("icon", locationOutline, 0)} slot="end" style="${"color: " + escape(getDeliveryColor(delivery.status, delivery.date_service), true)}"></ion-icon>`} </ion-item>`;
       })} <ion-item><ion-avatar slot="start"><div class="order-wrapper svelte-1ita8l7" title="${"$" + escape(stats.destination, true)}" style="${"background-color: " + escape(stats.color, true) + "; color: " + escape(getContrast(stats.color), true)}"><div class="order svelte-1ita8l7">${escape(deliveries.length + 1)}</div></div></ion-avatar> <ion-label button><ion-text color="#2e2e2e"><h3>${escape(stats.destination)}</h3></ion-text> <div class="sub svelte-1ita8l7" data-svelte-h="svelte-17oqe78"></div></ion-label> <ion-icon${add_attribute("icon", locationOutline, 0)} slot="end"></ion-icon></ion-item></ion-list></ion-content>` : ``}`}`}`;
     }
-  })}` : ``}`;
+  })}` : ``} ${isLoading ? `<div class="overlay" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 9999;" data-svelte-h="svelte-1aosxw0"><ion-spinner name="dots" style="color:white;"></ion-spinner></div>` : ``}`;
 });
 export {
   Page as default
