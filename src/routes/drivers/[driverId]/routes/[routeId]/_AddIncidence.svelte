@@ -34,6 +34,7 @@
     { id: "wc", icon: "/toilet.svg", label: "Baño" },
     { id: "restaurant", icon: "/restaurant.svg", label: "Restaurant" },
     { id: "parking", icon: "/parking.svg", label: "Parking" },
+    { id: "traffic", icon: "/traffic.svg", label: "Tráfico" },
   ];
 
   onMount(() => {

@@ -49,6 +49,7 @@
         parking: "/parking.svg",
         hospital: "/hospital.svg", // svg externo
         wc: "/toilet.svg", // svg externo
+        traffic: "/traffic.svg", // svg externo
     };
 
     const refresh = async () => {
