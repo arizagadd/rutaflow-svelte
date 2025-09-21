@@ -20,6 +20,7 @@
     import { arrowBack } from "ionicons/icons";
     import { DATABASE_URL } from "../../../../../hooks";
     import { hexToRGBA } from "$lib";
+    
     /*Back URL*/
     let back_url = DATABASE_URL;
 

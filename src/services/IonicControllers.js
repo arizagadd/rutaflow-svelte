@@ -3,6 +3,7 @@ import { modalController } from "@ionic/core";
 import { defineCustomElement } from "@ionic/core/components/ion-modal.js";
 import { initialize } from "@ionic/core/components";
 
+
 /* ========= Registrar web components de Svelte ========= */
 export const registerCustomElement = (tagName, component) => {
   if (!customElements.get(tagName)) {
