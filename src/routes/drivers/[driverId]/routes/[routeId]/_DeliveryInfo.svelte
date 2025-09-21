@@ -31,6 +31,7 @@
     import { hexToRGBA, getJson, getImgsArray, removeFile } from "$lib";
     import SignaturePad from "./_SignaturePad.svelte";
 
+    
     /*Back URL*/
     let back_url = DATABASE_URL;
 
@@ -38,6 +39,7 @@
     let delivery = overlayElement.componentProps.delivery;
     let isLast = overlayElement.componentProps.isLast || false;
     let OriDesFlag = overlayElement.componentProps.flag || false;
+    let readOnly = !!overlayElement.componentProps.readOnly; // ← MODO LECTURA
     let driverComments = delivery.driver_comments
         ? delivery.driver_comments
         : "";
@@ -70,6 +72,9 @@
         : "";
     let pad;
     let buttonsDisabled = false;
+
+    // helper: deshabilitar cuando solo lectura o ya completado
+    const roDisabled = () => readOnly || delivery.status == "completed";
 
     onMount(() => {
         dataSession = JSON.parse(localStorage.getItem("userSession"));
@@ -168,6 +173,11 @@
     }
 
     const handleFileChange = async (event) => {
+        if (readOnly) {
+            showAlert("Solo lectura", "Completa los requisitos para editar.");
+            return;
+        }
+
         if (files.length >= 5) {
             showAlert(
                 "Límite de evidencias",
@@ -224,6 +234,11 @@
     };
 
     function handleCheckIn(event) {
+        if (readOnly) {
+            event?.preventDefault?.();
+            showAlert("Solo lectura", "Completa los requisitos para editar.");
+            return;
+        }
         var service_time = delivery.service_time;
         if (!service_time && checkInActive && !isLast && !OriDesFlag) {
             event.preventDefault(); // Prevent the file upload dialog from opening
@@ -235,6 +250,10 @@
     }
 
     function handleCheckOut() {
+        if (readOnly) {
+            showAlert("Solo lectura", "Completa los requisitos para editar.");
+            return;
+        }
         var date = !OriDesFlag ? false : delivery.date_completed;
         if (
             !date &&
@@ -339,6 +358,10 @@
     }
 
     const sendEvidence = async () => {
+        if (readOnly) {
+            showAlert("Solo lectura", "Completa los requisitos para confirmar.");
+            return;
+        }
         if (isLoading) return;
         isLoading = true;
 
@@ -534,6 +557,10 @@
 
     // Function to handle check-in
     function checkIn() {
+        if (readOnly) {
+            showAlert("Solo lectura", "Completa los requisitos para editar.");
+            return;
+        }
         checkInActive = false; // Hide "Ingreso"
         checkOutActive = true; // Show "Salida"
         sendCheckInCheckOut(delivery.id_event, "checkin");
@@ -541,12 +568,17 @@
 
     // Function to handle check-out
     function checkOut() {
+        if (readOnly) {
+            showAlert("Solo lectura", "Completa los requisitos para editar.");
+            return;
+        }
         checkOutActive = false; // Disable "Salida"
         checkInActive = false; // Keep "Ingreso" hidden
         sendCheckInCheckOut(delivery.id_event, "checkout");
     }
 
     async function sendCheckInCheckOut(id_event, type) {
+        if (readOnly) return;
         if (type) {
             let lv = new Object();
             lv.type = type;
@@ -601,6 +633,7 @@
     }
 
     function toRemoveFiles(index = 0) {
+        if (readOnly) return;
         var response = removeFile(index, files, img_ids, selectedImages);
         files = response.files;
         img_ids = response.img_ids;
@@ -608,6 +641,10 @@
     }
 
     async function handleSave() {
+        if (readOnly) {
+            showAlert("Solo lectura", "No puedes guardar la firma ahora.");
+            return;
+        }
         const dataUrl = await pad.save(); // ← call the instance method
         if (dataUrl) {
             // disable both buttons immediately
@@ -638,6 +675,7 @@
     }
 
     function handleClear() {
+        if (readOnly) return;
         pad.clear();
     }
 </script>
@@ -655,7 +693,7 @@
                 <ion-button
                     on:click={sendEvidence}
                     strong
-                    disabled={delivery.status == "completed"}
+                    disabled={roDisabled()}
                 >
                     Confirmar</ion-button
                 >
@@ -818,6 +856,7 @@
                 <ion-select
                     bind:this={deliverStatus}
                     value={dStatus ? dStatus : "delivered"}
+                    disabled={readOnly}
                 >
                     <ion-select-option value="delivered"
                         >Entregado</ion-select-option
@@ -838,9 +877,11 @@
                 <ion-textarea
                     bind:this={driverComments}
                     placeholder="Escribe aquí..."
+                    readonly={readOnly}
+                    disabled={readOnly}
                 />
             </ion-item>
-            {#if delivery.status !== "completed" && signatureActive === "1"}
+            {#if delivery.status !== "completed" && signatureActive === "1" && !readOnly}
                 <section
                     style="display: flex; flex-direction: column; align-items: center; padding: 0px 16px 16px;"
                 >
@@ -857,8 +898,7 @@
                         style="flex: 1;"
                         on:click={handleClear}
                         fill="outline"
-                        disabled={buttonsDisabled ||
-                            delivery.status == "completed"}
+                        disabled={buttonsDisabled || delivery.status == "completed"}
                     >
                         <ion-icon icon={trash} slot="start" />
                         Borrar
@@ -866,8 +906,7 @@
                     <ion-button
                         style="flex: 1;"
                         on:click={handleSave}
-                        disabled={buttonsDisabled ||
-                            delivery.status == "completed"}
+                        disabled={buttonsDisabled || delivery.status == "completed"}
                     >
                         <ion-icon icon={saveOutline} slot="start" />
                         Guardar
@@ -875,6 +914,7 @@
                 </section>
             {/if}
             <!-- Check-In and Check-Out Buttons -->
+            {#if !readOnly}
             <section style="display: flex; gap: 8px; padding: 16px 16px 6px;">
                 {#if checkInActive === true}
                     <ion-button
@@ -899,6 +939,7 @@
                     </ion-button>
                 {/if}
             </section>
+            {/if}
         {/if}
         {#if (isLast && OriDesFlag) || (!isLast && !OriDesFlag)}
             <section style="display: flex; gap: 8px; padding: 0px 16px;">
@@ -906,9 +947,12 @@
                     fill="outline"
                     class="loadEvidence"
                     style="flex:1;display: flex; align-items: center; gap: 8px;"
-                    disabled={delivery.status == "completed"}
+                    disabled={roDisabled()}
                 >
-                    <label for="eventEvidence" style="width:100%; height:100%;">
+                    <label
+                        for="eventEvidence"
+                        style="width:100%; height:100%; pointer-events:{roDisabled() ? 'none' : 'auto'};"
+                    >
                         <ion-icon
                             icon={duplicateOutline}
                             slot="start"
@@ -925,6 +969,7 @@
                             capture="environment"
                             on:change={handleFileChange}
                             on:click={handleCheckIn}
+                            disabled={roDisabled()}
                         />
                     </label>
                 </ion-button>
@@ -947,7 +992,7 @@
                                 style="width: 100%;height: 100px; object-fit:cover;cursor: pointer;border: 1px solid #ccc;border-radius: 4px;margin-top: 16px;"
                                 on:click={() => openImage(file)}
                             />
-                            {#if delivery.status !== "completed"}
+                            {#if delivery.status !== "completed" && !readOnly}
                                 <button
                                     class="remove-button"
                                     on:click={() => toRemoveFiles(index)}

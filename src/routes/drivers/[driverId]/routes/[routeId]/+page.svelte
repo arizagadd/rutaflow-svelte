@@ -20,30 +20,34 @@
     import { arrowBack } from "ionicons/icons";
     import { DATABASE_URL } from "../../../../../hooks";
     import { hexToRGBA } from "$lib";
+    
     /*Back URL*/
     let back_url = DATABASE_URL;
 
     let dataSession = new Object();
     let loading = true;
     let showChecklist = false;
-    let deliveries = [];
-    let incidences = [];
-    let stats = {};
-    let checklist = [];
-    let expenses = [];
-    let refresher;
+    let deliveries:any[] = [];
+    let incidences:any[] = [];
+    let stats:any = {};
+    let checklist:any[] = [];
+    let expenses:any[] = [];
+    let refresher:any;
     let isModalOpen = false;
     let segmentValue = "list"; // Controls the tab selection
-    let mapElement;
+    let mapElement: HTMLElement | null;
     let stopsApproval = "";
     let smsActive = "";
     let signatureActive = "";
     let orderRestriction = "0";
     let settings = new Object();
-    let deliveryInfoModalPromise = "";
+    let deliveryInfoModalPromise: Promise<any> | "" = "";
     let isLoading = false;
 
-    const motiveIconName = {
+    // NUEVO: para no repetir la advertencia cada vez
+    let checklistWarnShown = false;
+
+    const motiveIconName:any = {
         car_accident: "/car-accident.svg",
         restaurant: "/restaurant.svg",
         parking: "/parking.svg",
@@ -81,14 +85,78 @@
         }
     }
 
+    // ✅ Por estas dos funciones
+function hasMandatoryChecklistIncomplete() {
+  const mandatory = (checklist || []).filter((i:any) => i.mandatory === "1");
+  if (!mandatory.length) return false;
+  return !mandatory.every((i:any) => !!i.img);
+}
+
+function needsChecklistOrKmGas() {
+  // km/gas pendientes (lo mismo que tu flag showChecklist)
+  const kmGasMissing =
+    showChecklist ||
+    stats?.km_inicial === "0" ||
+    stats?.gas_inicial === "0";
+
+  // checklist obligatorio incompleto
+  const mandatoryIncomplete = hasMandatoryChecklistIncomplete();
+
+  return kmGasMissing || mandatoryIncomplete;
+}
+
+// ➕ NUEVO: true = puede editar, false = SOLO LECTURA
+function canEditStops() {
+  return !needsChecklistOrKmGas();
+}
+
+// 🔁 Reemplaza COMPLETA la función maybeWarnChecklist por esta
+async function maybeWarnChecklist(): Promise<boolean> {
+  // si ya se mostró o no hace falta advertir, continuar
+  if (checklistWarnShown) return true;
+  if (!needsChecklistOrKmGas()) return true;
+
+  return new Promise(async (resolve) => {
+    const alert = await alertController.create({
+      header: "Checklist",
+      message:
+        "Favor de completar checklist para iniciar viaje ✅",
+      buttons: [
+                {
+          text: "Previsualizar",
+          role: "cancel",
+          handler: () => {
+            checklistWarnShown = true;
+            resolve(true); // continuar
+          },
+        },
+        {
+          text: "Completar",
+          handler: () => {
+            checklistWarnShown = true;
+            showChecklistModal(checklist, driverId, routeId);
+            resolve(false); // NO continuar
+          },
+        },
+
+      ],
+    });
+    await alert.present();
+  });
+}
+
     async function setSegmentValue(value) {
+  // advertencia (solo una vez) y aborta si eligen abrir el checklist
+  const proceed = await maybeWarnChecklist();
+  if (!proceed) return;
+
         segmentValue = value;
 
         if (segmentValue === "map") {
             await tick();
 
             mapElement = document.getElementById("g_map");
-            const map = new google.maps.Map(mapElement, {
+            const map = new google.maps.Map(mapElement as HTMLElement, {
                 zoom: 8,
                 center: { lat: 20.6745683, lng: -103.3986104 },
                 mapId: "4504f8b37365c3d0",
@@ -196,7 +264,7 @@
             }
 
             // Adding markers for stops/events
-            deliveries.forEach((delivery, index) => {
+            deliveries.forEach((delivery:any) => {
                 const lat = parseFloat(delivery.lat);
                 const lon = parseFloat(delivery.lon);
                 const waypointLatLng = new google.maps.LatLng(lat, lon);
@@ -229,16 +297,14 @@
                         delivery.title,
                 });
 
-                // Add a click listener for each marker, and set up the info window.
-                waypointMarker.addListener("click", function (domEvent) {
-                    const { target } = domEvent;
+                waypointMarker.addListener("click", function () {
                     showDeliveryInfoModal(delivery, false);
                 });
 
-                bounds.extend(marker.getPosition());
+                bounds.extend(marker.getPosition()!);
             });
 
-            incidences.forEach((inc) => {
+            incidences.forEach((inc:any) => {
                 const lat = +inc.lat,
                     lng = +inc.lng;
                 if (isNaN(lat) || isNaN(lng)) return;
@@ -276,8 +342,7 @@
                     title: inc.motive || inc.type,
                 });
 
-                //marker.addListener("click", () => checklistEvidenceModal(inc));
-                bounds.extend(marker.position);
+                bounds.extend(marker.position!);
             });
 
             // Adjust map to fit all markers
@@ -285,7 +350,7 @@
         }
     }
 
-    async function createMarker(bounds, map, obj, contentConfig) {
+    async function createMarker(bounds:any, map:any, obj:any, contentConfig:any) {
         let contentElement;
         const lat = parseFloat(obj.lat);
         const lon = parseFloat(obj.lon);
@@ -300,7 +365,7 @@
             contentElement.style.color = getContrast(obj.color); // Set color dynamically
             contentElement.style.fontWeight = "600";
         } else if (contentConfig.type == "text") {
-            //En caso de que queramos usar la función "createMarker" para agregar markers con texto
+            //En caso de querer markers con texto en el futuro
         }
 
         const marker = new google.maps.Marker({
@@ -324,15 +389,11 @@
             title: contentConfig.title + ": " + obj.title,
         });
 
-        // Add a click listener for each marker, and set up the info window.
-        waypointMarker.addListener("click", function (domEvent) {
-            const { target } = domEvent;
+        waypointMarker.addListener("click", function () {
             showOrigenDestinyModal(
                 stats,
                 contentConfig.title == "Destino" ||
                     contentConfig.title == "Origen/Destino"
-                    ? true
-                    : false
             );
         });
 
@@ -343,7 +404,7 @@
         let requestData = new FormData();
         requestData.append("id_route", routeId);
         requestData = addAuthData(requestData);
-        requestData.append("id_enterprise", dataSession.id_enterprise);
+        requestData.append("id_enterprise", (dataSession as any).id_enterprise);
         try {
             const response = await fetch(
                 `${back_url}api/admin/report/seguimiento_list.php`,
@@ -353,6 +414,7 @@
                 }
             );
             const data = await response.json();
+
             stats = data.data.seguimiento_list[0];
             deliveries = data.data.event_list;
             checklist = data.data.checklist;
@@ -362,6 +424,14 @@
                 showChecklist =
                     stats.km_inicial == "0" && stats.gas_inicial == "0";
             }
+
+            // Advertir si faltan km/gas o checklist obligatorio (solo una vez)
+if (!checklistWarnShown && needsChecklistOrKmGas()) {
+  await maybeWarnChecklist();
+}
+
+
+
             loading = false; // Data loading complete
         } catch (error) {
             loading = false; // Data loading complete
@@ -369,7 +439,7 @@
         }
     }
 
-    function getDeliveryColor(status, service_time = "") {
+    function getDeliveryColor(status:string, service_time = "") {
         let color = "#ffffff";
         if (status === "pending" && !service_time) {
             color = "#f2e300";
@@ -381,7 +451,7 @@
 
         return color;
     }
-    function getStatusTitle(status) {
+    function getStatusTitle(status:string) {
         let state = "";
         if (status == "pending") {
             state = "Pendiente";
@@ -390,13 +460,11 @@
         }
         return state;
     }
-    function getContrast(hexColor) {
-        // If a leading # is provided, remove it
+    function getContrast(hexColor:string) {
+        if (!hexColor) return "#414040";
         if (hexColor.slice(0, 1) === "#") {
             hexColor = hexColor.slice(1);
         }
-
-        // If a three-character hexcode, make six-character
         if (hexColor.length === 3) {
             hexColor = hexColor
                 .split("")
@@ -405,20 +473,14 @@
                 })
                 .join("");
         }
-
-        // Convert to RGB value
         const r = parseInt(hexColor.substr(0, 2), 16);
         const g = parseInt(hexColor.substr(2, 2), 16);
         const b = parseInt(hexColor.substr(4, 2), 16);
-
-        // Get YIQ ratio
         const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-
-        // Check contrast
         return yiq >= 128 ? "#414040" : "#fff";
     }
 
-    const refresh_event_info = (delivery) => {
+    const refresh_event_info = (delivery:any) => {
         return new Promise((resolve, reject) => {
             let requestData = new FormData();
             requestData.append("id_route", delivery.id_route);
@@ -439,125 +501,137 @@
         });
     };
 
-    function showDeliveryInfoModal(delivery, isLast) {
-        // Hay otro modal en curso → devolver la misma promesa
-        if (deliveryInfoModalPromise) return deliveryInfoModalPromise;
+    function showDeliveryInfoModal(delivery:any, isLast:boolean, readOnly?: boolean) {
+  // readOnly por default depende del estado del checklist/KM-Gas
+  const isReadOnly = typeof readOnly === "boolean" ? readOnly : !canEditStops();
 
-        // Se crea la promesa y guardo en la variable global
-        deliveryInfoModalPromise = (async () => {
-            // Refresca evidencia antes de mostrar
-            let evidenceData = null;
-            try {
-                evidenceData = await refresh_event_info(delivery);
-            } catch (_) {
-                /* si falla, evidenceData queda null y sólo se muestra el modal */
-            }
+  if (deliveryInfoModalPromise) return deliveryInfoModalPromise;
 
-            // Payload final
-            const payload = {
-                ...delivery,
-                stopsApproval,
-                smsActive,
-                signatureActive,
-                ...(evidenceData || {}),
-            };
+  deliveryInfoModalPromise = (async () => {
+    let evidenceData = null;
+    try {
+      evidenceData = await refresh_event_info(delivery);
+    } catch (_) {}
 
-            try {
-                /* Mostrar modal exactamente una vez */
-                await IonicShowModal("modal-delivery-info", DeliveryInfo, {
-                    delivery: payload,
-                    isLast,
-                });
-            } finally {
-                /* Limpiar y refrescar */
-                deliveryInfoModalPromise = null; // libera el candado
-                loadRoute(routeId);
-            }
-        })();
+    const payload = {
+      ...delivery,
+      stopsApproval,
+      smsActive,
+      signatureActive,
+      ...(evidenceData || {}),
+    };
 
-        return deliveryInfoModalPromise;
+    try {
+      await IonicShowModal("modal-delivery-info", DeliveryInfo, {
+        delivery: payload,
+        isLast,
+        // 👇 PASA EL MODO LECTURA AL MODAL
+        readOnly: isReadOnly,
+      });
+    } finally {
+      deliveryInfoModalPromise = null;
+      loadRoute(routeId);
     }
+  })();
 
-    const showOrigenDestinyModal = (stats, isLast) => {
-        var delivery = new Object();
+  return deliveryInfoModalPromise;
+}
 
-        if (isLast) {
-            delivery = {
-                title: stats.destination,
-                line1: stats.dest_address,
-            };
-        } else {
-            delivery = {
-                title: stats.origin,
-                line1: stats.origin_address,
-            };
-        }
-        delivery.enterprise_name = stats.enterprise_name;
-        delivery.client_name = stats.client_name;
-        delivery.client_phone = stats.tel;
-        delivery.id_route = stats.id_route;
-        delivery.stopsApproval = stopsApproval;
-        delivery.smsActive = smsActive;
-        var flag = true; //Flag to know is origen or destiny
-        IonicShowModal("modal-delivery-info", DeliveryInfo, {
-            delivery,
-            isLast,
-            flag,
+
+    const showOrigenDestinyModal = (stats:any, isLast:boolean) => {
+  let delivery:any = {};
+
+  if (isLast) {
+    delivery = {
+      title: stats.destination,
+      line1: stats.dest_address,
+    };
+  } else {
+    delivery = {
+      title: stats.origin,
+      line1: stats.origin_address,
+    };
+  }
+  delivery.enterprise_name = stats.enterprise_name;
+  delivery.client_name = stats.client_name;
+  delivery.client_phone = stats.tel;
+  delivery.id_route = stats.id_route;
+  delivery.stopsApproval = stopsApproval;
+  delivery.smsActive = smsActive;
+
+  const flag = true;
+
+  IonicShowModal("modal-delivery-info", DeliveryInfo, {
+    delivery,
+    isLast,
+    flag,
+    // 👇 Solo lectura si falta checklist obligatorio o KM/Gas inicial
+    readOnly: !canEditStops(),
+  });
+};
+
+
+    const showChecklistModal = (checklist:any[], driverId:string, routeId:string) => {
+      const isLast = false;
+      isLoading = true;
+      if (!isModalOpen) {
+        isModalOpen = true;
+        IonicShowModal(
+          "modal-checklist",
+          ChecklistControl,
+          { checklist, driverId, routeId, isLast },
+          {
+            breakpoints: [0.25, 0.5, 0.9],
+            initialBreakpoint: 0.75,
+            backdropBreakpoint: 0.25,
+            handle: true,
+            handleBehavior: "cycle",
+            canDismiss: true,
+            showBackdrop: true
+          }
+        ).then(() => {
+          isLoading = false;
+          isModalOpen = false;
+          // al cerrar el modal, refrescamos por si se completó algo
+          loadRoute(routeId);
         });
+        // (opcional) changeRouteStatus(routeId, "checklist");
+      }
+      return "";
     };
 
-    const showChecklistModal = (checklist, driverId, routeId) => {
-        var isLast = false;
-        isLoading = true;
-        if (!isModalOpen) {
-            isModalOpen = true;
-            IonicShowModal("modal-checklist", ChecklistControl, {
-                checklist,
-                driverId,
-                routeId,
-                isLast,
-            }).then((result) => {
-                isLoading = false;
-                isModalOpen = false;
-            });
-            changeRouteStatus(routeId, "checklist");
-        }
-        return "";
-    };
-
-    const showExpenseModal = async (routeId) => {
+    const showExpenseModal = async (routeId:string) => {
         isLoading = true;
         await loadRoute(routeId);
         if (expenses.length > 0) {
             IonicShowModal("modal-expense-detail", ExpenseDetails, {
                 routeId,
                 expenses,
-            }).then((result) => {
+            }).then(() => {
                 isLoading = false;
             });
         } else {
             IonicShowModal("modal-expense", AddExpense, {
                 routeId,
-            }).then((result) => {
+            }).then(() => {
                 isLoading = false;
             });
         }
         return "";
     };
 
-    const showIncidenceModal = async (routeId) => {
+    const showIncidenceModal = async (routeId:string) => {
         isLoading = true;
         await loadRoute(routeId);
         IonicShowModal("modal-incidence", AddIncidence, {
             routeId,
-        }).then((result) => {
+        }).then(() => {
             isLoading = false;
         });
-        //changeRouteStatus(routeId,'checklist');
         return "";
     };
 
-    const mustCharge = (delivery) => {
+    const mustCharge = (delivery:any) => {
         if (delivery.tracking_type == "subscription") {
             if (delivery.subscriber_info && delivery.payment_type === "cash") {
                 let date = new Date(delivery.subscriber_info.payment_next);
@@ -574,7 +648,7 @@
         return false;
     };
 
-    function changeRouteStatus(id_route, status) {
+    function changeRouteStatus(id_route:string, status:string) {
         let requestData = new FormData();
         requestData.append("id_route", id_route);
         requestData.append("status", status);
@@ -584,7 +658,7 @@
             body: requestData,
         })
             .then((response) => response.json())
-            .then((data) => {})
+            .then(() => {})
             .catch((error) => {
                 console.error("Error fetching data:", error);
             });
@@ -592,39 +666,32 @@
     }
 
     const goBack = () => {
-        // Redirect to backpage
-        if (dataSession.type == "super" || dataSession.type == "admin") {
+        if ((dataSession as any).type == "super" || (dataSession as any).type == "admin") {
             goto(`/drivers/me`);
-        } else if (dataSession.id_driver) {
-            goto(`/drivers/${dataSession.id_driver}`);
+        } else if ((dataSession as any).id_driver) {
+            goto(`/drivers/${(dataSession as any).id_driver}`);
         }
     };
 
-    const showAlert = async (customHeader, customMessage) => {
+    const showAlert = async (customHeader?:string, customMessage?:string) => {
         const alert = await alertController.create({
-            header: customHeader || "Error", // Use customHeader or default value
-            message: customMessage || "Vuelva a intentar", // Use customMessage or default value
-            buttons: [
-                {
-                    text: "Cerrar",
-                },
-            ],
+            header: customHeader || "Error",
+            message: customMessage || "Vuelva a intentar",
+            buttons: [{ text: "Cerrar" }],
         });
-
         await alert.present();
     };
 
-    function addAuthData(requestData) {
-        requestData.append("token", dataSession.token);
-        requestData.append("id_user_over", dataSession.id_user);
-
+    function addAuthData(requestData:FormData) {
+        requestData.append("token", (dataSession as any).token);
+        requestData.append("id_user_over", (dataSession as any).id_user);
         return requestData;
     }
 
     const checkSettings = async () => {
-        if (dataSession.id_enterprise) {
+        if ((dataSession as any).id_enterprise) {
             let formData = new FormData();
-            formData.append("id_enterprise", dataSession.id_enterprise);
+            formData.append("id_enterprise", (dataSession as any).id_enterprise);
             formData = addAuthData(formData);
             try {
                 const response = await fetch(
@@ -636,26 +703,23 @@
                 );
 
                 if (response.ok) {
-                    // File uploaded successfully, handle any additional logic
                     const result = await response.json();
                     settings = result.nodos;
 
-                    // Get specific settings
                     stopsApproval = getSettingVal(
                         "stops_wait_approval",
-                        settings
+                        settings as any
                     );
-                    smsActive = getSettingVal("sms_active", settings);
+                    smsActive = getSettingVal("sms_active", settings as any);
                     orderRestriction = getSettingVal(
                         "stops_order_restriction",
-                        settings
+                        settings as any
                     );
                     signatureActive = getSettingVal(
                         "signature_active",
-                        settings
+                        settings as any
                     );
                 } else {
-                    // Handle error response
                     console.error("File upload failed:", response.statusText);
                 }
             } catch (error) {
@@ -664,13 +728,13 @@
         }
     };
 
-    function getSettingVal(alias, settings) {
+    function getSettingVal(alias:string, settings:any[]) {
         for (let i = 0; i < settings.length; i++) {
             if (settings[i].alias === alias) {
                 return settings[i].val;
             }
         }
-        return ""; // Default value if no match found
+        return "";
     }
 </script>
 
@@ -694,7 +758,6 @@
                     <ion-button on:click={() => showExpenseModal(routeId)}
                         ><ion-icon icon={cashOutline} /></ion-button
                     >
-                    <!-- <ion-button>{dataSession.name}</ion-button> -->
                 </ion-buttons>
 
                 <ion-title
@@ -786,15 +849,12 @@
                                     <ion-label
                                         button
                                         on:click={() => {
-                                            // Get the index of the current delivery in the array
                                             const currentIndex =
                                                 deliveries.findIndex(
                                                     (item) =>
                                                         item.id_event ===
                                                         delivery.id_event
                                                 );
-
-                                            // Check if the previous delivery has an image (or if it's the first delivery)
                                             const isFirstDelivery =
                                                 currentIndex === 0;
                                             const previousDelivery =
@@ -808,14 +868,10 @@
                                                 (previousDelivery &&
                                                     previousDelivery.img !==
                                                         null);
-
-                                            // Check if the current delivery has an image
                                             const currentDeliveryHasImage =
                                                 delivery.img !== null &&
                                                 delivery.img !== "";
 
-                                            // Allow showing the modal only if the current delivery has an image
-                                            // or if it's the first delivery and the current delivery does not have an image
                                             if (
                                                 previousDeliveryHasImage ||
                                                 (isFirstDelivery &&
@@ -843,7 +899,6 @@
                                             </h3>
                                         </ion-text>
                                         <div class="sub">
-                                            <!-- <BoxesCount delivery={delivery} /> -->
                                         </div>
                                     </ion-label>
                                     {#if delivery.tag_color && delivery.tag}
@@ -909,7 +964,6 @@
                                         </h3>
                                     </ion-text>
                                     <div class="sub">
-                                        <!-- <BoxesCount delivery={delivery} /> -->
                                     </div>
                                 </ion-label>
                                 <ion-icon icon={locationOutline} slot="end" />
@@ -917,7 +971,8 @@
                         </ion-list>
                     </ion-content>
                 {:else}
-                    {showChecklistModal(checklist, driverId, routeId)}
+                    <!-- ANTES aquí abría el modal automáticamente.
+                         Se eliminó esa llamada para que solo advierta y el usuario decida. -->
                     <ion-content>
                         <ion-refresher
                             slot="fixed"
@@ -984,15 +1039,12 @@
                                     <ion-label
                                         button
                                         on:click={() => {
-                                            // Get the index of the current delivery in the array
                                             const currentIndex =
                                                 deliveries.findIndex(
                                                     (item) =>
                                                         item.id_event ===
                                                         delivery.id_event
                                                 );
-
-                                            // Check if the previous delivery has an image (or if it's the first delivery)
                                             const isFirstDelivery =
                                                 currentIndex === 0;
                                             const previousDelivery =
@@ -1006,14 +1058,10 @@
                                                 (previousDelivery &&
                                                     previousDelivery.img !==
                                                         null);
-
-                                            // Check if the current delivery has an image
                                             const currentDeliveryHasImage =
                                                 delivery.img !== null &&
                                                 delivery.img !== "";
 
-                                            // Allow showing the modal only if the current delivery has an image
-                                            // or if it's the first delivery and the current delivery does not have an image
                                             if (
                                                 previousDeliveryHasImage ||
                                                 (isFirstDelivery &&
@@ -1041,7 +1089,6 @@
                                             </h3>
                                         </ion-text>
                                         <div class="sub">
-                                            <!-- <BoxesCount delivery={delivery} /> -->
                                         </div>
                                     </ion-label>
                                     {#if delivery.tag_color && delivery.tag}
@@ -1107,7 +1154,6 @@
                                         </h3>
                                     </ion-text>
                                     <div class="sub">
-                                        <!-- <BoxesCount delivery={delivery} /> -->
                                     </div>
                                 </ion-label>
                                 <ion-icon icon={locationOutline} slot="end" />
@@ -1117,7 +1163,7 @@
                 {/if}
             {:else if !loading}
                 {#if showChecklist}
-                    {showChecklistModal("", driverId, routeId)}
+                    <!-- Ya no abrimos modal automáticamente -->
                 {/if}
                 <ion-content>
                     <ion-refresher
@@ -1181,15 +1227,12 @@
                                 <ion-label
                                     button
                                     on:click={() => {
-                                        // Get the index of the current delivery in the array
                                         const currentIndex =
                                             deliveries.findIndex(
                                                 (item) =>
                                                     item.id_event ===
                                                     delivery.id_event
                                             );
-
-                                        // Check if the previous delivery has an image (or if it's the first delivery)
                                         const isFirstDelivery =
                                             currentIndex === 0;
                                         const previousDelivery =
@@ -1200,14 +1243,10 @@
                                             isFirstDelivery ||
                                             (previousDelivery &&
                                                 previousDelivery.img !== null);
-
-                                        // Check if the current delivery has an image
                                         const currentDeliveryHasImage =
                                             delivery.img !== null &&
                                             delivery.img !== "";
 
-                                        // Allow showing the modal only if the current delivery has an image
-                                        // or if it's the first delivery and the current delivery does not have an image
                                         if (
                                             previousDeliveryHasImage ||
                                             (isFirstDelivery &&
@@ -1298,7 +1337,6 @@
                                     </h3>
                                 </ion-text>
                                 <div class="sub">
-                                    <!-- <BoxesCount delivery={delivery} /> -->
                                 </div>
                             </ion-label>
                             <ion-icon icon={locationOutline} slot="end" />
