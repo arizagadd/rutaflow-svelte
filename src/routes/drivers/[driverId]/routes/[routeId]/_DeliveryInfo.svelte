@@ -31,6 +31,7 @@
     import { hexToRGBA, getJson, getImgsArray, removeFile } from "$lib";
     import SignaturePad from "./_SignaturePad.svelte";
 
+    
     /*Back URL*/
     let back_url = DATABASE_URL;
 
