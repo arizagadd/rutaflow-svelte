@@ -45,6 +45,8 @@
     let settings = new Object();
     let deliveryInfoModalPromise: Promise<any> | "" = "";
     let isLoading = false;
+    let showStartButton = false; // mostrará el botón tras "Previsualizar"
+
 
     // NUEVO: para no repetir la advertencia cada vez
     let checklistWarnShown = false;
@@ -129,6 +131,7 @@ async function maybeWarnChecklist(): Promise<boolean> {
           role: "cancel",
           handler: () => {
             checklistWarnShown = true;
+            showStartButton = true;
             resolve(true); // continuar
           },
         },
@@ -1346,6 +1349,23 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                     </ion-list>
                 </ion-content>
             {/if}
+
+        {#if segmentValue === "list" && showStartButton && needsChecklistOrKmGas()}
+              <ion-footer>
+                <ion-toolbar>
+                  <ion-button
+                    expand="block"
+                    size="large"
+                    color="primary"
+                    on:click={() => showChecklistModal(checklist, driverId, routeId)}
+                    style="margin: 8px;"
+                  >
+                    Iniciar ruta
+                  </ion-button>
+                </ion-toolbar>
+              </ion-footer>
+            {/if}
+
         {:else if segmentValue === "map"}
             <!-- Google Maps View -->
             <ion-content>
