@@ -30,6 +30,7 @@
     import { DATABASE_URL, WP_TOKEN, WP_URL } from "../../../../../hooks";
     import { hexToRGBA, getJson, getImgsArray, removeFile } from "$lib";
     import SignaturePad from "./_SignaturePad.svelte";
+    import SignaturePluginModal from "./_SignaturePluginModal.svelte";
 
     
     /*Back URL*/
@@ -678,6 +679,60 @@
         if (readOnly) return;
         pad.clear();
     }
+
+    async function abrirPluginFirma() {
+  if (readOnly) {
+    showAlert("Solo lectura", "Completa los requisitos para firmar.");
+    return;
+  }
+
+  const result = await IonicShowModal(
+    "modal-signature-plugin",
+    SignaturePluginModal,
+    {},
+    {
+      breakpoints: [0.25, 0.9],
+      initialBreakpoint: 0.9,
+      backdropBreakpoint: 0.25,
+      handle: true,
+      handleBehavior: "cycle",
+      canDismiss: true,
+      showBackdrop: true
+    }
+  );
+
+  // según tu helper, el dato puede venir en data.dataUrl
+  const dataUrl = result?.data?.dataUrl ?? result?.dataUrl ?? result;
+
+  if (dataUrl) {
+    try {
+      buttonsDisabled = true;
+      const convertedImg = dataURLtoBlob(dataUrl);
+      getJson(
+        `${back_url}api/admin/manager/upload_img_driver.php`,
+        function (r) {
+          if (r.success) {
+            selectedImages = selectedImages ? `${selectedImages},${r.img}` : r.img;
+            img_id        = img_id ? `${img_id},${r.img_id}` : r.img_id;
+            files         = getImgsArray(selectedImages);
+            img_ids       = getImgsArray(img_id);
+          } else {
+            showAlert(
+              "Carga fallida",
+              "Actualiza la página y vuelve a intentar. Si el problema persiste, contacta a soporte."
+            );
+          }
+        },
+        { fileToUpload: convertedImg }
+      );
+    } catch (e) {
+      console.error(e);
+    } finally {
+      buttonsDisabled = false;
+    }
+  }
+}
+
 </script>
 
 <ion-header translucent>
@@ -881,38 +936,8 @@
                     disabled={readOnly}
                 />
             </ion-item>
-            {#if delivery.status !== "completed" && signatureActive === "1" && !readOnly}
-                <section
-                    style="display: flex; flex-direction: column; align-items: center; padding: 0px 16px 16px;"
-                >
-                    <ion-label class="ion-text-wrap" style="padding: 10px 0px;">
-                        <p>Firma de entregado</p>
-                    </ion-label>
-                    <br />
-                    {#key delivery.id_event}
-                        <SignaturePad bind:this={pad} />
-                    {/key}
-                </section>
-                <section style="display: flex; gap: 8px; padding: 0px 16px;">
-                    <ion-button
-                        style="flex: 1;"
-                        on:click={handleClear}
-                        fill="outline"
-                        disabled={buttonsDisabled || delivery.status == "completed"}
-                    >
-                        <ion-icon icon={trash} slot="start" />
-                        Borrar
-                    </ion-button>
-                    <ion-button
-                        style="flex: 1;"
-                        on:click={handleSave}
-                        disabled={buttonsDisabled || delivery.status == "completed"}
-                    >
-                        <ion-icon icon={saveOutline} slot="start" />
-                        Guardar
-                    </ion-button>
-                </section>
-            {/if}
+
+
             <!-- Check-In and Check-Out Buttons -->
             {#if !readOnly}
             <section style="display: flex; gap: 8px; padding: 16px 16px 6px;">
@@ -942,39 +967,54 @@
             {/if}
         {/if}
         {#if (isLast && OriDesFlag) || (!isLast && !OriDesFlag)}
-            <section style="display: flex; gap: 8px; padding: 0px 16px;">
-                <ion-button
-                    fill="outline"
-                    class="loadEvidence"
-                    style="flex:1;display: flex; align-items: center; gap: 8px;"
-                    disabled={roDisabled()}
-                >
-                    <label
-                        for="eventEvidence"
-                        style="width:100%; height:100%; pointer-events:{roDisabled() ? 'none' : 'auto'};"
-                    >
-                        <ion-icon
-                            icon={duplicateOutline}
-                            slot="start"
-                            style="vertical-align:middle;"
-                        />
-                        Subir Evidencia
-                        <input
-                            style="display:none;"
-                            id="eventEvidence"
-                            name="fileToUpload"
-                            type="file"
-                            multiple
-                            accept="image/*"
-                            capture="environment"
-                            on:change={handleFileChange}
-                            on:click={handleCheckIn}
-                            disabled={roDisabled()}
-                        />
-                    </label>
-                </ion-button>
-            </section>
-        {/if}
+  <section style="display: flex; gap: 8px; padding: 0px 16px;">
+    <!-- Subir evidencia -->
+    <ion-button
+      fill="outline"
+      class="loadEvidence"
+      style="flex:1;display: flex; align-items: center; gap: 8px;"
+      disabled={roDisabled()}
+    >
+      <label
+        for="eventEvidence"
+        style="width:100%; height:100%; pointer-events:{roDisabled() ? 'none' : 'auto'};"
+      >
+        <ion-icon
+          icon={duplicateOutline}
+          slot="start"
+          style="vertical-align:middle;"
+        />
+        Evidencia
+        <input
+          style="display:none;"
+          id="eventEvidence"
+          name="fileToUpload"
+          type="file"
+          multiple
+          accept="image/*"
+          capture="environment"
+          on:change={handleFileChange}
+          on:click={handleCheckIn}
+          disabled={roDisabled()}
+        />
+      </label>
+    </ion-button>
+
+    <!-- Firmar (mismo estilo y misma fila) -->
+    {#if signatureActive === "1"}
+      <ion-button
+        fill="outline"
+        style="flex:1;display: flex; align-items: center; gap: 8px;"
+        on:click={abrirPluginFirma}
+        disabled={roDisabled()}
+      >
+        <ion-icon icon={createOutline} slot="start" />
+        Firmar
+      </ion-button>
+    {/if}
+  </section>
+{/if}
+
         {#if selectedImages}
             <section>
                 <div
