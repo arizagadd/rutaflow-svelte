@@ -687,19 +687,26 @@
   }
 
   const result = await IonicShowModal(
-    "modal-signature-plugin",
-    SignaturePluginModal,
-    {},
-    {
-      breakpoints: [0.25, 0.9],
-      initialBreakpoint: 0.9,
-      backdropBreakpoint: 0.25,
-      handle: true,
-      handleBehavior: "cycle",
-      canDismiss: true,
-      showBackdrop: true
-    }
-  );
+  "modal-signature-plugin",
+  SignaturePluginModal,
+  {},
+  {
+    // ❌ sin breakpoints/handle para que NO sea sheet arrastrable
+    // breakpoints: [0.25, 0.9],
+    // initialBreakpoint: 0.9,
+    // backdropBreakpoint: 0.25,
+    // handle: true,
+    // handleBehavior: "cycle",
+
+    backdropDismiss: false,          // no cierra tocando el fondo
+    swipeToClose: false,             // no cierra por gesto
+    showBackdrop: true,
+
+    // ✅ solo permite cerrar si el role es "cancel" o "confirm"
+    canDismiss: (_data, role) => role === "cancel" || role === "confirm"
+  }
+);
+
 
   // según tu helper, el dato puede venir en data.dataUrl
   const dataUrl = result?.data?.dataUrl ?? result?.dataUrl ?? result;

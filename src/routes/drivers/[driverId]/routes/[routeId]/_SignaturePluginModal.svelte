@@ -5,13 +5,15 @@
   let pad;
 
   function closeWithoutData() {
-    modalController.dismiss(); // cerrar sin devolver nada
+    // ⬇️ pasa role "cancel"
+    modalController.dismiss(undefined, "cancel");
   }
 
   async function handleSave() {
     const dataUrl = await pad.save();
     if (dataUrl) {
-      modalController.dismiss({ dataUrl }); // devolver firma al padre
+      // ⬇️ devuelve la data y pasa role "confirm"
+      modalController.dismiss({ dataUrl }, "confirm");
     }
   }
 
@@ -29,7 +31,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content fullscreen>
+<ion-content fullscreen scrollY={false} class="no-scroll">
   <section style="display:flex; flex-direction:column; gap:12px; padding:16px;">
     <SignaturePad bind:this={pad} />
     <div style="display:flex; gap:8px;">
@@ -42,3 +44,21 @@
     </div>
   </section>
 </ion-content>
+
+<style>
+  /* quita el desplazamiento dentro del ion-content */
+  .no-scroll {
+    --overflow: hidden;   /* iOS/WebKit */
+    overflow: hidden;     /* fallback */
+  }
+
+  /* asegura que la “caja” del modal no haga scroll */
+  ion-modal::part(content) {
+    overflow: hidden !important;
+  }
+
+  /* algunos temas de Ionic usan .inner-scroll; lo bloqueamos también */
+  :global(ion-content.no-scroll .inner-scroll) {
+    overflow: hidden !important;
+  }
+</style>
