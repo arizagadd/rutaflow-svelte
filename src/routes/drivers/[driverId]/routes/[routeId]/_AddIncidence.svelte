@@ -237,8 +237,8 @@
     
     // Crear SVG de Font Awesome para el mapa
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg.setAttribute("width", "24");
-    svg.setAttribute("height", "24");
+    svg.setAttribute("width", "18");
+    svg.setAttribute("height", "18");
     svg.setAttribute("viewBox", "0 0 512 512");
     svg.style.cssText = "color:#d13434;";
     
@@ -309,7 +309,9 @@
             align-items: center;
             justify-content: center;
           ">
-            <Fa icon={m.icon} size="24px" color="#333" />
+            <div style="transform: scale(.99); display: flex;">
+              <Fa icon={m.icon} size="24px" color="#333" />
+            </div>
           </div>
           <span style="font-size: 11px; font-weight: 500; color: #333; text-align: center;">{m.label}</span>
         </div>
