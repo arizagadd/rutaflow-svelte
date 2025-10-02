@@ -11,8 +11,7 @@
     closeSharp,
   } from "ionicons/icons";
   
-  // Font Awesome imports
-  import Fa from 'svelte-fa';
+  // Font Awesome imports - solo los datos
   import { 
     faCarBurst,
     faHospital, 
@@ -21,7 +20,7 @@
     faSquareParking,
     faGasPump,
     faUserSecret,
-    faTrafficLight,  // Semáforo
+    faTrafficLight,
     faEllipsis 
   } from '@fortawesome/free-solid-svg-icons';
   
@@ -235,7 +234,6 @@
       box-shadow:0 0 4px rgba(0,0,0,.3);
     `;
     
-    // Crear SVG de Font Awesome para el mapa
     const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     svg.setAttribute("width", "18");
     svg.setAttribute("height", "18");
@@ -309,9 +307,9 @@
             align-items: center;
             justify-content: center;
           ">
-            <div style="transform: scale(.99); display: flex;">
-              <Fa icon={m.icon} size="24px" color="#333" />
-            </div>
+            <svg width="40" height="20" viewBox="0 0 512 512" style="color: #333;">
+              <path fill="currentColor" d={m.icon.icon[4]} />
+            </svg>
           </div>
           <span style="font-size: 11px; font-weight: 500; color: #333; text-align: center;">{m.label}</span>
         </div>
