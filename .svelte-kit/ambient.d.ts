@@ -38,7 +38,7 @@ declare module '$env/static/private' {
 	export const ComSpec: string;
 	export const DriverData: string;
 	export const EDITOR: string;
-	export const EFC_7292_1592913036: string;
+	export const EFC_14272_1592913036: string;
 	export const GIT_ASKPASS: string;
 	export const GOOGLE_API_KEY: string;
 	export const HOME: string;
@@ -46,6 +46,7 @@ declare module '$env/static/private' {
 	export const HOMEPATH: string;
 	export const INIT_CWD: string;
 	export const java: string;
+	export const JAVA_HOME: string;
 	export const LANG: string;
 	export const LOCALAPPDATA: string;
 	export const LOGONSERVER: string;
@@ -151,7 +152,7 @@ declare module '$env/dynamic/private' {
 		ComSpec: string;
 		DriverData: string;
 		EDITOR: string;
-		EFC_7292_1592913036: string;
+		EFC_14272_1592913036: string;
 		GIT_ASKPASS: string;
 		GOOGLE_API_KEY: string;
 		HOME: string;
@@ -159,6 +160,7 @@ declare module '$env/dynamic/private' {
 		HOMEPATH: string;
 		INIT_CWD: string;
 		java: string;
+		JAVA_HOME: string;
 		LANG: string;
 		LOCALAPPDATA: string;
 		LOGONSERVER: string;
