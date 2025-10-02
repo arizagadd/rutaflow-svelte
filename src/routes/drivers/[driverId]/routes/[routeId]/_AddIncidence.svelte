@@ -10,10 +10,22 @@
     trash,
     closeSharp,
   } from "ionicons/icons";
-
-  /*Back URL*/
+  
+  // Font Awesome imports
+  import Fa from 'svelte-fa';
+  import { 
+    faCarBurst,
+    faHospital, 
+    faRestroom,
+    faUtensils,
+    faSquareParking,
+    faGasPump,
+    faUserSecret,
+    faTrafficLight,  // Semáforo
+    faEllipsis 
+  } from '@fortawesome/free-solid-svg-icons';
+  
   let back_url = DATABASE_URL;
-
   let overlayElement = document.querySelector("ion-modal");
   let routeId = overlayElement.componentProps.routeId;
   let selectedImages = "";
@@ -23,78 +35,60 @@
   let dataSession = new Object();
   let showModal = false;
   let currentImage = "";
-  let selectedMotive = ""; // accidente | hospital | baño | …
+  let selectedMotive = "";
   let motiveCoords = { lat: null, lng: null };
-  let mapDiv; // referencia al <div>
+  let mapDiv;
   let gMap, gMarker;
-
+  
   const motives = [
-    { id: "car_accident", icon: "/car-accident.svg", label: "Accidente" },
-    { id: "hospital", icon: "/hospital.svg", label: "Hospital" },
-    { id: "wc", icon: "/toilet.svg", label: "Baño" },
-    { id: "restaurant", icon: "/restaurant.svg", label: "Restaurant" },
-    { id: "parking", icon: "/parking.svg", label: "Parking" },
-    { id: "traffic", icon: "/traffic.svg", label: "Tráfico" },
+    { id: "car_accident", icon: faCarBurst, label: "Accidente", color: "#FFE4E1" },
+    { id: "hospital", icon: faHospital, label: "Hospital", color: "#E1F5E1" },
+    { id: "wc", icon: faRestroom, label: "Baño", color: "#E1E8FF" },
+    { id: "restaurant", icon: faUtensils, label: "Restaurant", color: "#FFE8D1" },
+    { id: "parking", icon: faSquareParking, label: "Parking", color: "#F0E1FF" },
+    { id: "traffic", icon: faTrafficLight, label: "Tráfico", color: "#FFF9E1" },
+    { id: "gas", icon: faGasPump, label: "Gasolina", color: "#FFEAA7" },
+    { id: "robbery", icon: faUserSecret, label: "Robo", color: "#FFD1DC" },
+    { id: "other", icon: faEllipsis, label: "Otro", color: "#E8E8E8" },
   ];
-
+  
   onMount(() => {
     dataSession = JSON.parse(localStorage.getItem("userSession"));
   });
-
+  
   const showAlert = async (customHeader, customMessage) => {
     const alert = await alertController.create({
-      header: customHeader || "Error", // Use customHeader or default value
-      message: customMessage || "Vuelva a intentar", // Use customMessage or default value
-      buttons: [
-        {
-          text: "Cerrar",
-        },
-      ],
+      header: customHeader || "Error",
+      message: customMessage || "Vuelva a intentar",
+      buttons: [{ text: "Cerrar" }],
     });
-
     await alert.present();
   };
-
+  
   const handleFileChange = async (event) => {
     isLoading = true;
-
     try {
       if (files.length >= 5) {
-        showAlert(
-          "Límite de evidencias",
-          "Solo se permite subir 5 fotos por parada"
-        );
+        showAlert("Límite de evidencias", "Solo se permite subir 5 fotos por parada");
         return;
       }
-
       const fileInput = event.target;
       const file = fileInput.files[0];
       const compressed_file = await compressImage(file);
-
       if (!compressed_file) {
         showAlert("Error", "No se pudo comprimir la imagen");
         return;
       }
-
       const lv = {
         fileToUpload: compressed_file,
         id_user_over: dataSession.id_user,
         token: dataSession.token,
       };
-
-      // Wrap getJson in a Promise so you can await it
       const uploadResponse = await new Promise((resolve, reject) => {
-        getJson(
-          `${back_url}api/admin/manager/upload_img_driver.php`,
-          (data) => resolve(data),
-          lv
-        );
+        getJson(`${back_url}api/admin/manager/upload_img_driver.php`, (data) => resolve(data), lv);
       });
-
       if (uploadResponse.success) {
-        selectedImages = selectedImages
-          ? `${selectedImages},${uploadResponse.img}`
-          : uploadResponse.img;
+        selectedImages = selectedImages ? `${selectedImages},${uploadResponse.img}` : uploadResponse.img;
         files = getImgsArray(selectedImages);
       } else {
         showAlert("Error", "No se pudo subir la imagen");
@@ -103,43 +97,35 @@
       console.error("Error during file upload:", error);
       showAlert("Error", "Algo salió mal al subir la imagen.");
     } finally {
-      isLoading = false; // Always turn off spinner
+      isLoading = false;
     }
   };
-
+  
   const compressImage = async (file) => {
     return new Promise((resolve) => {
       const img = new Image();
-      img.src = URL.createObjectURL(file); // More memory efficient
-
+      img.src = URL.createObjectURL(file);
       img.onload = () => {
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");
-
         const maxWidth = 800;
         const maxHeight = 600;
         let width = img.width;
         let height = img.height;
-
         if (width > maxWidth) {
           height *= maxWidth / width;
           width = maxWidth;
         }
-
         if (height > maxHeight) {
           width *= maxHeight / height;
           height = maxHeight;
         }
-
         canvas.width = width;
         canvas.height = height;
         ctx.drawImage(img, 0, 0, width, height);
-
-        // Convert to Blob and cleanup
         canvas.toBlob(
           (blob) => {
             resolve(blob);
-            // Clean up memory
             URL.revokeObjectURL(img.src);
             ctx.clearRect(0, 0, canvas.width, canvas.height);
           },
@@ -149,13 +135,13 @@
       };
     });
   };
-
+  
   const closeModal = () => {
     modalController.dismiss();
   };
-
+  
   const sendIncidence = () => {
-    isLoading = true; // Show spinner
+    isLoading = true;
     var lv = new Object();
     selectedImages = files.join(",");
     lv.id_route = routeId;
@@ -167,32 +153,23 @@
     lv.id_user_over = dataSession.id_user;
     lv.token = dataSession.token;
     lv.id_driver = dataSession.id_driver;
-
+    
     if (!selectedMotive || !selectedImages || !lv.comments || !lv.img) {
-      isLoading = false; // Hide spinner
-      showAlert(
-        "Datos incompletos",
-        "Llena los datos requeridos para completar el registro"
-      );
+      isLoading = false;
+      showAlert("Datos incompletos", "Llena los datos requeridos para completar el registro");
     } else if (!lv.lat || !lv.lng) {
-      isLoading = false; // Hide spinner
-      showAlert(
-        "Ubicación no disponible",
-        "Por favor, asegúrate de que la ubicación está activada en tu dispositivo."
-      );
+      isLoading = false;
+      showAlert("Ubicación no disponible", "Por favor, asegúrate de que la ubicación está activada en tu dispositivo.");
     } else {
       getJson(
         `${back_url}api/admin/incidence/add_incidence.php`,
         function (data) {
           if (data) {
-            isLoading = false; // Hide spinner
+            isLoading = false;
             showAlert("Éxito", "Incidencia registrada correctamente");
           } else {
-            isLoading = false; // Hide spinner
-            showAlert(
-              "Error",
-              "No se pudo registrar la incidencia. Por favor, inténtalo de nuevo."
-            );
+            isLoading = false;
+            showAlert("Error", "No se pudo registrar la incidencia. Por favor, inténtalo de nuevo.");
           }
           closeModal();
         },
@@ -200,42 +177,41 @@
       );
     }
   };
-
+  
   const openImage = (image) => {
     currentImage = image;
     showModal = true;
   };
-
+  
   const closeImgModal = () => {
     showModal = false;
     currentImage = "";
   };
-
+  
   async function selectMotive(m) {
     selectedMotive = m;
-    isLoading = true; // Show spinner
-
+    isLoading = true;
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
           motiveCoords.lat = pos.coords.latitude;
           motiveCoords.lng = pos.coords.longitude;
-          await loadMotiveMap(); // pinta / actualiza mapa
+          await loadMotiveMap();
         },
-        () => console.log("Geolocalización denegada")
+        () => {
+          console.log("Geolocalización denegada");
+          isLoading = false;
+        }
       );
     }
   }
-
-  /** Carga Google Maps (una sola vez) y coloca/actualiza pin */
+  
   async function loadMotiveMap() {
-    await tick(); // asegura que #motive-map existe
+    await tick();
     if (!mapDiv) return;
-
-    const { Map } = await google.maps.importLibrary("maps"); // mapa base
-    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker"); // nueva librería
-
-    /* ⬇️ 1. Mapa (se crea una sola vez) */
+    const { Map } = await google.maps.importLibrary("maps");
+    const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
+    
     if (!gMap) {
       gMap = new Map(mapDiv, {
         zoom: 15,
@@ -245,38 +221,42 @@
     } else {
       gMap.setCenter(motiveCoords);
     }
-
-    /* ⬇️ 2. Icono según motivo */
+    
     const motiveObj = motives.find((m) => m.id === selectedMotive);
     if (!motiveObj) return;
-
-    /* ⬇️ 3. Borra pin previo */
+    
     if (gMarker) gMarker.setMap(null);
-
-    /* ⬇️ 4. Contenedor para el pin */
+    
     const pinDiv = document.createElement("div");
     pinDiv.style.cssText = `
       display:flex;align-items:center;justify-content:center;
       width:38px;height:38px;border-radius:50%;
       background:#ffffff;border:2px solid #d13434;
       box-shadow:0 0 4px rgba(0,0,0,.3);
-  `;
-
-    const ion = document.createElement("ion-icon");
-    ion.setAttribute("icon", motiveObj.icon); // p.e. "warning-outline"
-    ion.style.cssText = "font-size:24px;color:#d13434;";
-    pinDiv.appendChild(ion);
-
-    /* ⬇️ 5. Pin en el mapa */
+    `;
+    
+    // Crear SVG de Font Awesome para el mapa
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("width", "24");
+    svg.setAttribute("height", "24");
+    svg.setAttribute("viewBox", "0 0 512 512");
+    svg.style.cssText = "color:#d13434;";
+    
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("fill", "currentColor");
+    path.setAttribute("d", motiveObj.icon.icon[4]);
+    svg.appendChild(path);
+    pinDiv.appendChild(svg);
+    
     gMarker = new AdvancedMarkerElement({
       map: gMap,
       position: motiveCoords,
       title: motiveObj.label,
       content: pinDiv,
     });
-    isLoading = false; // Oculta spinner
+    isLoading = false;
   }
-
+  
   function toRemoveFiles(index = 0) {
     var response = removeFile(index, files, [""], selectedImages);
     files = response.files;
@@ -289,161 +269,199 @@
     <ion-buttons slot="start">
       <ion-button color="medium" on:click={closeModal}>Cancelar</ion-button>
     </ion-buttons>
-    <ion-title title="">AGREGAR INCIDENCIA</ion-title>
+    <ion-title>Agregar Incidencia</ion-title>
     <ion-buttons slot="end">
-      <ion-button on:click={sendIncidence} strong>Confirmar</ion-button>
+      <ion-button color="primary" on:click={sendIncidence} strong>Confirmar</ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
+
 <ion-content fullscreen>
-  <ion-list>
-    <!-- MOTIVO ---------------------------------------------------------->
-    <ion-item
-      lines="none"
-      class="motive-item"
-      style="display: grid; justify-content: center; margin-bottom:15px;"
-    >
-      <!-- Grid de botones -->
-      <div
-        class="motive-grid"
-        style="display: flex;
-              gap: 8px;
-              flex-wrap: wrap;
-              justify-content: center;
-              margin-top: 6px;"
+  <!-- Tipo de Incidencia -->
+  <div style="padding: 12px; background: white; margin: 10px; border-radius: 12px;">
+    <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: 600;">Tipo de Incidencia</h3>
+    
+    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+      {#each motives as m}
+        <div 
+          on:click={() => selectMotive(m.id)}
+          style="
+            width: calc(33.333% - 7px);
+            background: white;
+            border: {selectedMotive === m.id ? '2px solid #3880ff' : '2px solid #e0e0e0'};
+            border-radius: 10px;
+            padding: 10px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            box-sizing: border-box;
+            box-shadow: {selectedMotive === m.id ? '0 2px 8px rgba(56, 128, 255, 0.2)' : 'none'};
+          "
+        >
+          <div style="
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: {m.color};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            <Fa icon={m.icon} size="24px" color="#333" />
+          </div>
+          <span style="font-size: 11px; font-weight: 500; color: #333; text-align: center;">{m.label}</span>
+        </div>
+      {/each}
+    </div>
+  </div>
+
+  <!-- MAPA -->
+  {#if motiveCoords.lat}
+    <div id="motive-map" bind:this={mapDiv} style="height:140px; margin:0 10px 10px 10px; border-radius:10px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);" />
+  {/if}
+
+  <!-- Comentarios -->
+  <div style="padding: 12px; background: white; margin: 0 10px 10px 10px; border-radius: 12px;">
+    <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600;">Comentarios</h3>
+    <ion-item lines="none" style="--background: #f5f5f5; --border-radius: 10px;">
+      <ion-textarea bind:this={comments} placeholder="Describe la incidencia aquí..." rows="2" />
+    </ion-item>
+  </div>
+
+  <!-- Subir Evidencia -->
+  <section style="padding: 0 10px 10px 10px;">
+    <label for="eventEvidence" style="display: block; width: 100%;">
+      <ion-button
+        fill="outline"
+        color="primary"
+        expand="block"
+        style="--border-radius: 10px; height: 40px; font-size: 14px;"
       >
-        {#each motives as m}
-          <div class="motive-button">
-            <ion-button
-              color={selectedMotive === m.id ? "primary" : "medium"}
-              fill="clear"
-              size="small"
-              on:click={() => selectMotive(m.id)}
+        <label for="eventEvidence" style="width:100%; padding:8px; cursor: pointer;">
+          <ion-icon icon={duplicateOutline} slot="start" />
+          Subir Evidencia
+        </label>
+        <input
+          style="display:none;"
+          id="eventEvidence"
+          name="fileToUpload"
+          type="file"
+          accept="image/*"
+          capture="environment"
+          on:change={handleFileChange}
+        />
+      </ion-button>
+    </label>
+  </section>
+
+  <!-- Imágenes -->
+  {#if selectedImages}
+    <section style="padding: 0 10px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        {#each files as file, index}
+          <div style="width: calc(33.333% - 6px); position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; box-sizing: border-box;">
+            <ion-img 
+              src={file} 
+              alt="Evidencia fotográfica" 
+              on:click={() => openImage(file)} 
+              style="width: 100%; height: 100%; object-fit: cover; border: 1px solid #ddd; cursor: pointer;" 
+            />
+            <button 
+              on:click={() => toRemoveFiles(index)} 
+              style="
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                width: 24px;
+                height: 24px;
+                background: rgba(255,255,255,0.95);
+                border: none;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #d13434;
+                box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+                cursor: pointer;
+                font-size: 16px;
+              "
             >
-              <ion-icon slot="icon-only" icon={m.icon} />
-            </ion-button>
-            <div
-              class="motive-caption"
-              style="font-size: 11px;
-                    margin-top: 2px;
-                    text-align: center;
-                    line-height: 1.1;"
-            >
-              {m.label}
-            </div>
+              <ion-icon icon={trash} />
+            </button>
           </div>
         {/each}
       </div>
-    </ion-item>
-
-    <!-- MAPA (solo si hay coordenadas) --------------------------------->
-    {#if motiveCoords.lat}
-      <div
-        id="motive-map"
-        bind:this={mapDiv}
-        style="height:220px;margin:12px 16px;border-radius:8px;"
-      />
-    {/if}
-    <!-- Concepto ---------------------------------------------------------->
-    <ion-item>
-      <ion-icon icon={createOutline} slot="start" />
-      <ion-textarea
-        label="Comentarios"
-        bind:this={comments}
-        placeholder="Escribe aquí..."
-      />
-    </ion-item>
-    <section>
-      <label for="eventEvidence" style="display: block; width: 100%;">
-        <ion-button
-          fill="outline"
-          size="small"
-          class="loadEvidence"
-          expand="block"
-        >
-          <label for="eventEvidence" style="width:100%;padding:8px;">
-            <ion-icon icon={duplicateOutline} slot="start" />
-            Subir Evidencia
-          </label>
-          <input
-            style="display:none;"
-            id="eventEvidence"
-            name="fileToUpload"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            on:change={handleFileChange}
-          />
-        </ion-button>
-      </label>
     </section>
-    {#if selectedImages}
-      <section>
-        <div
-          class="image-grid"
-          style="display: grid;grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));gap: 10px;padding: 0px 10px;"
-        >
-          {#each files as file, index}
-            <div class="image-container" style="position: relative;">
-              <ion-img
-                src={file}
-                alt="Evidencia fotográfica"
-                style="width: 100%;height: 100px; object-fit:cover;cursor: pointer;border: 1px solid #ccc;border-radius: 4px;margin-top: 16px;"
-                on:click={() => openImage(file)}
-              />
-              <button
-                class="remove-button"
-                on:click={() => toRemoveFiles(index)}
-                style="position: absolute;top: 5px;right: 5px;border:none;cursor: pointer;font-size: 18px;background: white;border-radius: 50%;padding: 3px 4px 0px;box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);color: #0000008f;"
-              >
-                <ion-icon icon={trash} />
-              </button>
-            </div>
-          {/each}
-        </div>
-      </section>
-    {/if}
-  </ion-list>
+  {/if}
 </ion-content>
+
 {#if showModal}
-  <div
-    class="modal-overlay"
-    on:click={closeImgModal}
-    style="position: fixed;top: 0;left: 0;width: 100vw;height: 100vh; background: rgba(0, 0, 0, 0.8);display: flex;justify-content: center;align-items: center;z-index: 1000;"
+  <div 
+    on:click={closeImgModal} 
+    style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+    "
   >
-    <div
-      class="modal-content"
-      on:click|stopPropagation
-      style="position: relative;background: white;padding: 20px;border-radius: 8px;max-width: 90vw;max-height: 90vh;overflow: auto;"
+    <div 
+      on:click|stopPropagation 
+      style="
+        position: relative;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 90vw;
+        max-height: 90vh;
+      "
     >
-      <ion-img
-        src={currentImage}
-        alt="Evidencia fotográfica"
-        style="width:100%; height:auto;"
-      />
-      <button
-        class="close-button"
-        on:click={closeImgModal}
-        style="position: absolute;top: 5px;right: 5px;background: white;color: #444444d1;border: none;cursor: pointer;padding: 2px 2px 0px 6px;border-radius: 50%;font-size: 20px;"
+      <ion-img src={currentImage} alt="Evidencia fotográfica" style="width:100%; height:auto;" />
+      <button 
+        on:click={closeImgModal} 
+        style="
+          position: absolute;
+          top: 10px;
+          right: 10px;
+          width: 36px;
+          height: 36px;
+          background: rgba(255,255,255,0.95);
+          border: none;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+        "
       >
         <ion-icon icon={closeSharp} />
       </button>
     </div>
   </div>
 {/if}
+
 {#if isLoading}
-  <div
-    class="overlay"
-    style="position: fixed;
-                              top: 0;
-                              left: 0;
-                              width: 100vw;
-                              height: 100vh;
-                              background: rgba(0, 0, 0, 0.5);
-                              display: flex;
-                              align-items: center;
-                              justify-content: center;
-                              z-index: 9999;"
+  <div 
+    style="
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    "
   >
     <ion-spinner name="dots" style="color:white;" />
   </div>

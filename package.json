@@ -18,6 +18,7 @@
 		"@sveltejs/adapter-node": "^5.0.1",
 		"@sveltejs/adapter-static": "^3.0.1",
 		"@sveltejs/kit": "^2.5.4",
+		"@sveltejs/vite-plugin-svelte": "^3.1.2",
 		"eslint": "^8.28.0",
 		"eslint-config-prettier": "^8.5.0",
 		"eslint-plugin-svelte": "^2.30.0",
@@ -34,11 +35,13 @@
 	"dependencies": {
 		"@capacitor/core": "^5.5.1",
 		"@capacitor/ios": "^5.5.1",
+		"@fortawesome/free-solid-svg-icons": "^7.1.0",
 		"@ionic/core": "^7.5.4",
 		"@macfja/svelte-persistent-store": "^2.4.1",
 		"ionic-svelte": "^0.5.82",
 		"ionicons": "^7.2.1",
 		"polka": "^0.5.2",
-		"signature_pad": "^5.0.10"
+		"signature_pad": "^5.0.10",
+		"svelte-fa": "^4.0.4"
 	}
 }
