@@ -1423,4 +1423,5 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
         height: 400px;
         width: 100%;
     }
+    
 </style>
