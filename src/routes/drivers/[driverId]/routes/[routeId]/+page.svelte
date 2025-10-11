@@ -128,7 +128,6 @@ async function maybeWarnChecklist(): Promise<boolean> {
       buttons: [
                 {
           text: "Previsualizar",
-          role: "cancel",
           handler: () => {
             checklistWarnShown = true;
             showStartButton = true;
