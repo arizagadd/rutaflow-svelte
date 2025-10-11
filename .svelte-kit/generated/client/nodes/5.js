@@ -1,1 +1,0 @@
-export { default as component } from "../../../../src/routes/drivers/[driverId]/routes/[routeId]/+page.svelte";
