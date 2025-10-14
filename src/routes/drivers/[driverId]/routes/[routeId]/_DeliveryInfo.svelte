@@ -41,6 +41,7 @@
     let isLast = overlayElement.componentProps.isLast || false;
     let OriDesFlag = overlayElement.componentProps.flag || false;
     let readOnly = !!overlayElement.componentProps.readOnly; // ← MODO LECTURA
+    let maybeWarnChecklist = overlayElement.componentProps.maybeWarnChecklist; // ← FUNCIÓN DE ADVERTENCIA
     let driverComments = delivery.driver_comments
         ? delivery.driver_comments
         : "";
@@ -793,7 +794,17 @@
         {/if}
         {#if delivery.line1 && delivery.line1.trim().length}
             <ion-item
-                href="https://www.google.com/maps/search/?api=1&query={delivery.line1}"
+                button
+                on:click={async () => {
+                    if (maybeWarnChecklist) {
+                        const proceed = await maybeWarnChecklist();
+                        if (proceed) {
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${delivery.line1}`, '_blank');
+                        }
+                    } else {
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${delivery.line1}`, '_blank');
+                    }
+                }}
             >
                 <ion-icon icon={storefrontOutline} slot="start" />
                 <ion-label class="ion-text-wrap">
@@ -804,7 +815,17 @@
             </ion-item>
             {#if delivery.line2 && delivery.line2.trim().length}
                 <ion-item
-                    href="https://www.google.com/maps/search/?api=1&query={delivery.line2}"
+                    button
+                    on:click={async () => {
+                        if (maybeWarnChecklist) {
+                            const proceed = await maybeWarnChecklist();
+                            if (proceed) {
+                                window.open(`https://www.google.com/maps/search/?api=1&query=${delivery.line2}`, '_blank');
+                            }
+                        } else {
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${delivery.line2}`, '_blank');
+                        }
+                    }}
                 >
                     <ion-icon icon={storefrontOutline} slot="start" />
                     <ion-label class="ion-text-wrap">
@@ -816,7 +837,17 @@
             {/if}
         {:else if delivery.line2 && delivery.line2.trim().length}
             <ion-item
-                href="https://www.google.com/maps/searhc/?api=1&query={delivery.line2}"
+                button
+                on:click={async () => {
+                    if (maybeWarnChecklist) {
+                        const proceed = await maybeWarnChecklist();
+                        if (proceed) {
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${delivery.line2}`, '_blank');
+                        }
+                    } else {
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${delivery.line2}`, '_blank');
+                    }
+                }}
             >
                 <ion-icon icon={storefrontOutline} slot="start" />
                 <ion-label class="ion-text-wrap">

@@ -50,6 +50,7 @@
 
     // NUEVO: para no repetir la advertencia cada vez
     let checklistWarnShown = false;
+    let alertInProgress = false; // para evitar múltiples alerts
 
     const motiveIconName:any = {
         car_accident: "/car-accident.svg",
@@ -61,17 +62,23 @@
     };
 
     const refresh = async () => {
+        // Resetear la advertencia al refrescar para que pueda aparecer de nuevo
+        checklistWarnShown = false;
         await loadRoute(routeId);
         refresher.complete();
     };
 
     onMount(async () => {
+        // Resetear la advertencia al cargar la página
+        checklistWarnShown = false;
         checkSettings();
         await loadRoute(routeId);
     });
 
     $: {
         ({ routeId, driverId } = $page.params);
+        // Resetear la advertencia cuando cambian los parámetros
+        checklistWarnShown = false;
         dataSession = JSON.parse(localStorage.getItem("userSession"));
         if (dataSession) {
             if (
@@ -106,7 +113,18 @@ function needsChecklistOrKmGas() {
   // checklist obligatorio incompleto
   const mandatoryIncomplete = hasMandatoryChecklistIncomplete();
 
-  return kmGasMissing || mandatoryIncomplete;
+  const result = kmGasMissing || mandatoryIncomplete;
+  
+  console.log('🔍 needsChecklistOrKmGas:', {
+    showChecklist,
+    km_inicial: stats?.km_inicial,
+    gas_inicial: stats?.gas_inicial,
+    kmGasMissing,
+    mandatoryIncomplete,
+    result
+  });
+
+  return result;
 }
 
 // ➕ NUEVO: true = puede editar, false = SOLO LECTURA
@@ -116,21 +134,36 @@ function canEditStops() {
 
 // 🔁 Reemplaza COMPLETA la función maybeWarnChecklist por esta
 async function maybeWarnChecklist(): Promise<boolean> {
-  // si ya se mostró o no hace falta advertir, continuar
-  if (checklistWarnShown) return true;
-  if (!needsChecklistOrKmGas()) return true;
+  console.log('🔍 maybeWarnChecklist called:', {
+    checklistWarnShown,
+    needsChecklist: needsChecklistOrKmGas(),
+    alertInProgress,
+    showChecklist,
+    km_inicial: stats?.km_inicial,
+    gas_inicial: stats?.gas_inicial,
+    checklist: checklist?.length
+  });
+  
+  // evitar múltiples alerts
+  if (alertInProgress) {
+    console.log('⏳ Alert en progreso, continuando...');
+    return true;
+  }
 
-  return new Promise(async (resolve) => {
-    const alert = await alertController.create({
+  console.log('🚨 Mostrando advertencia del checklist...');
+  alertInProgress = true;
+
+  return new Promise((resolve) => {
+    alertController.create({
       header: "Checklist",
-      message:
-        "Favor de completar checklist para iniciar viaje ✅",
+      message: "Favor de completar checklist para iniciar viaje ✅",
       buttons: [
-                {
+        {
           text: "Previsualizar",
           handler: () => {
             checklistWarnShown = true;
             showStartButton = true;
+            alertInProgress = false;
             resolve(true); // continuar
           },
         },
@@ -138,14 +171,19 @@ async function maybeWarnChecklist(): Promise<boolean> {
           text: "Completar",
           handler: () => {
             checklistWarnShown = true;
+            alertInProgress = false;
             showChecklistModal(checklist, driverId, routeId);
             resolve(false); // NO continuar
           },
         },
-
       ],
+    }).then(alert => {
+      alert.present();
+    }).catch(error => {
+      console.error('Error en maybeWarnChecklist:', error);
+      alertInProgress = false;
+      resolve(true); // continuar en caso de error
     });
-    await alert.present();
   });
 }
 
@@ -301,8 +339,11 @@ async function maybeWarnChecklist(): Promise<boolean> {
                         delivery.title,
                 });
 
-                waypointMarker.addListener("click", function () {
-                    showDeliveryInfoModal(delivery, false);
+                waypointMarker.addListener("click", async function () {
+                    const proceed = await maybeWarnChecklist();
+                    if (proceed) {
+                        showDeliveryInfoModal(delivery, false);
+                    }
                 });
 
                 bounds.extend(marker.getPosition()!);
@@ -393,12 +434,15 @@ async function maybeWarnChecklist(): Promise<boolean> {
             title: contentConfig.title + ": " + obj.title,
         });
 
-        waypointMarker.addListener("click", function () {
-            showOrigenDestinyModal(
-                stats,
-                contentConfig.title == "Destino" ||
-                    contentConfig.title == "Origen/Destino"
-            );
+        waypointMarker.addListener("click", async function () {
+            const proceed = await maybeWarnChecklist();
+            if (proceed) {
+                showOrigenDestinyModal(
+                    stats,
+                    contentConfig.title == "Destino" ||
+                        contentConfig.title == "Origen/Destino"
+                );
+            }
         });
 
         return marker;
@@ -531,6 +575,8 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
         isLast,
         // 👇 PASA EL MODO LECTURA AL MODAL
         readOnly: isReadOnly,
+        // 👇 PASA LA FUNCIÓN DE ADVERTENCIA
+        maybeWarnChecklist,
       });
     } finally {
       deliveryInfoModalPromise = null;
@@ -571,6 +617,8 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
     flag,
     // 👇 Solo lectura si falta checklist obligatorio o KM/Gas inicial
     readOnly: !canEditStops(),
+    // 👇 PASA LA FUNCIÓN DE ADVERTENCIA
+    maybeWarnChecklist,
   });
 };
 
@@ -756,10 +804,20 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                     >
                 </ion-buttons>
                 <ion-buttons slot="end">
-                    <ion-button on:click={() => showIncidenceModal(routeId)}
+                    <ion-button on:click={async () => {
+                        const proceed = await maybeWarnChecklist();
+                        if (proceed) {
+                            showIncidenceModal(routeId);
+                        }
+                    }}
                         ><ion-icon icon={warningOutline} /></ion-button
                     >
-                    <ion-button on:click={() => showExpenseModal(routeId)}
+                    <ion-button on:click={async () => {
+                        const proceed = await maybeWarnChecklist();
+                        if (proceed) {
+                            showExpenseModal(routeId);
+                        }
+                    }}
                         ><ion-icon icon={cashOutline} /></ion-button
                     >
                 </ion-buttons>
@@ -815,8 +873,11 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                                 </ion-avatar>
                                 <ion-label
                                     button
-                                    on:click={() => {
-                                        showOrigenDestinyModal(stats, false);
+                                    on:click={async () => {
+                                        const proceed = await maybeWarnChecklist();
+                                        if (proceed) {
+                                            showOrigenDestinyModal(stats, false);
+                                        }
                                     }}
                                 >
                                     <ion-text color="#2e2e2e">
@@ -852,7 +913,7 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                                     </ion-avatar>
                                     <ion-label
                                         button
-                                        on:click={() => {
+                                        on:click={async () => {
                                             const currentIndex =
                                                 deliveries.findIndex(
                                                     (item) =>
@@ -882,10 +943,13 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                                                     !currentDeliveryHasImage) ||
                                                 orderRestriction == "1"
                                             ) {
-                                                showDeliveryInfoModal(
-                                                    delivery,
-                                                    false
-                                                );
+                                                const proceed = await maybeWarnChecklist();
+                                                if (proceed) {
+                                                    showDeliveryInfoModal(
+                                                        delivery,
+                                                        false
+                                                    );
+                                                }
                                             } else {
                                                 showAlert(
                                                     "Información incompleta",
@@ -958,8 +1022,11 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                                 </ion-avatar>
                                 <ion-label
                                     button
-                                    on:click={() => {
-                                        showOrigenDestinyModal(stats, true);
+                                    on:click={async () => {
+                                        const proceed = await maybeWarnChecklist();
+                                        if (proceed) {
+                                            showOrigenDestinyModal(stats, true);
+                                        }
                                     }}
                                 >
                                     <ion-text color="#2e2e2e">
@@ -1005,8 +1072,11 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                                 </ion-avatar>
                                 <ion-label
                                     button
-                                    on:click={() => {
-                                        showOrigenDestinyModal(stats, false);
+                                    on:click={async () => {
+                                        const proceed = await maybeWarnChecklist();
+                                        if (proceed) {
+                                            showOrigenDestinyModal(stats, false);
+                                        }
                                     }}
                                 >
                                     <ion-text color="#2e2e2e">
@@ -1042,7 +1112,7 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                                     </ion-avatar>
                                     <ion-label
                                         button
-                                        on:click={() => {
+                                        on:click={async () => {
                                             const currentIndex =
                                                 deliveries.findIndex(
                                                     (item) =>
@@ -1072,10 +1142,13 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                                                     !currentDeliveryHasImage) ||
                                                 orderRestriction == "1"
                                             ) {
-                                                showDeliveryInfoModal(
-                                                    delivery,
-                                                    false
-                                                );
+                                                const proceed = await maybeWarnChecklist();
+                                                if (proceed) {
+                                                    showDeliveryInfoModal(
+                                                        delivery,
+                                                        false
+                                                    );
+                                                }
                                             } else {
                                                 showAlert(
                                                     "Información incompleta",
@@ -1148,8 +1221,11 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                                 </ion-avatar>
                                 <ion-label
                                     button
-                                    on:click={() => {
-                                        showOrigenDestinyModal(stats, true);
+                                    on:click={async () => {
+                                        const proceed = await maybeWarnChecklist();
+                                        if (proceed) {
+                                            showOrigenDestinyModal(stats, true);
+                                        }
                                     }}
                                 >
                                     <ion-text color="#2e2e2e">
@@ -1230,7 +1306,7 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                                 </ion-avatar>
                                 <ion-label
                                     button
-                                    on:click={() => {
+                                    on:click={async () => {
                                         const currentIndex =
                                             deliveries.findIndex(
                                                 (item) =>
