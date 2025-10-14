@@ -122,7 +122,10 @@ function needsChecklistOrKmGas() {
     gas_inicial: stats?.gas_inicial,
     kmGasMissing,
     mandatoryIncomplete,
-    result
+    result,
+    checklist: checklist?.length,
+    mandatoryItems: checklist?.filter((i:any) => i.mandatory === "1")?.length,
+    completedMandatory: checklist?.filter((i:any) => i.mandatory === "1" && i.img)?.length
   });
 
   return result;
@@ -144,6 +147,12 @@ async function maybeWarnChecklist(): Promise<boolean> {
     gas_inicial: stats?.gas_inicial,
     checklist: checklist?.length
   });
+  
+  // Si ya no necesita checklist, permitir continuar
+  if (!needsChecklistOrKmGas()) {
+    console.log('✅ Checklist completado, permitiendo continuar...');
+    return true;
+  }
   
   // evitar múltiples alerts
   if (alertInProgress) {
@@ -478,6 +487,7 @@ async function maybeWarnChecklist(): Promise<boolean> {
             if (needsChecklistOrKmGas()) {
                 showStartButton = true;
             }
+            // No ocultar el botón después de completar el checklist - mantenerlo visible
 
             // Advertir si faltan km/gas o checklist obligatorio (solo una vez)
             if (!checklistWarnShown && needsChecklistOrKmGas() && hasMandatoryChecklistIncomplete()) {
@@ -650,12 +660,15 @@ async function maybeWarnChecklist(): Promise<boolean> {
             canDismiss: true,
             showBackdrop: true
           }
-        ).then(() => {
+        ).then(async () => {
           isLoading = false;
           isModalOpen = false;
           routeStarted = true; // NUEVO: cambiar a verde después de presionar
           // al cerrar el modal, refrescamos por si se completó algo
-          loadRoute(routeId);
+          await loadRoute(routeId);
+          // Resetear la advertencia para que pueda aparecer de nuevo si es necesario
+          checklistWarnShown = false;
+          console.log('🔄 Modal cerrado, data refrescada, warnings reseteados');
         });
         // (opcional) changeRouteStatus(routeId, "checklist");
       }

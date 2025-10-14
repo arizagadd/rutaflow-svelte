@@ -261,6 +261,7 @@
             .then((response) => response.json())
             .then(() => {
               changeRouteStatus(routeId, statusAfter);
+              console.log('✅ Evidencia enviada, estado actualizado:', statusAfter);
             })
             .catch((error) => {
               console.error("Error fetching data:", error);
