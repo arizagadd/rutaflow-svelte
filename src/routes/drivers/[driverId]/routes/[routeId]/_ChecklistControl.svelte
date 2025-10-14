@@ -95,13 +95,19 @@
     await alert.present();
   };
 
-  const showAlert = async (customHeader, customMessage) => {
+  const showAlert = async (customHeader, customMessage, onCloseCallback = null) => {
     const alert = await alertController.create({
       header: customHeader || "Error", // Use customHeader or default value
       message: customMessage || "Vuelva a intentar", // Use customMessage or default value
       buttons: [
         {
           text: "Cerrar",
+          handler: () => {
+            if (onCloseCallback && typeof onCloseCallback === 'function') {
+              onCloseCallback();
+            }
+            return true; // Allow the alert to close
+          }
         },
       ],
     });
@@ -193,7 +199,8 @@
               isLoading = false;
               showAlert(
                 "Datos capturados",
-                "El kilometraje y gasolina final fueron registrados correctamente, espere aprobación para finalizar ruta"
+                "El kilometraje y gasolina final fueron registrados correctamente, espere aprobación para finalizar ruta",
+                closeRouteAndNavigate
               );
             } else {
               isLoading = false;
@@ -505,6 +512,21 @@
       );
     });
   }
+
+  const closeRouteAndNavigate = () => {
+    // Cambiar el estado de la ruta a "completed" o "finished"
+    changeRouteStatus(routeId, "completed");
+    
+    // Navegar de vuelta a la página del conductor
+    if (dataSession.type == "super" || dataSession.type == "admin") {
+      goto(`/drivers/me`);
+    } else if (dataSession.id_driver) {
+      goto(`/drivers/${dataSession.id_driver}`);
+    } else {
+      // Fallback: ir a la página principal de conductores
+      goto(`/drivers`);
+    }
+  };
 </script>
 
 <ion-header translucent>
