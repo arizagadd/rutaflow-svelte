@@ -46,6 +46,7 @@
     let deliveryInfoModalPromise: Promise<any> | "" = "";
     let isLoading = false;
     let showStartButton = false; // mostrará el botón tras "Previsualizar"
+    let routeStarted = false; // NUEVO: para controlar el cambio de color
 
 
     // NUEVO: para no repetir la advertencia cada vez
@@ -473,12 +474,15 @@ async function maybeWarnChecklist(): Promise<boolean> {
                     stats.km_inicial == "0" && stats.gas_inicial == "0";
             }
 
+            // NUEVO: Mostrar botón automáticamente si hay checklist pendiente
+            if (needsChecklistOrKmGas()) {
+                showStartButton = true;
+            }
+
             // Advertir si faltan km/gas o checklist obligatorio (solo una vez)
-if (!checklistWarnShown && needsChecklistOrKmGas()) {
-  await maybeWarnChecklist();
-}
-
-
+            if (!checklistWarnShown && needsChecklistOrKmGas() && hasMandatoryChecklistIncomplete()) {
+              await maybeWarnChecklist();
+            }
 
             loading = false; // Data loading complete
         } catch (error) {
@@ -624,6 +628,11 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
 
 
     const showChecklistModal = (checklist:any[], driverId:string, routeId:string) => {
+      // NUEVO: Si ya se presionó el botón (routeStarted), no abrir el modal
+      if (routeStarted) {
+        return "";
+      }
+
       const isLast = false;
       isLoading = true;
       if (!isModalOpen) {
@@ -644,6 +653,7 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
         ).then(() => {
           isLoading = false;
           isModalOpen = false;
+          routeStarted = true; // NUEVO: cambiar a verde después de presionar
           // al cerrar el modal, refrescamos por si se completó algo
           loadRoute(routeId);
         });
@@ -1431,11 +1441,11 @@ if (!checklistWarnShown && needsChecklistOrKmGas()) {
                   <ion-button
                     expand="block"
                     size="large"
-                    color="primary"
+                    color={routeStarted ? "success" : "primary"}
                     on:click={() => showChecklistModal(checklist, driverId, routeId)}
                     style="margin: 8px;"
                   >
-                    Iniciar ruta
+                    {routeStarted ? "Ruta iniciada ✓" : "Iniciar ruta"}
                   </ion-button>
                 </ion-toolbar>
               </ion-footer>
