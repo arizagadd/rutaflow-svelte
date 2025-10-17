@@ -178,7 +178,7 @@
         <ion-buttons slot="start">
           <ion-button color="medium" on:click={closeModal}>Cancelar</ion-button>
         </ion-buttons>
-        <ion-title title="" style="text-align: right; margin-right: 20px;">REGISTRAR</ion-title>
+        <ion-title style="text-align: center;">REGISTRAR</ion-title>
         <ion-buttons slot="end">
           <ion-button on:click={sendExpense} strong>Confirmar</ion-button>
         </ion-buttons>
