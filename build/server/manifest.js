@@ -10,6 +10,7 @@ return {
 	assets: new Set(["car-accident.svg","favicon.png","hospital.svg","parking.svg","restaurant.svg","rutaflow.png","toilet.svg","traffic.svg"]),
 	mimeTypes: {".svg":"image/svg+xml",".png":"image/png"},
 	_: {
+<<<<<<< HEAD
 		client: {"start":"_app/immutable/entry/start.Bgg1PeXc.js","app":"_app/immutable/entry/app.BO3jTqT8.js","imports":["_app/immutable/entry/start.Bgg1PeXc.js","_app/immutable/chunks/entry.ajYgCYmH.js","_app/immutable/chunks/index.BgXu2Isl.js","_app/immutable/entry/app.BO3jTqT8.js","_app/immutable/chunks/preload-helper.D6kgxu3v.js","_app/immutable/chunks/entry.ajYgCYmH.js","_app/immutable/chunks/index.BgXu2Isl.js","_app/immutable/chunks/index.Dk8PUFqT.js"],"stylesheets":[],"fonts":[],"uses_env_dynamic_public":false},
 		nodes: [
 			__memo(() => import('./chunks/0-wKP_9mO4.js')),
@@ -17,6 +18,15 @@ return {
 			__memo(() => import('./chunks/2-Bz2PY8st.js')),
 			__memo(() => import('./chunks/4-vkXqUPch.js')),
 			__memo(() => import('./chunks/5-Dn8uVw7g.js'))
+=======
+		client: {"start":"_app/immutable/entry/start.BdDrF0AW.js","app":"_app/immutable/entry/app.DHIbzD_2.js","imports":["_app/immutable/entry/start.BdDrF0AW.js","_app/immutable/chunks/entry.O-PURUYZ.js","_app/immutable/chunks/index.BgXu2Isl.js","_app/immutable/entry/app.DHIbzD_2.js","_app/immutable/chunks/preload-helper.D6kgxu3v.js","_app/immutable/chunks/entry.O-PURUYZ.js","_app/immutable/chunks/index.BgXu2Isl.js","_app/immutable/chunks/index.Dk8PUFqT.js"],"stylesheets":[],"fonts":[],"uses_env_dynamic_public":false},
+		nodes: [
+			__memo(() => import('./chunks/0-wKP_9mO4.js')),
+			__memo(() => import('./chunks/1-CziRVLzM.js')),
+			__memo(() => import('./chunks/2-B0LksqNj.js')),
+			__memo(() => import('./chunks/4-CbFyQETF.js')),
+			__memo(() => import('./chunks/5-DHEOMV5U.js'))
+>>>>>>> dev
 		],
 		routes: [
 			{

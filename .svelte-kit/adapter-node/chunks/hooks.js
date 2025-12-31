@@ -6,7 +6,7 @@ async function handle404() {
     await goto();
   }
 }
-const DATABASE_URL = "https://app.rutaflow.com/";
+const DATABASE_URL = "https://dev.rutaflow.com/";
 const WP_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZF9jbGllbnQiOjcsIm5hbWUiOiJydXRhZmxvd19wcm9kIiwicGFzc3dvcmQiOiIkMmIkMDUkNy8xa21EZXd5UEZqSDQ1R0VlT1ZuLnNSb2dZcWlON0JYMFcuSVlHZWFkUE9FZDJaYUxFRHEiLCJxciI6bnVsbCwicGhvbmUiOiI1MjEzMzI0NDA2MzU0Iiwic2VydmljZSI6InJ1dGFmbG93X3Byb2QiLCJpYXQiOjE3NDgzMjkxMTN9.aBM3PdCFaMAUouerIxchXwEtS6hKGIFOS6KUvwg-DEQ";
 const WP_URL = "https://ywp-whatsapp-dev.up.railway.app/api/send/whatsapp";
 export {
